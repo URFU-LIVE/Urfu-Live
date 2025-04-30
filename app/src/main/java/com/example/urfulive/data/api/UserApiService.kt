@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.InternalAPI
 import kotlinx.serialization.json.Json
 
 class UserApiService {
@@ -21,9 +22,11 @@ class UserApiService {
         }
     }
 
-    private val baseUrl = "" // Замените на URL вашего бэкенда
+    private val baseUrl = "http://10.0.2.2:7070" // Замените на URL вашего бэкенда
 
+    @OptIn(InternalAPI::class)
     suspend fun login(username: String, password: String): Result<User> {
+        println("Запущен логин")
         return try {
             val response = client.post("$baseUrl/auth/login") {
                 contentType(ContentType.Application.Json)
@@ -34,9 +37,13 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
+                println(response.bodyAsText())
+                println(response.content.toString())
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
             } else {
+                println(response.status)
+                println("Ошибка")
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
@@ -44,24 +51,33 @@ class UserApiService {
         }
     }
 
-    suspend fun register(username: String, email: String, password: String): Result<User> {
+    suspend fun register(username: String, email: String, password: String, name: String, surname: String, birthDate: String): Result<User> {
+        println("Запущена регистрация")
         return try {
             val response = client.post("$baseUrl/auth/register") {
                 contentType(ContentType.Application.Json)
                 setBody(mapOf(
                     "username" to username,
                     "email" to email,
-                    "password" to password
+                    "name" to name,
+                    "surname" to surname,
+                    "password" to password,
+                    "birthDate" to birthDate,
                 ))
             }
 
             if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
             } else {
+                println("Ошибка")
+                println(response.status)
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
+            println(e.message)
+            println(e.stackTrace)
             Result.failure(e)
         }
     }

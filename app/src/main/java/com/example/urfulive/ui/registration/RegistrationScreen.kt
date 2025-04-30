@@ -25,11 +25,15 @@ import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.urfulive.R
+import com.example.urfulive.data.model.User
+
 //РАССТОЯНИЕ + 12
 @Composable
 fun RegistrationScreen(
     onLogoClick: () -> Unit,
     onRegisterClick: () -> Unit,
+    onRegisterSuccess: (User) -> Unit,
+    onRegisterError: (Exception) -> Unit,
     viewModel: RegistrationViewModel = viewModel()
 ) {
     // Локальное состояние для показа/скрытия пароля
@@ -37,9 +41,22 @@ fun RegistrationScreen(
 
     // Подписываемся на стейт из ViewModel
     val loginValue by viewModel.login.collectAsState()
+    val mailValue by viewModel.mail.collectAsState()
     val nameValue by viewModel.name.collectAsState()
     val birthDateValue by viewModel.birthDate.collectAsState()
     val passwordValue by viewModel.password.collectAsState()
+    val registerCallback = remember {
+        object : RegistrationViewModel.RegisterCallback {
+            override fun onSuccess(user: User) {
+                onRegisterSuccess(user)
+                onRegisterClick() // Навигация после успешной регистрации
+            }
+
+            override fun onError(error: Exception) {
+                onRegisterError(error)
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -128,6 +145,31 @@ fun RegistrationScreen(
                     cursorColor = Color.White
                 )
             )
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Поле "Почта:"
+            Text(
+                text = "Почта:",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                modifier = Modifier.padding(start = 11.5.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedTextField(
+                value = mailValue,
+                singleLine = true,
+                onValueChange = { viewModel.onMailChange(it) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    textColor = Color.White,
+                    backgroundColor = Color(0xFF1D1D1D),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color.White
+                )
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -200,11 +242,11 @@ fun RegistrationScreen(
             )
 
 
-            Spacer(modifier = Modifier.height(163.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Кнопка "Зарегистрироваться"
             Button(
-                onClick = { onRegisterClick() },
+                onClick = { viewModel.onRegisterClick(loginValue, mailValue, passwordValue, nameValue, birthDateValue, registerCallback)  },
                 modifier = Modifier.fillMaxWidth().padding(WindowInsets.navigationBars.asPaddingValues()),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -227,7 +269,9 @@ fun RegistrationScreenPreview() {
     UrfuLiveTheme {
         RegistrationScreen(
             onLogoClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
-            onRegisterClick = { /* Навигация на экран входа, например, navController.navigate("login") */ }
+            onRegisterClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
+            onRegisterSuccess = {},
+            onRegisterError = {}
         )
     }
 }

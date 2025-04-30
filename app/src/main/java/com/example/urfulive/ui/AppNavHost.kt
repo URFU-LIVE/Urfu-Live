@@ -27,6 +27,8 @@ fun AppNavHost() {
                 onLoginClick = {
                     navController.navigate("main")
                 },
+                onLoginSuccess = {},
+                onLoginError = {}
             )
         }
         composable("registration") {
@@ -37,7 +39,9 @@ fun AppNavHost() {
                 },
                 onRegisterClick = {
                     navController.navigate("interests")
-                }
+                },
+                onRegisterSuccess = {},
+                onRegisterError = {}
             )
         }
 

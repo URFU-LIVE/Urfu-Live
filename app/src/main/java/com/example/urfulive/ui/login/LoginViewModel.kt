@@ -1,8 +1,19 @@
 import androidx.lifecycle.ViewModel
+import com.example.urfulive.data.api.UserApiService
+import com.example.urfulive.data.model.User
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginViewModel : ViewModel() {
+    interface LoginCallback {
+        fun onSuccess(user: User)
+        fun onError(error: Exception)
+    }
+    private val userApiService = UserApiService()
 
     private val _login = MutableStateFlow("")
     val login = _login.asStateFlow()
@@ -21,8 +32,28 @@ class LoginViewModel : ViewModel() {
     }
 
     // Нажатие на кнопку «Войти»
-    fun onLoginClick() {
-        // Здесь логика авторизации: валидация полей, запрос к серверу и т.д.
+    fun onLoginClick(login: String, password: String, callback: LoginCallback) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val result = userApiService.login(
+                    login,
+                    password,
+                )
+
+                // Переключаемся на главный поток для обратного вызова
+                withContext(Dispatchers.Main) {
+                    if (result.isSuccess) {
+                        callback.onSuccess(result.getOrThrow())
+                    } else {
+                        callback.onError(Exception("Неизвестная ошибка"))
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    callback.onError(e)
+                }
+            }
+        }
     }
 
     // Нажатие на «Восстановить пароль»

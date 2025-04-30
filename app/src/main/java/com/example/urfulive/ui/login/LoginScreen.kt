@@ -23,19 +23,32 @@ import com.example.urfulive.R
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
-
+import com.example.urfulive.data.model.User
 
 
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
     onLoginClick: () -> Unit,
+    onLoginSuccess: (User) -> Unit,
+    onLoginError: (Exception) -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     // Считываем текущие значения полей из ViewModel
     val loginValue by viewModel.login.collectAsState()
     val passwordValue by viewModel.password.collectAsState()
+    val loginCallback = remember {
+        object : LoginViewModel.LoginCallback {
+            override fun onSuccess(user: User) {
+                onLoginSuccess(user)
+                onLoginClick() // Навигация после успешной регистрации
+            }
 
+            override fun onError(error: Exception) {
+                onLoginError(error)
+            }
+        }
+    }
     // Состояние для показа/скрытия пароля
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -186,7 +199,7 @@ fun LoginScreen(
 
             // Кнопка "Войти"
             Button(
-                onClick = { onLoginClick() },
+                onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback) },
                 modifier = Modifier.fillMaxWidth().padding(WindowInsets.navigationBars.asPaddingValues()),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -209,7 +222,9 @@ fun LoginScreenPreview() {
     UrfuLiveTheme {
         LoginScreen(
             onRegisterClick = { /* пустой callback для превью */ },
-            onLoginClick = { /* пустой callback для превью */ }
+            onLoginClick = { /* пустой callback для превью */ },
+            onLoginSuccess = { /* пустой callback для превью */ },
+            onLoginError = { /* пустой callback для превью */ },
         )
     }
 }
