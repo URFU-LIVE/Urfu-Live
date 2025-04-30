@@ -1,0 +1,233 @@
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.urfulive.ui.theme.UrfuLiveTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.urfulive.R
+//РАССТОЯНИЕ + 12
+@Composable
+fun RegistrationScreen(
+    onLogoClick: () -> Unit,
+    onRegisterClick: () -> Unit,
+    viewModel: RegistrationViewModel = viewModel()
+) {
+    // Локальное состояние для показа/скрытия пароля
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    // Подписываемся на стейт из ViewModel
+    val loginValue by viewModel.login.collectAsState()
+    val nameValue by viewModel.name.collectAsState()
+    val birthDateValue by viewModel.birthDate.collectAsState()
+    val passwordValue by viewModel.password.collectAsState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0D0D0D))  // Фон экрана
+    ) {
+        // Логотип в правом верхнем углу
+        Image(
+            painter = painterResource(id = R.drawable.heartlast),
+            contentDescription = "Logo",
+            modifier = Modifier
+                //.align(Alignment.TopStart)    // Прижимаем к верхнему правому краю
+                .padding(top = 42.dp, end = 0.dp, start = 35.dp)
+
+                .clickable { onLogoClick() }
+        )
+
+        // Вся остальная верстка (поля ввода, кнопка)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 41.dp, end = 42.dp)
+        ) {
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Заголовок
+            Text(
+                text = "Регистрация",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                lineHeight = 28.sp,
+                letterSpacing = 0.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 127.dp)
+            )
+
+            Spacer(modifier = Modifier.height(80.dp))
+
+            // Поле "Логин (Имя пользователя)"
+            Text(
+                text = "Логин(Имя пользователя):",
+                color = Color.White,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 11.5.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedTextField(
+                value = loginValue,
+                singleLine = true,
+                onValueChange = { viewModel.onLoginChange(it) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    textColor = Color.White,
+                    backgroundColor = Color(0xFF1D1D1D),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color.White
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Поле "Имя и Фамилия:"
+            Text(
+                text = "Имя и Фамилия:",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                modifier = Modifier.padding(start = 11.5.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedTextField(
+                value = nameValue,
+                singleLine = true,
+                onValueChange = { viewModel.onNameChange(it) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    textColor = Color.White,
+                    backgroundColor = Color(0xFF1D1D1D),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color.White
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Поле "Дата рождения:"
+            Text(
+                text = "Дата рождения:",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                modifier = Modifier.padding(start = 11.5.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedTextField(
+                value = birthDateValue,
+                singleLine = true,
+                onValueChange = { viewModel.onBirthDateChange(it) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                trailingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.calendar),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    textColor = Color.White,
+                    backgroundColor = Color(0xFF1D1D1D),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color.White
+                )
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Поле "Пароль:"
+            Text(
+                text = "Пароль:",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                modifier = Modifier.padding(start = 11.5.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedTextField(
+                value = passwordValue,
+                singleLine = true,
+                onValueChange = { viewModel.onPasswordChange(it) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(15.dp),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.eye),
+                        contentDescription = "Toggle password visibility",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp).clickable {
+                            passwordVisible = !passwordVisible
+                        }
+                    )
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    textColor = Color.White,
+                    backgroundColor = Color(0xFF1D1D1D),
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+
+
+            Spacer(modifier = Modifier.height(163.dp))
+
+            // Кнопка "Зарегистрироваться"
+            Button(
+                onClick = { onRegisterClick() },
+                modifier = Modifier.fillMaxWidth().padding(WindowInsets.navigationBars.asPaddingValues()),
+                shape = RoundedCornerShape(15.dp),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color(red = 238, green = 126, blue = 86),
+                    contentColor = Color.Black
+                )
+            ) {
+                Text(
+                    text="Зарегистрироваться",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegistrationScreenPreview() {
+    UrfuLiveTheme {
+        RegistrationScreen(
+            onLogoClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
+            onRegisterClick = { /* Навигация на экран входа, например, navController.navigate("login") */ }
+        )
+    }
+}
