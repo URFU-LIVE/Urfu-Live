@@ -1,7 +1,6 @@
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.api.UserApiService
-import com.example.urfulive.data.model.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +10,7 @@ import kotlinx.coroutines.withContext
 
 class RegistrationViewModel : ViewModel() {
     interface RegisterCallback {
-        fun onSuccess(user: User)
+        fun onSuccess(user: AuthResponse)
         fun onError(error: Exception)
     }
     private val userApiService = UserApiService()

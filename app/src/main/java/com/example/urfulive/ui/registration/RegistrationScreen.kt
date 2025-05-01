@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +13,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +20,7 @@ import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.urfulive.R
+import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.model.User
 
 //РАССТОЯНИЕ + 12
@@ -32,7 +28,7 @@ import com.example.urfulive.data.model.User
 fun RegistrationScreen(
     onLogoClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onRegisterSuccess: (User) -> Unit,
+    onRegisterSuccess: (AuthResponse) -> Unit,
     onRegisterError: (Exception) -> Unit,
     viewModel: RegistrationViewModel = viewModel()
 ) {
@@ -47,7 +43,7 @@ fun RegistrationScreen(
     val passwordValue by viewModel.password.collectAsState()
     val registerCallback = remember {
         object : RegistrationViewModel.RegisterCallback {
-            override fun onSuccess(user: User) {
+            override fun onSuccess(user: AuthResponse) {
                 onRegisterSuccess(user)
                 onRegisterClick() // Навигация после успешной регистрации
             }

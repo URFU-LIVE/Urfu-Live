@@ -15,7 +15,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,6 +22,7 @@ import com.example.urfulive.R
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
+import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.model.User
 
 
@@ -30,7 +30,8 @@ import com.example.urfulive.data.model.User
 fun LoginScreen(
     onRegisterClick: () -> Unit,
     onLoginClick: () -> Unit,
-    onLoginSuccess: (User) -> Unit,
+    onRestorePasswordClick: () -> Unit,
+    onLoginSuccess: (AuthResponse) -> Unit,
     onLoginError: (Exception) -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
@@ -39,7 +40,7 @@ fun LoginScreen(
     val passwordValue by viewModel.password.collectAsState()
     val loginCallback = remember {
         object : LoginViewModel.LoginCallback {
-            override fun onSuccess(user: User) {
+            override fun onSuccess(user: AuthResponse) {
                 onLoginSuccess(user)
                 onLoginClick() // Навигация после успешной регистрации
             }
@@ -190,7 +191,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .padding(start = 9.dp)
                     .clickable {
-                        viewModel.onRestorePasswordClick()
+                        onRestorePasswordClick()
                     }
 
             )
@@ -225,6 +226,7 @@ fun LoginScreenPreview() {
             onLoginClick = { /* пустой callback для превью */ },
             onLoginSuccess = { /* пустой callback для превью */ },
             onLoginError = { /* пустой callback для превью */ },
+            onRestorePasswordClick = { /* пустой callback для превью */ },
         )
     }
 }

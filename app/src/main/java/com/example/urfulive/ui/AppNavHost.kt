@@ -4,6 +4,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.urfulive.ui.profile.Profile
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -28,7 +29,10 @@ fun AppNavHost() {
                     navController.navigate("main")
                 },
                 onLoginSuccess = {},
-                onLoginError = {}
+                onLoginError = {},
+                onRestorePasswordClick = {
+                    navController.navigate("main")
+                }
             )
         }
         composable("registration") {
@@ -59,6 +63,13 @@ fun AppNavHost() {
         }
 
         composable("main") {
-            CarouselScreen()}
+            CarouselScreen(
+                onProfileClick = {
+                    navController.navigate("profile")
+                },
+            )}
+
+        composable("profile") {
+            Profile()}
     }
 }

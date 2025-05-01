@@ -1,5 +1,7 @@
 package com.example.urfulive.data.api
 
+import TokenManager
+import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.model.User
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -25,7 +27,7 @@ class UserApiService {
     private val baseUrl = "http://10.0.2.2:7070" // Замените на URL вашего бэкенда
 
     @OptIn(InternalAPI::class)
-    suspend fun login(username: String, password: String): Result<User> {
+    suspend fun login(username: String, password: String): Result<AuthResponse> {
         println("Запущен логин")
         return try {
             val response = client.post("$baseUrl/auth/login") {
@@ -37,10 +39,11 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
-                println(response.content.toString())
-                val user = Json.decodeFromString<User>(response.bodyAsText())
-                Result.success(user)
+                val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
+                val tokenManager = TokenManagerInstance.getInstance()
+                tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
+                getUserProfile()
+                Result.success(authResponse)
             } else {
                 println(response.status)
                 println("Ошибка")
@@ -51,8 +54,7 @@ class UserApiService {
         }
     }
 
-    suspend fun register(username: String, email: String, password: String, name: String, surname: String, birthDate: String): Result<User> {
-        println("Запущена регистрация")
+    suspend fun register(username: String, email: String, password: String, name: String, surname: String, birthDate: String): Result<AuthResponse> {
         return try {
             val response = client.post("$baseUrl/auth/register") {
                 contentType(ContentType.Application.Json)
@@ -67,11 +69,12 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
-                val user = Json.decodeFromString<User>(response.bodyAsText())
-                Result.success(user)
+                val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
+                val tokenManager = TokenManagerInstance.getInstance()
+                tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
+                Result.success(authResponse)
+
             } else {
-                println("Ошибка")
                 println(response.status)
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
@@ -82,15 +85,17 @@ class UserApiService {
         }
     }
 
-    suspend fun getUserProfile(token: String): Result<User> {
+    suspend fun getUserProfile(): Result<User> {
         return try {
-            val response = client.get("$baseUrl/users/profile") {
+            val tokenManager = TokenManagerInstance.getInstance()
+            val response = client.get("$baseUrl/auth/me") {
                 headers {
-                    append(HttpHeaders.Authorization, "Bearer $token")
+                    append(HttpHeaders.Authorization, "Bearer $tokenManager.accessToken")
                 }
             }
 
             if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
             } else {

@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.datastore.core.android)
+//    implementation(libs.androidx.datastore.preferences.core.jvm)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -126,4 +128,7 @@ dependencies {
     implementation (libs.ktor.client.content.negotiation)
     implementation (libs.ktor.serialization.kotlinx.json)
     implementation (libs.kotlinx.serialization.json)
+
+    implementation(libs.kotlinx.serialization.json.v160) // Для работы с Json файлами
+    implementation("androidx.datastore:datastore-preferences:1.1.5")
 }

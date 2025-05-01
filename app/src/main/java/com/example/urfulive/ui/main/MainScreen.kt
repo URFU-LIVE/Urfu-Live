@@ -72,18 +72,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
+import com.example.urfulive.data.api.UserApiService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterialApi::class)
 @Preview(showBackground = true)
 @Composable
 fun ArticlesScreenPreview() {
     UrfuLiveTheme {
-        CarouselScreen()
+        CarouselScreen(
+            onProfileClick = {}
+        )
     }
 }
 
 enum class SheetState { COLLAPSED, PARTIAL, FULL }
+
+var userApiService = UserApiService()
 
 @Composable
 fun TagChip(tag: String, color: Color, alpha: Float = 1f) {
@@ -111,7 +119,8 @@ fun ArticleCard(
     article: Article,
     onClick: () -> Unit,
     // Параметр для управления анимацией
-    expansionProgress: Float = .0f
+    expansionProgress: Float = .0f,
+
 ) {
     val pattern = ArticleColorPatterns[article.colorPatternIndex]
 
@@ -206,7 +215,7 @@ fun ArticleCard(
                             Text(
                                 text = "Подписаться",
                                 modifier = Modifier
-                                    .clickable { /*TODO: подписка*/ }
+                                    .clickable {  }
                                     .background(
                                         pattern.buttonColor,
                                         shape = RoundedCornerShape(52.dp)
@@ -512,6 +521,7 @@ fun NotificationItemEnhanced(
 
 @Composable
 fun BottomNavStub(
+    onProfileClick: () -> Unit,
     containerWidth: Dp = 400.dp,  // Фиксированная ширина контейнера
     containerHeight: Dp = 110.dp, // Фиксированная высота контейнера
     horizontalPadding: Dp = 21.dp, // Отступы внутри контейнера по горизонтали
@@ -570,7 +580,7 @@ fun BottomNavStub(
                     contentDescription = "Profile Logo",
                     modifier = Modifier
                         .size(35.dp)
-                        .clickable { /* TODO Профиль */ }
+                        .clickable { onProfileClick() }
                 )
             }
         }
@@ -623,7 +633,7 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
 @Composable
 
 
-fun CarouselScreen(viewModel: ArticlesViewModel = viewModel()) {
+fun CarouselScreen(viewModel: ArticlesViewModel = viewModel(), onProfileClick: () -> Unit,) {
     val articles = viewModel.articles
     val pagerState = rememberPagerState(pageCount = { articles.size })
     var expandedIndex by remember { mutableStateOf(-1) }
@@ -1017,7 +1027,7 @@ fun CarouselScreen(viewModel: ArticlesViewModel = viewModel()) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                BottomNavStub()
+                BottomNavStub(onProfileClick)
             }
         }
 

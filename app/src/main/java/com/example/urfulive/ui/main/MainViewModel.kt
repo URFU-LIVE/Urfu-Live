@@ -1,6 +1,11 @@
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import com.example.urfulive.data.api.UserApiService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class Article(
     val title: String,
@@ -86,6 +91,8 @@ val ArticleColorPatterns: List<ArticleColorPattern> get() = _articleColorPattern
 
 class ArticlesViewModel : ViewModel() {
 
+    private val userApiService = UserApiService()
+
     // Заглушки статей для проверки
     private val _articles = listOf(
         Article(
@@ -148,5 +155,10 @@ class ArticlesViewModel : ViewModel() {
     // Публичный доступ только к чтению
     val articles: List<Article> get() = _articles
 
+    fun onProfileClick() {
+    }
 
+    fun checkProfile() {
+
+    }
 }
