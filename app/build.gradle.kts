@@ -62,13 +62,18 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation("androidx.compose.ui:ui:1.7.8")
     implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
+    implementation(libs.androidx.material3.android)
+
     debugImplementation("androidx.compose.ui:ui-tooling:1.7.8")
 
     // Material
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.compose.material)
-    implementation("androidx.compose.material:material:1.7.8")
-    implementation("androidx.compose.material:material-icons-extended")
+
+    //implementation(libs.androidx.compose.material)
+//    implementation("androidx.compose.material:material:1.7.8")
+    try {//    implementation("androidx.compose.material:material-icons-extended")
+    } catch (e: Exception) {
+        TODO("Not yet implemented")
+    }
 
     // Navigation
     implementation(libs.androidx.navigation.runtime.android)

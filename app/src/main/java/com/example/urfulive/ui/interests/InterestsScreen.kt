@@ -3,9 +3,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Text
+//import androidx.compose.material.Button
+//import androidx.compose.material.ButtonDefaults
+//import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -102,7 +105,7 @@ fun InterestsScreen(
                     .height(42.dp),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = if (hasSelection) Color(0xFFFF6B3B) else Color.Gray,
+                    containerColor = if (hasSelection) Color(0xFFFF6B3B) else Color.Gray,
                     contentColor = if (hasSelection) Color.White else Color.Black
                 )
             ) {

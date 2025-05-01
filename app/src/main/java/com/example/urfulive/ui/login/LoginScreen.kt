@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,10 +21,19 @@ import com.example.urfulive.R
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.model.User
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextFieldDefaults
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
@@ -129,11 +137,13 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
                 singleLine = true,
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 )
             )
@@ -171,11 +181,13 @@ fun LoginScreen(
                             }
                     )
                 },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -204,7 +216,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth().padding(WindowInsets.navigationBars.asPaddingValues()),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(red = 238, green = 126, blue = 86),
+                    containerColor = Color(red = 238, green = 126, blue = 86),
                     contentColor = Color.Black
                 )
             ) {

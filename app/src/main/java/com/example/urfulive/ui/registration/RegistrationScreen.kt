@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +21,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.AuthResponse
@@ -107,11 +113,13 @@ fun RegistrationScreen(
                 onValueChange = { viewModel.onLoginChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 )
             )
@@ -133,11 +141,13 @@ fun RegistrationScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 )
             )
@@ -158,11 +168,13 @@ fun RegistrationScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 )
             )
@@ -191,11 +203,13 @@ fun RegistrationScreen(
                         modifier = Modifier.size(30.dp)
                     )
                 },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 )
             )
@@ -227,11 +241,13 @@ fun RegistrationScreen(
                         }
                     )
                 },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    textColor = Color.White,
-                    backgroundColor = Color(0xFF1D1D1D),
-                    focusedBorderColor = Color.Transparent,
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedContainerColor = Color(0xFF1D1D1D),
+                    focusedContainerColor = Color(0xFF1D1D1D),
                     unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
                     cursorColor = Color.White
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -246,7 +262,7 @@ fun RegistrationScreen(
                 modifier = Modifier.fillMaxWidth().padding(WindowInsets.navigationBars.asPaddingValues()),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = Color(red = 238, green = 126, blue = 86),
+                    containerColor = Color(red = 238, green = 126, blue = 86),
                     contentColor = Color.Black
                 )
             ) {

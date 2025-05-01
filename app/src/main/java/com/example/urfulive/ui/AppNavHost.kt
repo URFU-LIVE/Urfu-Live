@@ -1,13 +1,14 @@
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.profile.Profile
 
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost() {
     // Создаем контроллер навигации
@@ -52,24 +53,34 @@ fun AppNavHost() {
         composable("interests") {
             InterestsScreen(
                 onLogoClick = {
-                navController.navigate("login")
-            },
+                    navController.navigate("login")
+                },
                 onNextClick = {
-                navController.navigate("main")
-            },
+                    navController.navigate("main")
+                },
                 onSkipClick = {
-                navController.navigate("main")
-            },)
+                    navController.navigate("main")
+                },
+            )
         }
 
         composable("main") {
             CarouselScreen(
                 onProfileClick = {
                     navController.navigate("profile")
-                },
-            )}
+                }
+//                createArticle = {
+//                    navController.navigate("createarticle")
+//                },
+            )
+        }
 
         composable("profile") {
-            Profile()}
+            Profile()
+        }
+
+//        composable("createarticle") {
+//            CreateArticle()}
     }
 }
+

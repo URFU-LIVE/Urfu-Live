@@ -11,7 +11,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -42,18 +41,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+//import androidx.compose.material.Icon
+//import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Alarm
+//import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
@@ -69,22 +74,26 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.lerp
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
+import com.example.urfulive.data.DTOs.AuthResponse
+import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.api.UserApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 fun ArticlesScreenPreview() {
     UrfuLiveTheme {
         CarouselScreen(
-            onProfileClick = {}
+            onProfileClick = {},
+            //createArticle = {}
         )
     }
 }
@@ -121,7 +130,7 @@ fun ArticleCard(
     // Параметр для управления анимацией
     expansionProgress: Float = .0f,
 
-) {
+    ) {
     val pattern = ArticleColorPatterns[article.colorPatternIndex]
 
     // СТАБИЛИЗАЦИЯ: Коэффициент скорости исчезновения панели реакций
@@ -215,7 +224,7 @@ fun ArticleCard(
                             Text(
                                 text = "Подписаться",
                                 modifier = Modifier
-                                    .clickable {  }
+                                    .clickable { }
                                     .background(
                                         pattern.buttonColor,
                                         shape = RoundedCornerShape(52.dp)
@@ -522,6 +531,8 @@ fun NotificationItemEnhanced(
 @Composable
 fun BottomNavStub(
     onProfileClick: () -> Unit,
+    onCreateArticleClick: () -> Unit,
+    //createArticle: () -> Unit,
     containerWidth: Dp = 400.dp,  // Фиксированная ширина контейнера
     containerHeight: Dp = 110.dp, // Фиксированная высота контейнера
     horizontalPadding: Dp = 21.dp, // Отступы внутри контейнера по горизонтали
@@ -542,6 +553,7 @@ fun BottomNavStub(
                 .background(Color(0xFF292929), shape = RoundedCornerShape(52.dp))
                 .padding(horizontal = horizontalPadding, vertical = verticalPadding)
         ) {
+            var showNotificationsOverlay by remember { mutableStateOf(false) }
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
@@ -566,7 +578,7 @@ fun BottomNavStub(
                     contentDescription = "Add Logo",
                     modifier = Modifier
                         //.size(45.dp)
-                        .clickable { /* TODO Создать */ }
+                        .clickable { onCreateArticleClick() }
                 )
                 Image(
                     painter = painterResource(id = R.drawable.messagenew),
@@ -586,6 +598,216 @@ fun BottomNavStub(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateArticle(
+    onClose: () -> Unit, viewModel: ArticlesViewModel,
+    onPostSuccess: (DefaultResponse) -> Unit,
+    onPostError: (Exception) -> Unit,
+) {
+    val density = LocalDensity.current
+    val screenWidth = with(density) { LocalConfiguration.current.screenWidthDp.dp }
+    val screenHeight = with(density) { LocalConfiguration.current.screenHeightDp.dp }
+
+    val postCallBack = remember {
+        object : ArticlesViewModel.PostCallBack {
+            override fun onSuccess(user: DefaultResponse) {
+                onPostSuccess(user)
+//                onPostClick() // Навигация после успешной регистрации
+            }
+
+            override fun onError(error: Exception) {
+                onPostError(error)
+            }
+        }
+    }
+
+
+    // Анимация появления
+    val animatedAlpha = remember { Animatable(0f) }
+    val animatedOffset = remember { Animatable(screenHeight.value) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            animatedAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+            )
+        }
+        launch {
+            animatedOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+            )
+        }
+    }
+
+    // Обработка нажатия кнопки "Назад"
+    BackHandler {
+        onClose()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .zIndex(100f) // Гарантируем, что будут поверх всего
+            .graphicsLayer {
+                alpha = animatedAlpha.value
+                translationY = animatedOffset.value
+            }
+            .background(Color(0xFF131313))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding() // Учитываем системные панели (статус-бар и т.д.)
+        ) {
+            // Верхняя панель с заголовком и кнопкой закрытия
+            Box(
+                modifier = Modifier
+                    .padding(top = 23.dp, bottom = 15.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.chevron_left),
+                    contentDescription = "Arrow",
+                    modifier = Modifier
+                        .clickable { onClose() }
+                        .padding(start = 15.dp)
+                )
+
+                Text(
+                    text = "Создать пост",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(start = 67.dp)
+                )
+            }
+
+            // Список уведомлений
+            val darkBackground = Color(0xFF131313)
+            val darkSurface = Color(0xFF131313)
+            val grayText = Color(0xFF9E9E9E)
+            val lightGrayText = Color(0xFFBBBBBB)
+
+            // Состояния для текстовых полей
+            var titleText by remember { mutableStateOf("") }
+            var contentText by remember { mutableStateOf("") }
+            var tagsText by remember { mutableStateOf("") }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(darkBackground)
+                    .padding(16.dp)
+            ) {
+                // Поле для заголовка
+                TextField(
+                    value = titleText,
+                    onValueChange = { titleText = it },
+                    placeholder = {
+                        Text(
+                            text = "Введите заголовок...",
+                            color = grayText
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = darkSurface,
+                        unfocusedContainerColor = darkSurface,
+                        disabledContainerColor = darkSurface,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = lightGrayText,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = TextStyle(color = Color.White),
+                    singleLine = true
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 1.dp),
+                    thickness = 1.dp,
+                    color = Color.White.copy(alpha = 0.3f)
+                )
+                // Поле для содержимого (многострочное)
+                TextField(
+                    value = contentText,
+                    onValueChange = { contentText = it },
+                    placeholder = {
+                        Text(
+                            text = "Напишите что-нибудь...",
+                            color = grayText
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp)
+                        .padding(bottom = 16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = darkSurface,
+                        unfocusedContainerColor = darkSurface,
+                        disabledContainerColor = darkSurface,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = lightGrayText,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = TextStyle(color = Color.White),
+                    maxLines = 10
+                )
+
+                // Поле для тегов
+                TextField(
+                    value = tagsText,
+                    onValueChange = { tagsText = it },
+                    placeholder = {
+                        Text(
+                            text = "Теги(через запятую)",
+                            color = grayText
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = darkSurface,
+                        unfocusedContainerColor = darkSurface,
+                        disabledContainerColor = darkSurface,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = lightGrayText,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = TextStyle(color = Color.White),
+                    singleLine = true
+                )
+            }
+            Button(
+                onClick = { viewModel.onPublishClick(titleText, contentText, tagsText, postCallBack) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(WindowInsets.navigationBars.asPaddingValues()),
+                shape = RoundedCornerShape(15.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(red = 238, green = 126, blue = 86),
+                    contentColor = Color.Black
+                )
+            ) {
+                Text(
+                    text = "Опубликовать",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1f) {
@@ -629,11 +851,14 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
 }
 
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
 
-fun CarouselScreen(viewModel: ArticlesViewModel = viewModel(), onProfileClick: () -> Unit,) {
+fun CarouselScreen(
+    viewModel: ArticlesViewModel = viewModel(),
+    onProfileClick: () -> Unit,
+) { //createArticle: () -> Unit
     val articles = viewModel.articles
     val pagerState = rememberPagerState(pageCount = { articles.size })
     var expandedIndex by remember { mutableStateOf(-1) }
@@ -1009,7 +1234,7 @@ fun CarouselScreen(viewModel: ArticlesViewModel = viewModel(), onProfileClick: (
                 )
             }
         }
-
+        var showCreateArticle by remember { mutableStateOf(false) }
         // 2. BottomNavStub внизу экрана (средний слой)
         AnimatedVisibility(
             visible = !shouldHideBottomNav,
@@ -1027,10 +1252,14 @@ fun CarouselScreen(viewModel: ArticlesViewModel = viewModel(), onProfileClick: (
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                BottomNavStub(onProfileClick)
+                BottomNavStub(
+                    onProfileClick,
+                    onCreateArticleClick = { showCreateArticle = true }) //createArticle
             }
         }
-
+        if (showCreateArticle) {
+            CreateArticle(onClose = { showCreateArticle = false }, viewModel, onPostError ={}, onPostSuccess = {})
+        }
         var showNotificationsOverlay by remember { mutableStateOf(false) }
 
         Box(

@@ -1,6 +1,9 @@
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import com.example.urfulive.data.DTOs.AuthResponse
+import com.example.urfulive.data.DTOs.DefaultResponse
+import com.example.urfulive.data.api.PostApiService
 import com.example.urfulive.data.api.UserApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,8 +93,13 @@ enum class ArticleExpandState {
 val ArticleColorPatterns: List<ArticleColorPattern> get() = _articleColorPatterns
 
 class ArticlesViewModel : ViewModel() {
-
+    private val postApiService = PostApiService()
     private val userApiService = UserApiService()
+
+    interface PostCallBack {
+        fun onSuccess(user: DefaultResponse)
+        fun onError(error: Exception)
+    }
 
     // Заглушки статей для проверки
     private val _articles = listOf(
@@ -160,5 +168,33 @@ class ArticlesViewModel : ViewModel() {
 
     fun checkProfile() {
 
+    }
+
+    fun createArticle() {
+
+    }
+
+    fun onPublishClick(titleText: String, contentText: String, tagsText: String, callback: PostCallBack) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val result = postApiService.create(
+                    titleText,
+                    contentText,
+                )
+
+                // Переключаемся на главный поток для обратного вызова
+                withContext(Dispatchers.Main) {
+                    if (result.isSuccess) {
+                        callback.onSuccess(result.getOrThrow())
+                    } else {
+                        callback.onError(Exception("Неизвестная ошибка"))
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    callback.onError(e)
+                }
+            }
+        }
     }
 }
