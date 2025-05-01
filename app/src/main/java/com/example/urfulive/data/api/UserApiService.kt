@@ -28,7 +28,6 @@ class UserApiService {
 
     @OptIn(InternalAPI::class)
     suspend fun login(username: String, password: String): Result<AuthResponse> {
-        println("Запущен логин")
         return try {
             val response = client.post("$baseUrl/auth/login") {
                 contentType(ContentType.Application.Json)
@@ -41,7 +40,9 @@ class UserApiService {
             if (response.status.isSuccess()) {
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
+                tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
+                println("Попытка получить пользователя")
                 getUserProfile()
                 Result.success(authResponse)
             } else {
@@ -72,6 +73,7 @@ class UserApiService {
                 println(response.bodyAsText())
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
+                tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
                 println(authResponse.accessToken)
                 Result.success(authResponse)
@@ -87,20 +89,16 @@ class UserApiService {
     }
 
     suspend fun getUserProfile(): Result<User> {
+        println("Начинаем")
         return try {
+            println("Начинаем 2")
             val tokenManager = TokenManagerInstance.getInstance()
-
-            // Collect the Flow to get the actual token string
+            println("Между")
             val tokenValue = tokenManager.getAccessTokenBlocking()
             println(tokenValue)
-            // Check if token exists
-            if (tokenValue.isNullOrEmpty()) {
-                return Result.failure(Exception("Access token is null or empty"))
-            }
-
             val response = client.get("$baseUrl/auth/me") {
                 headers {
-                    append(HttpHeaders.Authorization, "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3IiwidXNlcm5hbWUiOiJBbm90aGVyVGVzdDExMTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc0NjA5MjUwMCwiZXhwIjoxNzQ2MTc4OTAwfQ.c34Voh1t00zn-z6_XAuGXFqYSz1wXymQp_jJeoNdyR4")
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
                 }
             }
 
@@ -109,11 +107,10 @@ class UserApiService {
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
             } else {
-                println("Ошибка подключения")
+                println()
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            println("! Другое")
             Result.failure(e)
         }
     }

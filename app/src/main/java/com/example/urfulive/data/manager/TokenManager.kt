@@ -5,10 +5,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 
+// Create extension property for dataStore
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_preferences")
+
 object TokenManagerInstance {
     private var instance: TokenManager? = null
 
@@ -24,15 +26,16 @@ object TokenManagerInstance {
 }
 
 class TokenManager(private val context: Context) {
-    // Используем dataStore из extension-свойства
+    // Access dataStore using extension property
     private val dataStore = context.dataStore
-    // Определяем ключи для DataStore
+
+    // Keys for the DataStore preferences
     companion object {
         private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
     }
 
-    // Функция для сохранения токенов
+    // Save tokens asynchronously
     suspend fun saveTokens(accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
             preferences[ACCESS_TOKEN_KEY] = accessToken
@@ -40,38 +43,29 @@ class TokenManager(private val context: Context) {
         }
     }
 
-    // Функция для получения access token в виде Flow
+    // Get access token as Flow
     val accessToken: Flow<String?> = dataStore.data.map { preferences ->
         preferences[ACCESS_TOKEN_KEY]
     }
 
-    // Функция для получения refresh token в виде Flow
+    // Get refresh token as Flow
     val refreshToken: Flow<String?> = dataStore.data.map { preferences ->
         preferences[REFRESH_TOKEN_KEY]
     }
 
-    // Синхронные функции для получения токенов (при необходимости)
-    fun getAccessTokenBlocking(): String? = runBlocking {
-        var result: String? = null
-        dataStore.data.map { preferences ->
-            preferences[ACCESS_TOKEN_KEY]
-        }.collect { token ->
-            result = token
-        }
-        result
+    // Get access token synchronously (use only in contexts that can suspend or launch a coroutine)
+    suspend fun getAccessTokenBlocking(): String? {
+        val preferences = dataStore.data.first() // `first()` gets the value without needing `runBlocking`
+        return preferences[ACCESS_TOKEN_KEY]
     }
 
-    fun getRefreshTokenBlocking(): String? = runBlocking {
-        var result: String? = null
-        dataStore.data.map { preferences ->
-            preferences[REFRESH_TOKEN_KEY]
-        }.collect { token ->
-            result = token
-        }
-        result
+    // Get refresh token synchronously
+    suspend fun getRefreshTokenBlocking(): String? {
+        val preferences = dataStore.data.first() // `first()` gets the value without needing `runBlocking`
+        return preferences[REFRESH_TOKEN_KEY]
     }
 
-    // Функция для очистки токенов (при выходе из аккаунта)
+    // Clear tokens from DataStore
     suspend fun clearTokens() {
         dataStore.edit { preferences ->
             preferences.remove(ACCESS_TOKEN_KEY)
