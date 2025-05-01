@@ -69,11 +69,12 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
+                println(authResponse.accessToken)
                 Result.success(authResponse)
-
             } else {
                 println(response.status)
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -88,9 +89,18 @@ class UserApiService {
     suspend fun getUserProfile(): Result<User> {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
+
+            // Collect the Flow to get the actual token string
+            val tokenValue = tokenManager.getAccessTokenBlocking()
+            println(tokenValue)
+            // Check if token exists
+            if (tokenValue.isNullOrEmpty()) {
+                return Result.failure(Exception("Access token is null or empty"))
+            }
+
             val response = client.get("$baseUrl/auth/me") {
                 headers {
-                    append(HttpHeaders.Authorization, "Bearer $tokenManager.accessToken")
+                    append(HttpHeaders.Authorization, "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3IiwidXNlcm5hbWUiOiJBbm90aGVyVGVzdDExMTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc0NjA5MjUwMCwiZXhwIjoxNzQ2MTc4OTAwfQ.c34Voh1t00zn-z6_XAuGXFqYSz1wXymQp_jJeoNdyR4")
                 }
             }
 
@@ -99,9 +109,11 @@ class UserApiService {
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
             } else {
+                println("Ошибка подключения")
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
+            println("! Другое")
             Result.failure(e)
         }
     }

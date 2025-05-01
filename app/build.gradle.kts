@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -43,21 +44,63 @@ android {
 }
 
 dependencies {
-
+    // Core
     implementation(libs.androidx.core.ktx)
+    implementation("androidx.core:core-ktx:1.15.0")
+
+    // Lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    // Compose
+    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
+    implementation("androidx.activity:activity-compose:1.10.1")
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation("androidx.compose.ui:ui:1.7.8")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.7.8")
+
+    // Material
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material)
+    implementation("androidx.compose.material:material:1.7.8")
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // Navigation
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.material)
+
+    // Foundation
+    implementation(libs.androidx.foundation)
+
+    // Firebase
     implementation(libs.firebase.crashlytics.buildtools)
-    implementation(libs.androidx.datastore.core.android)
-//    implementation(libs.androidx.datastore.preferences.core.jvm)
+
+    // DataStore - явно указываем версии
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences-core:1.0.0")
+    implementation("androidx.datastore:datastore-core:1.0.0")
+
+    // Ktor
+    implementation(libs.ktor.ktor.client.core)
+    implementation(libs.ktor.ktor.client.android)
+    implementation(libs.ktor.ktor.client.json)
+    implementation(libs.ktor.client.serialization)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.json.v160)
+
+    // Coroutines - используем одну версию
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -65,70 +108,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.compose.ui:ui:1.7.8")
-    implementation("androidx.compose.material:material:1.7.8")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.10.1")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.7.8")
-    // Бом (BOM) для удобной синхронизации версий
-    implementation(platform("androidx.compose:compose-bom:2023.01.00")) // актуальную версию
-
-    // Основные библиотеки Compose
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material:material")
-    // Если используешь Material 3, добавь
-    implementation("androidx.compose.material3:material3")
-
-    // Инструменты превью
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    // Иконки расширенные (включая Visibility/VisibilityOff)
-    implementation("androidx.compose.material:material-icons-extended")
-
-    // Жизненный цикл и ViewModel-Compose
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-
-    // Корутины (часто нужны для Flow)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-
-    // Возможно, уже есть, но на всякий случай
-    implementation(libs.androidx.activity.compose.v170)
-    implementation(platform("androidx.compose:compose-bom:2023.03.00")) // Или другую версию
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material:material")
-    // Если применяешь Material 3, добавь:
-    // implementation("androidx.compose.material3:material3")
-
-    // Для превью и инструментария
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    // Иконки "Visibility", "VisibilityOff" находятся здесь
-    implementation("androidx.compose.material:material-icons-extended")
-
-    // ViewModel + Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-
-    // Activity для Compose
-    implementation("androidx.activity:activity-compose:1.7.0")
-
-    // Для Flow и корутин
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-
-    implementation(libs.androidx.foundation)
-
-    implementation(libs.ktor.ktor.client.core)
-    implementation(libs.ktor.ktor.client.android)
-    implementation (libs.ktor.ktor.client.json)
-    implementation (libs.ktor.client.serialization)
-    implementation (libs.ktor.client.content.negotiation)
-    implementation (libs.ktor.serialization.kotlinx.json)
-    implementation (libs.kotlinx.serialization.json)
-
-    implementation(libs.kotlinx.serialization.json.v160) // Для работы с Json файлами
-    implementation("androidx.datastore:datastore-preferences:1.1.5")
 }
