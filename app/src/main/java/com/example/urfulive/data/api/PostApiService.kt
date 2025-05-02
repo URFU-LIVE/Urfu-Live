@@ -1,13 +1,11 @@
 package com.example.urfulive.data.api
 
+import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
-import com.example.urfulive.data.DTOs.TagListResponse
-import com.example.urfulive.data.model.Tag
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -34,8 +32,9 @@ class PostApiService {
 
     suspend fun create(title: String, text: String): Result<DefaultResponse> {
         return try {
-            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-            val requestJson = PostCreateRequest(title, text, listOf(2))
+            val tokenManager = TokenManagerInstance.getInstance()
+            val tokenValue = tokenManager.getAccessTokenBlocking()
+            val requestJson = PostCreateRequest(title, text, listOf(1))
 
             val response = client.post("$baseUrl/posts") {
                 headers {
@@ -46,28 +45,7 @@ class PostApiService {
             }
 
             if (response.status.isSuccess()) {
-                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                Result.success(defaultResponse)
-            } else {
-                Result.failure(Exception("HTTP Error: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            println(e.message)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun delete(id: Long): Result<DefaultResponse> {
-        return try {
-            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-
-            val response = client.post("$baseUrl/posts/$id") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
-                }
-            }
-
-            if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 println(defaultResponse.message)
                 Result.success(defaultResponse)
@@ -75,46 +53,7 @@ class PostApiService {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            println(e.message)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getByID(id: Long): Result<Tag> {
-        return try {
-            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-
-            val response = client.get("$baseUrl/posts/$id") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
-                }
-            }
-
-            if (response.status.isSuccess()) {
-                val tagResponse = Json.decodeFromString<Tag>(response.bodyAsText())
-                Result.success(tagResponse)
-            } else {
-                Result.failure(Exception("HTTP Error: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            println(e.message)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getAll(): Result<TagListResponse> {
-        return try {
-            val response = client.get("$baseUrl/posts")
-
-            if (response.status.isSuccess()) {
-                println(response.bodyAsText())
-                val tagListResponse = Json.decodeFromString<TagListResponse>(response.bodyAsText())
-                Result.success(tagListResponse)
-            } else {
-                Result.failure(Exception("HTTP Error: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            println(e.message)
+            print(e.message)
             Result.failure(e)
         }
     }
