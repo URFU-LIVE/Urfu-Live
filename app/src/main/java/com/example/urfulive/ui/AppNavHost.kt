@@ -4,8 +4,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.urfulive.ui.createarticle.CreateArticle
-import com.example.urfulive.ui.profile.Profile
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +74,11 @@ fun AppNavHost() {
         }
 
         composable("profile") {
-            Profile()
+            ProfileScreen(
+                onHomeClick = {
+                    navController.navigate("main")
+                }
+            )
         }
 
 //        composable("createarticle") {

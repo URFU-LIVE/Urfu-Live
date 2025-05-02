@@ -74,6 +74,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.lerp
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -529,75 +530,102 @@ fun NotificationItemEnhanced(
 }
 
 @Composable
-fun BottomNavStub(
+fun BottomNavBar(
     onProfileClick: () -> Unit,
     onCreateArticleClick: () -> Unit,
-    //createArticle: () -> Unit,
-    containerWidth: Dp = 400.dp,  // Фиксированная ширина контейнера
-    containerHeight: Dp = 110.dp, // Фиксированная высота контейнера
-    horizontalPadding: Dp = 21.dp, // Отступы внутри контейнера по горизонтали
-    verticalPadding: Dp = 20.dp    // Отступы внутри контейнера по вертикали
+    onHomeClick: () -> Unit,
+    onSavedClick: () -> Unit,
+    onMessagesClick: () -> Unit,
+    currentScreen: String,
+    modifier: Modifier = Modifier,
+    containerWidth: Dp = 400.dp,
+    containerHeight: Dp = 80.dp,
+    horizontalPadding: Dp = 16.dp,
+    verticalPadding: Dp = 12.dp
 ) {
-    // Первый Box занимает весь экран (или родительский контейнер)
     Box(
-        modifier = Modifier
-            .padding(start = 20.dp, top = 0.dp, end = 20.dp)
-            .padding(WindowInsets.navigationBars.asPaddingValues())// Можно заменить на другой размер, если нужно
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
     ) {
-        // Второй Box — сама «фигура», которую мы хотим отцентрировать
         Box(
             modifier = Modifier
-                .align(Alignment.Center)              // Центрируем по горизонтали и вертикали
+                .align(Alignment.Center)
                 .width(containerWidth)
                 .height(containerHeight)
                 .background(Color(0xFF292929), shape = RoundedCornerShape(52.dp))
                 .padding(horizontal = horizontalPadding, vertical = verticalPadding)
         ) {
-            var showNotificationsOverlay by remember { mutableStateOf(false) }
             Row(
                 modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Home Logo",
-                    modifier = Modifier
-                        //.size(45.dp)
-                        .clickable { /* TODO Переход домой */ }
+                NavItem(
+                    iconRes = R.drawable.home,
+                    isSelected = currentScreen == "home",
+                    onClick = onHomeClick
                 )
-                Image(
-                    painter = painterResource(id = R.drawable.savenew),
-                    contentDescription = "Save Logo",
-                    modifier = Modifier
-                        //.size(45.dp)
-                        .clickable { /* TODO Сохраненные */ }
+
+                NavItem(
+                    iconRes = R.drawable.savenew,
+                    isSelected = currentScreen == "saved",
+                    onClick = onSavedClick
                 )
-                Image(
-                    painter = painterResource(id = R.drawable.resource_new),
-                    contentDescription = "Add Logo",
-                    modifier = Modifier
-                        //.size(45.dp)
-                        .clickable { onCreateArticleClick() }
+
+                NavItem(
+                    iconRes = R.drawable.resource_new,
+                    isSelected = currentScreen == "create",
+                    onClick = onCreateArticleClick,
+                    iconSize = 28.dp
                 )
-                Image(
-                    painter = painterResource(id = R.drawable.messagenew),
-                    contentDescription = "Message Logo",
-                    modifier = Modifier
-                        //.size(45.dp)
-                        .clickable { /* TODO Сообщения */ }
+
+                NavItem(
+                    iconRes = R.drawable.messagenew,
+                    isSelected = currentScreen == "messages",
+                    onClick = onMessagesClick
                 )
-                Image(
-                    painter = painterResource(id = R.drawable.profilenew),
-                    contentDescription = "Profile Logo",
-                    modifier = Modifier
-                        .size(35.dp)
-                        .clickable { onProfileClick() }
+
+                NavItem(
+                    iconRes = R.drawable.profilenew,
+                    isSelected = currentScreen == "profile",
+                    onClick = onProfileClick,
+                    iconSize = 30.dp
                 )
             }
         }
     }
 }
+
+@Composable
+private fun NavItem(
+    iconRes: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    iconSize: Dp = 24.dp
+) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(
+                if (isSelected) Color.White.copy(alpha = 0.2f)
+                else Color.Transparent
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+            colorFilter = ColorFilter.tint(
+                if (isSelected) Color.Black else Color.White
+            )
+        )
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1252,9 +1280,14 @@ fun CarouselScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                BottomNavStub(
-                    onProfileClick,
-                    onCreateArticleClick = { showCreateArticle = true }) //createArticle
+                BottomNavBar(
+                    onProfileClick = onProfileClick,
+                    onCreateArticleClick = { showCreateArticle = true },
+                    onHomeClick = { /* TODO: handle home click */ },
+                    onSavedClick = { /* TODO: handle saved click */ },
+                    onMessagesClick = { /* TODO: handle messages click */ },
+                    currentScreen = "home" // или другое значение в зависимости от текущего экрана
+                )
             }
         }
         if (showCreateArticle) {

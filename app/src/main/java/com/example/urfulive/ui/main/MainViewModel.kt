@@ -170,6 +170,10 @@ class ArticlesViewModel : ViewModel() {
 
     }
 
+    fun createPost() {
+
+    }
+
     fun createArticle() {
 
     }
