@@ -119,4 +119,12 @@ val Typography = Typography(
         lineHeight = 18.sp,
         letterSpacing = 0.sp
     ),
+
+    headlineSmall = TextStyle( // Фон при незаполненном поле
+        fontFamily = Montserrat,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    ),
 )

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -650,7 +651,7 @@ fun CreateArticle(
             // Список уведомлений
             val darkBackground = Color(0xFF131313)
             val darkSurface = Color(0xFF131313)
-            val grayText = Color(0xFF9E9E9E)
+            val grayText = Color(red = 125, green = 125, blue = 125)
             val lightGrayText = Color(0xFFBBBBBB)
 
             // Состояния для текстовых полей
@@ -662,7 +663,7 @@ fun CreateArticle(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(darkBackground)
-                    .padding(16.dp)
+                    .padding(top = 0.dp, start = 16.dp, end = 16.dp)
             ) {
                 // Поле для заголовка
                 TextField(
@@ -676,7 +677,7 @@ fun CreateArticle(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(start = 0.dp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = darkSurface,
                         unfocusedContainerColor = darkSurface,
@@ -690,38 +691,56 @@ fun CreateArticle(
                     textStyle = TextStyle(color = Color.White),
                     singleLine = true
                 )
+
                 HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 1.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp)
+                        .offset(y = (-8).dp),
                     thickness = 1.dp,
-                    color = Color.White.copy(alpha = 0.3f)
+                    color = Color(red = 131, green = 131, blue = 131)
                 )
+
                 // Поле для содержимого (многострочное)
-                TextField(
-                    value = contentText,
-                    onValueChange = { contentText = it },
-                    placeholder = {
-                        Text(
-                            text = "Напишите что-нибудь...",
-                            color = grayText
-                        )
-                    },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
-                        .padding(bottom = 16.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = darkSurface,
-                        unfocusedContainerColor = darkSurface,
-                        disabledContainerColor = darkSurface,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = lightGrayText,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    textStyle = TextStyle(color = Color.White),
-                    maxLines = 10
-                )
+                        .padding(horizontal = 14.dp, vertical = 22.dp)
+                ) {
+                    TextField(
+                        value = contentText,
+                        onValueChange = { contentText = it },
+                        placeholder = {
+                            Text(
+                                text = "Напишите что-нибудь...",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = grayText
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(419.dp)
+                            .border(
+                                width = 1.dp,
+                                color = Color(red = 131, green = 131, blue = 131),
+                            )
+                            .background(
+                                color = Color(0xFF131313),
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = lightGrayText,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        textStyle = TextStyle(color = Color.White),
+
+                    )
+                }
 
                 // Поле для тегов
                 TextField(
@@ -748,22 +767,37 @@ fun CreateArticle(
                     textStyle = TextStyle(color = Color.White),
                     singleLine = true
                 )
-            }
-            Button(
-                onClick = { viewModel.onPublishClick(titleText, contentText, tagsText, postCallBack) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(WindowInsets.navigationBars.asPaddingValues()),
-                shape = RoundedCornerShape(15.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(red = 238, green = 126, blue = 86),
-                    contentColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "Опубликовать",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Spacer(Modifier.weight(1f))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 14.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(
+                        onClick = {
+                            viewModel.onPublishClick(
+                                titleText,
+                                contentText,
+                                tagsText,
+                                postCallBack
+                            )
+                        },
+                        modifier = Modifier
+                            .padding(WindowInsets.navigationBars.asPaddingValues()),
+                        shape = RoundedCornerShape(42.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(red = 238, green = 126, blue = 86),
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text(
+                            text = "Опубликовать",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
             }
         }
     }
@@ -1224,7 +1258,11 @@ fun CarouselScreen(
             }
         }
         if (showCreateArticle) {
-            CreateArticle(onClose = { showCreateArticle = false }, viewModel, onPostError ={}, onPostSuccess = {})
+            CreateArticle(
+                onClose = { showCreateArticle = false },
+                viewModel,
+                onPostError = {},
+                onPostSuccess = {})
         }
         var showNotificationsOverlay by remember { mutableStateOf(false) }
 
