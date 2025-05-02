@@ -1,6 +1,9 @@
 package com.example.urfulive.data.model
 
-data class Notifiaction (
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Notification (
     val id: Int,
     val title: String,
     val message: String,
@@ -9,19 +12,18 @@ data class Notifiaction (
 )
 
 val Notifications = listOf(
-    Notifiaction(
+    Notification(
         id = 1,
         title = "Ваша заявка принята",
         message = "Ваша заявка на участие в мероприятии была одобрена",
         time = "10 мин назад",
         isRead = false
     ),
-    Notifiaction(
+    Notification(
         id = 2,
         title = "Новый подарок",
         message = "Вам доступен новый бонус за активность",
         time = "1 час назад",
         isRead = true
     ),
-    // Добавьте другие уведомления по аналогии
 )

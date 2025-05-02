@@ -1,14 +1,5 @@
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import com.example.urfulive.data.DTOs.AuthResponse
-import com.example.urfulive.data.DTOs.DefaultResponse
-import com.example.urfulive.data.api.PostApiService
-import com.example.urfulive.data.api.UserApiService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 data class Article(
     val title: String,
@@ -28,40 +19,6 @@ data class ArticleColorPattern(
     val textColor: Color,
     val reactionColor: Color,
 )
-
-data class NotificationData(
-    val id: String,
-    val title: String,
-    val message: String,
-//    val time: String,
-    val isRead: Boolean
-)
-
-private val _notifications = listOf(
-    NotificationData(
-        id = "1",
-        title = "Ваша заявка автора принята",
-        message = "Поздравляем! Теперь ваш аккаунт имеет статус “автор”, вы можете публиковать посты на свою страницу.",
-//        time = "10 минут назад",
-        isRead = false
-    ),
-    NotificationData(
-        id = "2",
-        title = "Напоминание",
-        message = "Текст уведомления",
-        //time = "3 часа назад",
-        isRead = true
-    ),
-    NotificationData(
-        id = "3",
-        title = "Вам подарок",
-        message = "Текст уведомления",
-        //time = "1 час назад",
-        isRead = true
-    ),
-)
-
-val Notifications: List<NotificationData> get() = _notifications
 
 private val _articleColorPatterns = listOf(
     ArticleColorPattern(
@@ -93,14 +50,6 @@ enum class ArticleExpandState {
 val ArticleColorPatterns: List<ArticleColorPattern> get() = _articleColorPatterns
 
 class ArticlesViewModel : ViewModel() {
-    private val postApiService = PostApiService()
-    private val userApiService = UserApiService()
-
-    interface PostCallBack {
-        fun onSuccess(user: DefaultResponse)
-        fun onError(error: Exception)
-    }
-
     // Заглушки статей для проверки
     private val _articles = listOf(
         Article(
@@ -176,28 +125,5 @@ class ArticlesViewModel : ViewModel() {
 
     fun createArticle() {
 
-    }
-
-    fun onPublishClick(titleText: String, contentText: String, tagsText: String, callback: PostCallBack) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val result = postApiService.create(
-                    titleText,
-                    contentText,
-                )
-
-                withContext(Dispatchers.Main) {
-                    if (result.isSuccess) {
-                        callback.onSuccess(result.getOrThrow())
-                    } else {
-                        callback.onError(Exception("Неизвестная ошибка"))
-                    }
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    callback.onError(e)
-                }
-            }
-        }
     }
 }

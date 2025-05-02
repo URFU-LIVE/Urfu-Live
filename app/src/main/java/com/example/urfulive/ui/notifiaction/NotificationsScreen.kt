@@ -1,8 +1,6 @@
 // NotificationsScreen.kt
 package com.example.urfulive.ui.notifiaction
 
-import NotificationData
-import Notifications
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -17,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -30,12 +27,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import com.example.urfulive.data.model.Notification
 import kotlinx.coroutines.launch
 
 @Composable
 fun FullScreenNotifications(onClose: () -> Unit) {
-    val density = LocalDensity.current
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     val animatedAlpha = remember { Animatable(0f) }
@@ -96,7 +92,7 @@ fun FullScreenNotifications(onClose: () -> Unit) {
                             .fillMaxSize()
                             .padding(horizontal = 16.dp))
                     {
-                        val notifications = Notifications
+                        val notifications = com.example.urfulive.data.model.Notifications;
 
                         if (notifications.isEmpty()) {
                             item {
@@ -134,7 +130,7 @@ fun FullScreenNotifications(onClose: () -> Unit) {
 
 @Composable
 fun NotificationItemEnhanced(
-    notification: NotificationData,
+    notification: Notification,
     onClick: () -> Unit = {}
 ) {
     Row(
