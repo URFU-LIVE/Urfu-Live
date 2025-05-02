@@ -26,7 +26,6 @@ class UserApiService {
 
     private val baseUrl = "http://10.0.2.2:7070" // Замените на URL вашего бэкенда
 
-    @OptIn(InternalAPI::class)
     suspend fun login(username: String, password: String): Result<AuthResponse> {
         return try {
             val response = client.post("$baseUrl/auth/login") {
@@ -42,15 +41,12 @@ class UserApiService {
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
-                println("Попытка получить пользователя")
-                getUserProfile()
                 Result.success(authResponse)
             } else {
-                println(response.status)
-                println("Ошибка")
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
+            println(e.message)
             Result.failure(e)
         }
     }
@@ -75,27 +71,21 @@ class UserApiService {
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
-                println(authResponse.accessToken)
                 Result.success(authResponse)
             } else {
-                println(response.status)
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
             println(e.message)
-            println(e.stackTrace)
             Result.failure(e)
         }
     }
 
+    // todo Данный метод уже полностью рабочий.
     suspend fun getUserProfile(): Result<User> {
-        println("Начинаем")
         return try {
-            println("Начинаем 2")
             val tokenManager = TokenManagerInstance.getInstance()
-            println("Между")
             val tokenValue = tokenManager.getAccessTokenBlocking()
-            println(tokenValue)
             val response = client.get("$baseUrl/auth/me") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
@@ -103,35 +93,13 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
-                val user = Json.decodeFromString<User>(response.bodyAsText())
-                Result.success(user)
-            } else {
-                println()
-                Result.failure(Exception("HTTP Error: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun updateUserRole(userId: String, newRole: String, adminToken: String): Result<User> {
-        return try {
-            val response = client.put("$baseUrl/users/$userId/role") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $adminToken")
-                }
-                contentType(ContentType.Application.Json)
-                setBody(mapOf("role" to newRole))
-            }
-
-            if (response.status.isSuccess()) {
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
+            println(e.message)
             Result.failure(e)
         }
     }

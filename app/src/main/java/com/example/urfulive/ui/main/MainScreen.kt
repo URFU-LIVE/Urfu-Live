@@ -79,6 +79,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
+import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.api.UserApiService
@@ -525,74 +526,6 @@ fun NotificationItemEnhanced(
                     .align(Alignment.Top)
                     .background(color = Color(0xFFFB6C39), shape = CircleShape)
             )
-        }
-    }
-}
-
-@Composable
-fun BottomNavBar(
-    onProfileClick: () -> Unit,
-    onCreateArticleClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onSavedClick: () -> Unit,
-    onMessagesClick: () -> Unit,
-    currentScreen: String,
-    modifier: Modifier = Modifier,
-    containerWidth: Dp = 400.dp,
-    containerHeight: Dp = 80.dp,
-    horizontalPadding: Dp = 16.dp,
-    verticalPadding: Dp = 12.dp
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .width(containerWidth)
-                .height(containerHeight)
-                .background(Color(0xFF292929), shape = RoundedCornerShape(52.dp))
-                .padding(horizontal = horizontalPadding, vertical = verticalPadding)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                NavItem(
-                    iconRes = R.drawable.home,
-                    isSelected = currentScreen == "home",
-                    onClick = onHomeClick
-                )
-
-                NavItem(
-                    iconRes = R.drawable.savenew,
-                    isSelected = currentScreen == "saved",
-                    onClick = onSavedClick
-                )
-
-                NavItem(
-                    iconRes = R.drawable.resource_new,
-                    isSelected = currentScreen == "create",
-                    onClick = onCreateArticleClick,
-                    iconSize = 28.dp
-                )
-
-                NavItem(
-                    iconRes = R.drawable.messagenew,
-                    isSelected = currentScreen == "messages",
-                    onClick = onMessagesClick
-                )
-
-                NavItem(
-                    iconRes = R.drawable.profilenew,
-                    isSelected = currentScreen == "profile",
-                    onClick = onProfileClick,
-                    iconSize = 30.dp
-                )
-            }
         }
     }
 }

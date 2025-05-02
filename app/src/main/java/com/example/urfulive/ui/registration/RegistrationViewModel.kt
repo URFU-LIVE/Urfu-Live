@@ -52,9 +52,8 @@ class RegistrationViewModel : ViewModel() {
     }
 
     fun onRegisterClick(username: String, email: String, password: String, fio: String, birthDate: String, callback: RegisterCallback) {
-        var fioSplit = fio.split(" ")
-        println("Нажата кнопка")
-        //userApiService.register(username,email,password,fioSplit[0],fioSplit[1],birthDate)
+        val fioSplit = fio.split(" ")
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val result = userApiService.register(
@@ -66,7 +65,6 @@ class RegistrationViewModel : ViewModel() {
                     birthDate
                 )
 
-                // Переключаемся на главный поток для обратного вызова
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
                         callback.onSuccess(result.getOrThrow())
@@ -85,6 +83,4 @@ class RegistrationViewModel : ViewModel() {
     fun onLogoClick(newValue: String) {
 
     }
-
-
 }

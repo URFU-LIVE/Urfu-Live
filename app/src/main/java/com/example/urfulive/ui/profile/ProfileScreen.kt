@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.urfulive.R
+import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.profile.ProfileViewModel
 
 @Composable

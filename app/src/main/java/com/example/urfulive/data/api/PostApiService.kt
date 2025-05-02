@@ -1,6 +1,5 @@
 package com.example.urfulive.data.api
 
-import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import io.ktor.client.HttpClient
@@ -10,7 +9,6 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -33,8 +31,7 @@ class PostApiService {
 
     suspend fun create(title: String, text: String): Result<DefaultResponse> {
         return try {
-            val tokenManager = TokenManagerInstance.getInstance()
-            val tokenValue = tokenManager.getAccessTokenBlocking()
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
             val requestJson = PostCreateRequest(title, text, listOf(2))
 
             val response = client.post("$baseUrl/posts") {
@@ -45,16 +42,14 @@ class PostApiService {
                 setBody(requestJson)
             }
 
-            println(response.request.content.toString())
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                println(defaultResponse.message)
                 Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            print(e.message)
+            println(e.message)
             Result.failure(e)
         }
     }
