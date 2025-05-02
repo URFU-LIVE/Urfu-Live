@@ -52,7 +52,7 @@ fun BottomNavBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 NavItem(
-                    iconRes = R.drawable.home,
+                    iconRes = R.drawable.home_icon,
                     isSelected = currentScreen == "home",
                     onClick = onHomeClick
                 )
@@ -99,7 +99,7 @@ private fun NavItem(
             .size(44.dp)
             .clip(CircleShape)
             .background(
-                if (isSelected) Color.White.copy(alpha = 0.2f)
+                if (isSelected) Color.White
                 else Color.Transparent
             )
             .clickable(onClick = onClick),

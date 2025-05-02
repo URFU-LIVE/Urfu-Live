@@ -186,7 +186,6 @@ class ArticlesViewModel : ViewModel() {
                     contentText,
                 )
 
-                // Переключаемся на главный поток для обратного вызова
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
                         callback.onSuccess(result.getOrThrow())
