@@ -3,23 +3,19 @@ package com.example.urfulive.data.api
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import com.example.urfulive.data.DTOs.TagListResponse
-import com.example.urfulive.data.model.Tag
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
+import io.ktor.client.request.delete
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class PostApiService {
+class TagApiService {
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
             json(Json {
@@ -30,38 +26,13 @@ class PostApiService {
         }
     }
 
-    private val baseUrl = "http://10.0.2.2:7070"
+    private val baseUrl = "http://10.0.2.2:7070" // Замените на URL вашего бэкенда
 
-    suspend fun create(title: String, text: String): Result<DefaultResponse> {
-        return try {
-            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-            val requestJson = PostCreateRequest(title, text, listOf(2))
-
-            val response = client.post("$baseUrl/posts") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
-                }
-                contentType(ContentType.Application.Json)
-                setBody(requestJson)
-            }
-
-            if (response.status.isSuccess()) {
-                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                Result.success(defaultResponse)
-            } else {
-                Result.failure(Exception("HTTP Error: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            println(e.message)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun delete(id: Long): Result<DefaultResponse> {
+    suspend fun create(name: String): Result<DefaultResponse> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
 
-            val response = client.post("$baseUrl/posts/$id") {
+            val response = client.post("$baseUrl/admin/tags") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
                 }
@@ -80,19 +51,20 @@ class PostApiService {
         }
     }
 
-    suspend fun getByID(id: Long): Result<Tag> {
+    suspend fun delete(name: String): Result<DefaultResponse> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
 
-            val response = client.get("$baseUrl/posts/$id") {
+            val response = client.delete("$baseUrl/admin/tags") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
                 }
             }
 
             if (response.status.isSuccess()) {
-                val tagResponse = Json.decodeFromString<Tag>(response.bodyAsText())
-                Result.success(tagResponse)
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                println(defaultResponse.message)
+                Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
@@ -102,14 +74,20 @@ class PostApiService {
         }
     }
 
-    suspend fun getAll(): Result<TagListResponse> {
+    suspend fun getAll(name: String): Result<TagListResponse> {
         return try {
-            val response = client.get("$baseUrl/posts")
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+
+            val response = client.delete("$baseUrl/admin/tags") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
-                val tagListResponse = Json.decodeFromString<TagListResponse>(response.bodyAsText())
-                Result.success(tagListResponse)
+                val defaultResponse = Json.decodeFromString<TagListResponse>(response.bodyAsText())
+                println(response.status)
+                Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }

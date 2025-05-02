@@ -2,6 +2,7 @@ package com.example.urfulive.data.api
 
 import TokenManager
 import com.example.urfulive.data.DTOs.AuthResponse
+import com.example.urfulive.data.DTOs.RefreshResponse
 import com.example.urfulive.data.model.User
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -95,6 +96,28 @@ class UserApiService {
             if (response.status.isSuccess()) {
                 val user = Json.decodeFromString<User>(response.bodyAsText())
                 Result.success(user)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun refreshToken(): Result<RefreshResponse> {
+        return try {
+            val tokenManager = TokenManagerInstance.getInstance()
+            val tokenValue = tokenManager.getRefreshTokenBlocking()
+            val response = client.get("$baseUrl/auth/me") {
+                headers {
+                    append("X-Resfresh-token", "$tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val refreshResponse = Json.decodeFromString<RefreshResponse>(response.bodyAsText());
+                Result.success(refreshResponse);
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
