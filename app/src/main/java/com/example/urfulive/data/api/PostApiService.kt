@@ -1,5 +1,6 @@
 package com.example.urfulive.data.api
 
+import TokenManagerInstance
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import com.example.urfulive.data.DTOs.PostDto
@@ -8,6 +9,7 @@ import com.example.urfulive.data.model.Post
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -73,8 +75,52 @@ class PostApiService {
                     isLenient = true
                     prettyPrint = false
                 }
+                println(response.bodyAsText())
                 val postListResponse = json.decodeFromString<List<PostDto>>(response.bodyAsText())
                 Result.success(postListResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            print(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun like(id: Long): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.post("$baseUrl/posts/$id/like") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                println(response.bodyAsText())
+                Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            print(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun dislike(id: Long): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.delete("$baseUrl/posts/$id/dislike") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
