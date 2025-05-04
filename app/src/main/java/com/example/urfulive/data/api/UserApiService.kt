@@ -2,7 +2,9 @@ package com.example.urfulive.data.api
 
 import TokenManager
 import com.example.urfulive.data.DTOs.AuthResponse
+import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.RefreshResponse
+import com.example.urfulive.data.DTOs.UserDto
 import com.example.urfulive.data.model.User
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
@@ -84,7 +86,7 @@ class UserApiService {
     }
 
     // todo Данный метод уже полностью рабочий.
-    suspend fun getUserProfile(): Result<User> {
+    suspend fun getUserProfile(): Result<UserDto> {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
             val tokenValue = tokenManager.getAccessTokenBlocking()
@@ -95,7 +97,7 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                val user = Json.decodeFromString<User>(response.bodyAsText())
+                val user = Json.decodeFromString<UserDto>(response.bodyAsText())
                 Result.success(user)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -118,6 +120,28 @@ class UserApiService {
 
             if (response.status.isSuccess()) {
                 val refreshResponse = Json.decodeFromString<RefreshResponse>(response.bodyAsText());
+                Result.success(refreshResponse);
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserPosts(id: Long): Result<List<PostDto>> {
+        return try {
+            val tokenManager = TokenManagerInstance.getInstance()
+            val tokenValue = tokenManager.getAccessTokenBlocking()
+            val response = client.get("$baseUrl/user/$id/posts") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val refreshResponse = Json.decodeFromString<List<PostDto>>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))

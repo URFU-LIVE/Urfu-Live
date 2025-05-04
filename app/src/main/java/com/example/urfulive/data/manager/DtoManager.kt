@@ -1,6 +1,7 @@
 package com.example.urfulive.data.manager
 
 import com.example.urfulive.data.DTOs.PostDto
+import com.example.urfulive.data.DTOs.UserDto
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.User
@@ -41,4 +42,39 @@ class DtoManager {
         )
     }
 
+    fun UserDto.toUser(): User {
+        // Convert birthDate List<Int> to a formatted string (DD.MM.YYYY format)
+        val dateString = try {
+            val year = birthDate.getOrNull(0) ?: 0
+            val month = birthDate.getOrNull(1) ?: 0
+            val day = birthDate.getOrNull(2) ?: 0
+            "%02d.%02d.%04d".format(day, month, year)
+        } catch (e: Exception) {
+            "N/A"
+        }
+
+        // Convert role string to UserRole enum
+        val userRole = when (role) {
+            "WRITER" -> UserRole.WRITER
+            "ADMIN" -> UserRole.ADMIN
+            else -> UserRole.USER
+        }
+
+        // Get counts instead of full lists
+        val followersCount = followers.size
+        val followingCount = following.size
+
+        return User(
+            id = this.id.toString(),
+            username = this.username,
+            name = this.name,
+            surname = this.surname,
+            email = this.email,
+            birthDate = dateString,
+            role = userRole,
+            followersCount = followersCount,
+            followingCount = followingCount,
+            description = this.description
+        )
+    }
 }

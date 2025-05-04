@@ -65,6 +65,7 @@ fun CreateArticle(
         object : CreateArticleViewModel.PostCallBack {
             override fun onSuccess(user: DefaultResponse) {
                 onPostSuccess(user)
+                onClose()
             }
 
             override fun onError(error: Exception) {
