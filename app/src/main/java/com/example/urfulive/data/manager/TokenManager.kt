@@ -26,16 +26,15 @@ object TokenManagerInstance {
 }
 
 class TokenManager(private val context: Context) {
-    // Access dataStore using extension property
     private val dataStore = context.dataStore
 
-    // Keys for the DataStore preferences
     companion object {
         private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
+        private val USER_ID_KEY = stringPreferencesKey("user_id") // Новый ключ
     }
 
-    // Save tokens asynchronously
+    // Сохранение токенов и ID пользователя
     suspend fun saveTokens(accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
             preferences[ACCESS_TOKEN_KEY] = accessToken
@@ -43,33 +42,44 @@ class TokenManager(private val context: Context) {
         }
     }
 
-    // Get access token as Flow
+    suspend fun saveID(id: String) {
+        dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = id
+        }
+    }
+
     val accessToken: Flow<String?> = dataStore.data.map { preferences ->
         preferences[ACCESS_TOKEN_KEY]
     }
 
-    // Get refresh token as Flow
     val refreshToken: Flow<String?> = dataStore.data.map { preferences ->
         preferences[REFRESH_TOKEN_KEY]
     }
 
-    // Get access token synchronously (use only in contexts that can suspend or launch a coroutine)
+    val userId: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[USER_ID_KEY]
+    }
+
     suspend fun getAccessTokenBlocking(): String? {
-        val preferences = dataStore.data.first() // `first()` gets the value without needing `runBlocking`
+        val preferences = dataStore.data.first()
         return preferences[ACCESS_TOKEN_KEY]
     }
 
-    // Get refresh token synchronously
     suspend fun getRefreshTokenBlocking(): String? {
-        val preferences = dataStore.data.first() // `first()` gets the value without needing `runBlocking`
+        val preferences = dataStore.data.first()
         return preferences[REFRESH_TOKEN_KEY]
     }
 
-    // Clear tokens from DataStore
+    suspend fun getUserIdBlocking(): String? {
+        val preferences = dataStore.data.first()
+        return preferences[USER_ID_KEY]
+    }
+
     suspend fun clearTokens() {
         dataStore.edit { preferences ->
             preferences.remove(ACCESS_TOKEN_KEY)
             preferences.remove(REFRESH_TOKEN_KEY)
+            preferences.remove(USER_ID_KEY)
         }
     }
 }

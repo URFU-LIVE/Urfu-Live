@@ -39,7 +39,7 @@ class UserApiService {
             if (response.status.isSuccess()) {
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
-                tokenManager.clearTokens()
+                // Todo ХУЙНЯ ИСПРАВТЬ!!!!!
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
                 Result.success(authResponse)
             } else {

@@ -3,7 +3,7 @@ package com.example.urfulive.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Post (
+data class Post(
     val id: Long,
     val title: String,
     val text: String,
@@ -11,5 +11,7 @@ data class Post (
     val tags: List<Tag>,
     val time: String,
     val comments: Int,
-    var likes: Int
+    var likes: Int,
+    val likedBy: List<String> = emptyList()
 )
+

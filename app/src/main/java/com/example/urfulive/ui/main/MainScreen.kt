@@ -127,10 +127,18 @@ fun PostCard(
     post: Post,
     onClick: () -> Unit,
     expansionProgress: Float = .0f,
-    onAuthorClick: () -> Unit
+    onAuthorClick: () -> Unit,
+    viewModel: PostViewModel = viewModel()
 ) {
     val colorPatternIndex = post.id.rem(PostColorPatterns.size)
     val pattern = PostColorPatterns[colorPatternIndex.toInt()]
+
+    val isLiked = remember(post.likedBy) {
+        val currentUserId = viewModel.userId
+        post.likedBy.contains(currentUserId)
+    }
+
+    val likeColor = if (isLiked) Color.Red else pattern.reactionColor
 
     Box(
         modifier = Modifier
@@ -236,9 +244,9 @@ fun PostCard(
                 Image(
                     painter = painterResource(id = R.drawable.likebottom),
                     contentDescription = "Like Logo",
-                    colorFilter = ColorFilter.tint(pattern.reactionColor),
+                    colorFilter = ColorFilter.tint(likeColor),
                     modifier = Modifier
-                        .clickable { /* TODO Поставить лайк*/ }
+                        .clickable { viewModel.likeAndDislike(post.id) }
                         .size(33.dp),
                 )
 

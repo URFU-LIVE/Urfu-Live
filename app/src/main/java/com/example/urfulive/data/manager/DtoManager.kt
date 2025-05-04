@@ -38,9 +38,11 @@ class DtoManager {
             tags = this.tags.map { Tag(it.id, it.name) },
             time = formattedTime,
             comments = this.comments.size,
-            likes = this.likedBy.size
+            likes = this.likedBy.size,
+            likedBy = this.likedBy.map { it.toString() }
         )
     }
+
 
     fun UserDto.toUser(): User {
         // Convert birthDate List<Int> to a formatted string (DD.MM.YYYY format)
