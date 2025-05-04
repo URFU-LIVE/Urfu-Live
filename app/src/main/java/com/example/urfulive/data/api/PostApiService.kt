@@ -2,7 +2,9 @@ package com.example.urfulive.data.api
 
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
+import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.PostListResponse
+import com.example.urfulive.data.model.Post
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -58,7 +60,7 @@ class PostApiService {
         }
     }
 
-    suspend fun getAll(): Result<PostListResponse> {
+    suspend fun getAll(): Result<List<PostDto>> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
             val response = client.get("$baseUrl/posts") {
@@ -69,7 +71,13 @@ class PostApiService {
 
             if (response.status.isSuccess()) {
                 println(response.bodyAsText())
-                val postListResponse = Json.decodeFromString<PostListResponse>(response.bodyAsText())
+                val json = Json {
+                    ignoreUnknownKeys = true
+                    isLenient = true
+                    prettyPrint = false
+                }
+                val postListResponse = json.decodeFromString<List<PostDto>>(response.bodyAsText())
+                println()
                 Result.success(postListResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))

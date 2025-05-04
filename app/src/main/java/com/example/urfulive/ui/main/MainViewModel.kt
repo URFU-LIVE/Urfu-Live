@@ -2,11 +2,13 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.api.PostApiService
+import com.example.urfulive.data.manager.DtoManager
 import com.example.urfulive.data.model.Post
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+val dtoManager = DtoManager()
 
 data class PostColorPattern(
     val background: Color,
@@ -51,13 +53,16 @@ class PostViewModel : ViewModel() {
     private fun fetchPosts() {
         viewModelScope.launch {
             val result = postApiService.getAll()
-            result.onSuccess { postListResponse ->
-                _posts.value = listOf(postListResponse.posts);
+            result.onSuccess { postList ->
+                val dtoManager = DtoManager()
+                _posts.value = postList.map { dtoManager.run { it.toPost() } }
+
             }.onFailure {
                 it.printStackTrace()
             }
         }
     }
+
 }
 
 fun onProfileClick() {
