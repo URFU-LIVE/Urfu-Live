@@ -217,7 +217,7 @@ fun CreateArticle(
                         placeholder = {
                             Text(
                                 text = "Напишите что-нибудь...",
-                                style = MaterialTheme.typography.headlineSmall,
+                                style = MaterialTheme.typography.bodyLarge,
                                 color = grayText
                             )
                         },

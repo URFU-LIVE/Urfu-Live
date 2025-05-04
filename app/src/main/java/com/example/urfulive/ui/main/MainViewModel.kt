@@ -41,13 +41,14 @@ private val _articleColorPatterns = listOf(
     ),
 )
 
+val ArticleColorPatterns: List<ArticleColorPattern> get() = _articleColorPatterns
+
 enum class ArticleExpandState {
     Collapsed, // в карусели
     Partial,   // выдвинута снизу
     Full       // на весь экран
 }
 
-val ArticleColorPatterns: List<ArticleColorPattern> get() = _articleColorPatterns
 
 class ArticlesViewModel : ViewModel() {
     // Заглушки статей для проверки
@@ -109,21 +110,27 @@ class ArticlesViewModel : ViewModel() {
         ),
     )
 
-    // Публичный доступ только к чтению
+    enum class tagSizes { Small, Standart }
+
+    val ArticleColorPatterns: List<ArticleColorPattern> get() = _articleColorPatterns
     val articles: List<Article> get() = _articles
-
-    fun onProfileClick() {
-    }
-
-    fun checkProfile() {
-
-    }
-
-    fun createPost() {
-
-    }
-
-    fun createArticle() {
-
-    }
 }
+
+// Публичный доступ только к чтению
+
+
+fun onProfileClick() {
+}
+
+fun checkProfile() {
+
+}
+
+fun createPost() {
+
+}
+
+fun createArticle() {
+
+}
+

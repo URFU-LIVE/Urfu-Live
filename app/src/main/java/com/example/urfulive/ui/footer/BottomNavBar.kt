@@ -36,7 +36,8 @@ fun BottomNavBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(20.dp)
+            .padding(start = 20.dp, end = 20.dp)
+            .systemBarsPadding()
     ) {
         Box(
             modifier = Modifier

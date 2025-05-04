@@ -13,7 +13,8 @@ val Montserrat = FontFamily(
     Font(R.font.montserrat_regular, FontWeight.Normal),
     Font(R.font.montserrat_semibold, FontWeight.SemiBold),
     Font(R.font.montserrat_semibolditalic, FontWeight.SemiBold),
-    Font(R.font.montserrat_bold, FontWeight.Bold)
+    Font(R.font.montserrat_bold, FontWeight.Bold),
+    Font(R.font.montserrat_light, FontWeight.Light)
 )
 
 // Set of Material typography styles to start with
@@ -57,8 +58,8 @@ val Typography = Typography(
     labelMedium = TextStyle( // Теги
         fontFamily = Montserrat,
         fontWeight = FontWeight.Bold,
-        fontSize = 14.sp,
-        lineHeight = 14.sp,
+        fontSize = 16.sp,
+        lineHeight = 16.sp,
         letterSpacing = 0.sp
     ),
     labelLarge = TextStyle( // Заголовки статей
@@ -120,11 +121,11 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
 
-    headlineSmall = TextStyle( // Фон при незаполненном поле
+    headlineSmall = TextStyle( // Подписчики
         fontFamily = Montserrat,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 20.sp,
-        lineHeight = 20.sp,
+        fontWeight = FontWeight.Light,
+        fontSize = 16.sp,
+        lineHeight = 20.8.sp,
         letterSpacing = 0.sp
     ),
 )

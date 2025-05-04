@@ -1,3 +1,4 @@
+import ArticlesViewModel.*
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -66,6 +67,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.ui.createarticle.CreateArticle
@@ -78,14 +81,16 @@ import kotlinx.coroutines.delay
 @Composable
 fun ArticlesScreenPreview() {
     UrfuLiveTheme {
+        val previewNavController = rememberNavController()
         CarouselScreen(
             onProfileClick = {},
+            navController = previewNavController
         )
     }
 }
 
 @Composable
-fun TagChip(tag: String, color: Color) {
+fun TagChip(tag: String, color: Color, size: tagSizes = tagSizes.Standart) {
     Box(
         modifier = Modifier
             .graphicsLayer {
@@ -95,12 +100,15 @@ fun TagChip(tag: String, color: Color) {
                 color = color,
                 shape = RoundedCornerShape(52.dp)
             )
-            .padding(horizontal = 15.dp, vertical = 10.dp)
+            .padding(
+                horizontal = if (size == tagSizes.Standart) 15.dp else 13.dp,
+                vertical = if (size == tagSizes.Standart) 13.dp else 7.dp
+            )
     ) {
         Text(
             text = tag,
             color = Color.Black,
-            style = MaterialTheme.typography.labelMedium,
+            style = if (size == tagSizes.Standart) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 12.sp),
         )
     }
 }
@@ -110,6 +118,7 @@ fun ArticleCard(
     article: Article,
     onClick: () -> Unit,
     expansionProgress: Float = .0f,
+    onAuthorClick: () -> Unit
 ) {
     val pattern = ArticleColorPatterns[article.colorPatternIndex]
     val fadeOutSpeed = 1.0f
@@ -162,7 +171,7 @@ fun ArticleCard(
                             Image(
                                 painter = painterResource(id = R.drawable.profile),
                                 contentDescription = "Author Icon",
-                                modifier = Modifier.size(50.dp),
+                                modifier = Modifier.size(50.dp).clickable { onAuthorClick() },
                                 contentScale = ContentScale.Fit
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -180,7 +189,8 @@ fun ArticleCard(
                                     style = MaterialTheme.typography.titleLarge,
                                     color = Color.Black,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.clickable { onAuthorClick() }
                                 )
                             }
 
@@ -340,6 +350,9 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
 fun CarouselScreen(
     viewModel: ArticlesViewModel = viewModel(),
     onProfileClick: () -> Unit,
+    onAuthorClick: (String) -> Unit = {},
+    navController: NavController,
+    showNavBar: Boolean = true
 ) {
     val articles = viewModel.articles
     val pagerState = rememberPagerState(pageCount = { articles.size })
@@ -613,12 +626,16 @@ fun CarouselScreen(
                     } else {
                         expansionProgress
                     },
+                    onAuthorClick = {
+                        // Навигация на профиль автора
+                        onAuthorClick(articles[page].author)
+                    }
                 )
             }
         }
         var showCreateArticle by remember { mutableStateOf(false) }
         AnimatedVisibility(
-            visible = !shouldHideBottomNav,
+            visible = !shouldHideBottomNav && showNavBar,
             enter = fadeIn(
                 animationSpec = tween(durationMillis = 300, easing = SmoothEasing)
             ),
@@ -650,6 +667,25 @@ fun CarouselScreen(
             )
         }
         var showNotificationsOverlay by remember { mutableStateOf(false) }
+
+        LaunchedEffect(expandedIndex) {
+            shouldHideBottomNav = expandedIndex != -1
+        }
+
+        // Update when opening or closing animation starts
+        LaunchedEffect(isClosing) {
+            if (isClosing) {
+                shouldHideBottomNav = false
+            }
+        }
+
+        // Update on full expansion toggle
+        LaunchedEffect(isFullyExpanded) {
+            shouldHideBottomNav = isFullyExpanded || expandedIndex != -1
+        }
+
+
+
 
         Box(
             modifier = Modifier
