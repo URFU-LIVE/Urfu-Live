@@ -8,5 +8,8 @@ data class Post (
     val title: String,
     val text: String,
     val author: User,
-    val tags: List<Tag>
+    val tags: List<Tag>,
+    val time: String,
+    val comments: Int,
+    var likes: Int
 )

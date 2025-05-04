@@ -1,4 +1,4 @@
-import ArticlesViewModel.*
+import PostViewModel.*
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -7,11 +7,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +35,7 @@ import com.example.urfulive.ui.profile.ProfileViewModel
 
 fun ProfileScreen(
     viewModel: ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    articlesViewModel: ArticlesViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    postViewModel: PostViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     isOwnProfile: Boolean = true, // Добавляем параметр, по умолчанию - свой профиль
     userName: String = "username", // Имя пользователя
     followersCount: String = "123 подписчика", // Количество подписчиков
@@ -54,7 +51,7 @@ fun ProfileScreen(
     navbarCallbacks: NavbarCallbacks? = null,
     onCloseOverlay: () -> Unit = {},
 ) {
-    val posts = articlesViewModel.articles
+    val posts = postViewModel.articles
 
     val backgroundColor = Color(0xFF131313)
     val accentColor = Color(0xFFF6ECC9)

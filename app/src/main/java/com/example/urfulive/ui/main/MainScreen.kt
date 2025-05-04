@@ -1,6 +1,5 @@
-import ArticlesViewModel.*
+import PostViewModel.*
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -43,12 +41,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
@@ -64,17 +57,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.lerp
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.urfulive.components.BottomNavBar
-import com.example.urfulive.data.DTOs.DefaultResponse
+import com.example.urfulive.data.model.Post
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.notifiaction.FullScreenNotifications
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 
 @Preview(showBackground = true)
@@ -112,20 +103,15 @@ fun TagChip(tag: String, color: Color, size: tagSizes = tagSizes.Standart) {
         )
     }
 }
-
 @Composable
-fun ArticleCard(
-    article: Article,
+fun PostCard(
+    post: Post,
     onClick: () -> Unit,
     expansionProgress: Float = .0f,
     onAuthorClick: () -> Unit
 ) {
-    val pattern = ArticleColorPatterns[article.colorPatternIndex]
-    val fadeOutSpeed = 1.0f
-    val fadeOutEasing = FastOutSlowInEasing
-    remember(expansionProgress) {
-        (1f - (fadeOutEasing.transform(expansionProgress) * fadeOutSpeed)).coerceIn(0f, 1f)
-    }
+    val colorPatternIndex = post.id.rem(PostColorPatterns.size)
+    val pattern = PostColorPatterns.get(colorPatternIndex.toInt())
 
     Box(
         modifier = Modifier
@@ -141,23 +127,24 @@ fun ArticleCard(
         ) {
             Column {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    article.tags.take(2).forEach { tag ->
-                        TagChip(tag = tag, color = pattern.buttonColor)
+                    post.tags?.take(2)?.forEach { tag ->
+                        TagChip(tag = tag.name, color = pattern.buttonColor)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = article.title,
+                    text = post.title,
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
+
                 Column {
                     Text(
-                        text = "Опубликовано: ${article.date}",
+                        text = "Опубликовано: ${post.time.substring(0, 10)}",
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.Black
                     )
@@ -176,16 +163,14 @@ fun ArticleCard(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Автор:",
                                     style = MaterialTheme.typography.titleLarge,
                                     color = Color.Black
                                 )
                                 Text(
-                                    text = article.author,
+                                    text = post.author?.username ?: "Неизвестный автор",
                                     style = MaterialTheme.typography.titleLarge,
                                     color = Color.Black,
                                     maxLines = 1,
@@ -202,10 +187,7 @@ fun ArticleCard(
                                         pattern.buttonColor,
                                         shape = RoundedCornerShape(52.dp)
                                     )
-                                    .padding(
-                                        horizontal = 15.dp,
-                                        vertical = 10.dp
-                                    ),
+                                    .padding(horizontal = 15.dp, vertical = 10.dp),
                                 color = Color.Black,
                                 style = MaterialTheme.typography.displaySmall,
                             )
@@ -215,7 +197,7 @@ fun ArticleCard(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = article.content,
+                    text = post.text ?: "",
                     style = MaterialTheme.typography.displayMedium,
                     color = Color.Black,
                     maxLines = 10,
@@ -223,15 +205,12 @@ fun ArticleCard(
                 )
             }
 
-            val animatedAlpha = (1f - (expansionProgress * fadeOutSpeed)).coerceIn(0f, 1f)
+            val animatedAlpha = (1f - (expansionProgress * 1f)).coerceIn(0f, 1f)
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .graphicsLayer {
-                        alpha = animatedAlpha
-                    }
+                modifier = Modifier.graphicsLayer { alpha = animatedAlpha }
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.likebottom),
@@ -243,7 +222,7 @@ fun ArticleCard(
                 )
 
                 Text(
-                    text = article.likes.toString(),
+                    text = post.likes.toString(),
                     color = Color.Black,
                     style = MaterialTheme.typography.displayLarge,
                 )
@@ -256,7 +235,7 @@ fun ArticleCard(
                         .size(35.dp),
                 )
                 Text(
-                    text = article.comments.toString(),
+                    text = post.comments.toString(),
                     color = Color.Black,
                     style = MaterialTheme.typography.displayLarge,
                 )
@@ -270,7 +249,7 @@ fun ArticleCard(
                 )
 
                 Text(
-                    text = article.sakladka.toString(),
+                    text = "0", // Можно добавить сохранения в модель Post
                     color = Color.Black,
                     style = MaterialTheme.typography.displayLarge,
                 )
@@ -345,17 +324,17 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
+@SuppressLint("ViewModelConstructorInComposable", "StateFlowValueCalledInComposition")
 @Composable
 fun CarouselScreen(
-    viewModel: ArticlesViewModel = viewModel(),
+    viewModel: PostViewModel = viewModel(),
     onProfileClick: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
     navController: NavController,
     showNavBar: Boolean = true
 ) {
-    val articles = viewModel.articles
-    val pagerState = rememberPagerState(pageCount = { articles.size })
+    val posts = viewModel.posts
+    val pagerState = rememberPagerState(pageCount = { posts.value.size })
     var expandedIndex by remember { mutableStateOf(-1) }
 
     val scope = rememberCoroutineScope()
@@ -597,8 +576,8 @@ fun CarouselScreen(
                         }
                     }
             ) {
-                ArticleCard(
-                    article = articles[page],
+                PostCard { } (
+                     = posts.value[page]
                     onClick = {
                         val currentTime = System.currentTimeMillis()
                         if (expandedIndex == -1 && !isClosing && !isAnimationInProgress &&
@@ -628,7 +607,7 @@ fun CarouselScreen(
                     },
                     onAuthorClick = {
                         // Навигация на профиль автора
-                        onAuthorClick(articles[page].author)
+                        onAuthorClick(posts.value[page].author.username)
                     }
                 )
             }
@@ -733,7 +712,7 @@ fun CarouselScreen(
                     .height(with(density) { currentHeight.toDp() })
                     .background(
                         color = if (expandedIndex >= 0 && expandedIndex < articles.size)
-                            ArticleColorPatterns[articles[expandedIndex].colorPatternIndex].background
+                            PostColorPattern[articles[expandedIndex].colorPatternIndex].background
                         else
                             Color.Transparent,
                         shape = RoundedCornerShape(

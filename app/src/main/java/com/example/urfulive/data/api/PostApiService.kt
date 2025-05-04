@@ -1,11 +1,12 @@
 package com.example.urfulive.data.api
 
-import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
+import com.example.urfulive.data.DTOs.PostListResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -32,8 +33,7 @@ class PostApiService {
 
     suspend fun create(title: String, text: String): Result<DefaultResponse> {
         return try {
-            val tokenManager = TokenManagerInstance.getInstance()
-            val tokenValue = tokenManager.getAccessTokenBlocking()
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
             val requestJson = PostCreateRequest(title, text, listOf(1))
 
             val response = client.post("$baseUrl/posts") {
@@ -49,6 +49,28 @@ class PostApiService {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 println(defaultResponse.message)
                 Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            print(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getAll(): Result<PostListResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.get("$baseUrl/posts") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                println(response.bodyAsText())
+                val postListResponse = Json.decodeFromString<PostListResponse>(response.bodyAsText())
+                Result.success(postListResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
