@@ -42,6 +42,7 @@ class UserApiService {
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
+                println(authResponse)
                 Result.success(authResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))

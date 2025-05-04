@@ -37,12 +37,9 @@ fun AppNavHost() {
                     navController.navigate("registration")
                 },
                 onLoginClick = {
-                    navController.navigate("main") {
-                        // Clear back stack when going to main
-                        popUpTo("login") { inclusive = true }
-                    }
+                    navController.navigate("main")
                 },
-                onLoginSuccess = {},
+                onLoginSuccess = {navController.navigate("main")},
                 onLoginError = {},
                 onRestorePasswordClick = {
                     navController.navigate("main")

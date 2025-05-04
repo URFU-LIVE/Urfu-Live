@@ -1,5 +1,3 @@
-import PostViewModel.*
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -12,76 +10,93 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.urfulive.R
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.Text
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.urfulive.ui.theme.UrfuLiveTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.util.lerp
-import kotlinx.coroutines.launch
-import kotlin.math.absoluteValue
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.lerp
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.notifiaction.FullScreenNotifications
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
+
+enum class TagSizes {
+    Standart, Small
+}
 
 @Preview(showBackground = true)
 @Composable
 fun ArticlesScreenPreview() {
-    UrfuLiveTheme {
-        val previewNavController = rememberNavController()
-        CarouselScreen(
-            onProfileClick = {},
-            navController = previewNavController
-        )
-    }
+    val previewNavController = rememberNavController()
+    CarouselScreen(
+        onProfileClick = {},
+        navController = previewNavController
+    )
 }
 
 @Composable
-fun TagChip(tag: String, color: Color, size: tagSizes = tagSizes.Standart) {
+fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standart) {
     Box(
         modifier = Modifier
             .graphicsLayer {
@@ -92,17 +107,18 @@ fun TagChip(tag: String, color: Color, size: tagSizes = tagSizes.Standart) {
                 shape = RoundedCornerShape(52.dp)
             )
             .padding(
-                horizontal = if (size == tagSizes.Standart) 15.dp else 13.dp,
-                vertical = if (size == tagSizes.Standart) 13.dp else 7.dp
+                horizontal = if (size == TagSizes.Standart) 15.dp else 13.dp,
+                vertical = if (size == TagSizes.Standart) 13.dp else 7.dp
             )
     ) {
         Text(
             text = tag,
             color = Color.Black,
-            style = if (size == tagSizes.Standart) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 12.sp),
+            style = if (size == TagSizes.Standart) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 12.sp),
         )
     }
 }
+
 @Composable
 fun PostCard(
     post: Post,
@@ -110,8 +126,8 @@ fun PostCard(
     expansionProgress: Float = .0f,
     onAuthorClick: () -> Unit
 ) {
-    val colorPatternIndex = post.id.rem(PostColorPatterns.size)
-    val pattern = PostColorPatterns.get(colorPatternIndex.toInt())
+    val colorPatternIndex = post.id.toLong().rem(PostColorPatterns.size)
+    val pattern = PostColorPatterns[colorPatternIndex.toInt()]
 
     Box(
         modifier = Modifier
@@ -158,7 +174,9 @@ fun PostCard(
                             Image(
                                 painter = painterResource(id = R.drawable.profile),
                                 contentDescription = "Author Icon",
-                                modifier = Modifier.size(50.dp).clickable { onAuthorClick() },
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clickable { onAuthorClick() },
                                 contentScale = ContentScale.Fit
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -287,8 +305,6 @@ fun TopBar(
     }
 }
 
-
-
 @Composable
 fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1f) {
     val initialVisibleTags = 2
@@ -324,7 +340,6 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable", "StateFlowValueCalledInComposition")
 @Composable
 fun CarouselScreen(
     viewModel: PostViewModel = viewModel(),
@@ -333,8 +348,8 @@ fun CarouselScreen(
     navController: NavController,
     showNavBar: Boolean = true
 ) {
-    val posts = viewModel.posts
-    val pagerState = rememberPagerState(pageCount = { posts.value.size })
+    val postsState by viewModel.posts.collectAsState()
+    val pagerState = rememberPagerState(pageCount = { postsState.size })
     var expandedIndex by remember { mutableStateOf(-1) }
 
     val scope = rememberCoroutineScope()
@@ -576,42 +591,47 @@ fun CarouselScreen(
                         }
                     }
             ) {
-                PostCard { } (
-                     = posts.value[page]
-                    onClick = {
-                        val currentTime = System.currentTimeMillis()
-                        if (expandedIndex == -1 && !isClosing && !isAnimationInProgress &&
-                            (currentTime - lastActionTime > minActionInterval)
-                        ) {
-                            dragOffset = 0f
-                            lastActionTime = currentTime
+                if (page < postsState.size) {
+                    PostCard(
+                        post = postsState[page],
+                        onClick = {
+                            val currentTime = System.currentTimeMillis()
+                            if (expandedIndex == -1 && !isClosing && !isAnimationInProgress &&
+                                (currentTime - lastActionTime > minActionInterval)
+                            ) {
+                                dragOffset = 0f
+                                lastActionTime = currentTime
 
-                            scope.launch {
-                                isAnimationInProgress = true
-                                delay(16)
-                                expandedIndex = page
-                                isFullyExpanded = false
+                                scope.launch {
+                                    isAnimationInProgress = true
+                                    delay(16)
+                                    expandedIndex = page
+                                    isFullyExpanded = false
 
-                                try {
-                                    delay(fixedOpenDuration.toLong())
-                                } finally {
-                                    isAnimationInProgress = false
+                                    try {
+                                        delay(fixedOpenDuration.toLong())
+                                    } finally {
+                                        isAnimationInProgress = false
+                                    }
                                 }
                             }
+                        },
+                        expansionProgress = if (isClosing) {
+                            1f - closeAnimator.value
+                        } else {
+                            expansionProgress
+                        },
+                        onAuthorClick = {
+                            // Навигация на профиль автора
+                            postsState[page].author?.username?.let { username ->
+                                onAuthorClick(username)
+                            }
                         }
-                    },
-                    expansionProgress = if (isClosing) {
-                        1f - closeAnimator.value
-                    } else {
-                        expansionProgress
-                    },
-                    onAuthorClick = {
-                        // Навигация на профиль автора
-                        onAuthorClick(posts.value[page].author.username)
-                    }
-                )
+                    )
+                }
             }
         }
+
         var showCreateArticle by remember { mutableStateOf(false) }
         AnimatedVisibility(
             visible = !shouldHideBottomNav && showNavBar,
@@ -637,6 +657,7 @@ fun CarouselScreen(
                 )
             }
         }
+
         if (showCreateArticle) {
             CreateArticle(
                 onClose = { showCreateArticle = false },
@@ -645,6 +666,7 @@ fun CarouselScreen(
                 viewModel = CreateArticleViewModel()
             )
         }
+
         var showNotificationsOverlay by remember { mutableStateOf(false) }
 
         LaunchedEffect(expandedIndex) {
@@ -662,9 +684,6 @@ fun CarouselScreen(
         LaunchedEffect(isFullyExpanded) {
             shouldHideBottomNav = isFullyExpanded || expandedIndex != -1
         }
-
-
-
 
         Box(
             modifier = Modifier
@@ -691,7 +710,7 @@ fun CarouselScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                         indication = null,
                         enabled = expandedIndex != -1 && !isClosing && !isAnimationInProgress
                     ) {
@@ -711,10 +730,12 @@ fun CarouselScreen(
                     .width(with(density) { currentWidth.toDp() })
                     .height(with(density) { currentHeight.toDp() })
                     .background(
-                        color = if (expandedIndex >= 0 && expandedIndex < articles.size)
-                            PostColorPattern[articles[expandedIndex].colorPatternIndex].background
-                        else
-                            Color.Transparent,
+                        color = if (expandedIndex >= 0 && expandedIndex < postsState.size) {
+                            val index = postsState[expandedIndex].id.toLong().rem(PostColorPatterns.size).toInt()
+                            PostColorPatterns[index].background
+                        } else {
+                            Color.Transparent
+                        },
                         shape = RoundedCornerShape(
                             topStart = 52.dp,
                             topEnd = 52.dp,
@@ -723,21 +744,18 @@ fun CarouselScreen(
                         )
                     )
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                         indication = null
                     ) { }
                     .zIndex(10f)
             ) {
-                if ((expandedIndex >= 0 && expandedIndex < articles.size) || isClosing) {
-                    val articleIndex =
-                        if (expandedIndex >= 0 && expandedIndex < articles.size) expandedIndex else 0
-
+                if (expandedIndex >= 0 && expandedIndex < postsState.size) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
-                        ArticleContent(
-                            article = articles[articleIndex],
+                        ExpandedPostContent(
+                            post = postsState[expandedIndex],
                             expandProgress = if (isClosing) {
                                 1f - closeAnimator.value
                             } else {
@@ -803,18 +821,20 @@ fun CarouselScreen(
     }
 }
 
+
 @Composable
-fun ArticleContent(
-    article: Article,
+fun ExpandedPostContent(
+    post: Post,
     expandProgress: Float,
     onHeaderSwipe: () -> Unit,
 ) {
     val titleSizeAndHeight = lerp(24.sp, 26.sp, expandProgress)
-    val articleHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
+    val postHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
     val paddingAfterDate = lerp(6.dp, 15.dp, expandProgress)
 
     val scrollState = rememberScrollState()
-    val pattern = ArticleColorPatterns[article.colorPatternIndex]
+    val colorPatternIndex = post.id.toLong().rem(PostColorPatterns.size).toInt()
+    val pattern = PostColorPatterns[colorPatternIndex]
 
     Column(
         modifier = Modifier
@@ -847,16 +867,19 @@ fun ArticleContent(
                     )
                 }
         ) {
+            // Convert tag objects to string list for the horizontal tag row
+            val tagNames = post.tags?.map { it.name } ?: emptyList()
+
             HorizontalTagRow(
-                tags = article.tags,
-                color = ArticleColorPatterns[article.colorPatternIndex].buttonColor,
+                tags = tagNames,
+                color = pattern.buttonColor,
                 expandProgress = expandProgress
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = article.title,
+                text = post.title,
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontSize = titleSizeAndHeight,
                     lineHeight = titleSizeAndHeight
@@ -867,7 +890,7 @@ fun ArticleContent(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Опубликовано: ${article.date}",
+                text = "Опубликовано: ${post.time.substring(0, 10)}",
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.Black
             )
@@ -882,7 +905,9 @@ fun ArticleContent(
                     Image(
                         painter = painterResource(id = R.drawable.profile),
                         contentDescription = "Author Icon",
-                        modifier = Modifier.size(50.dp),
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clickable { /* Navigate to author profile */ },
                         contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -896,7 +921,7 @@ fun ArticleContent(
                             color = Color.Black
                         )
                         Text(
-                            text = article.author,
+                            text = post.author?.username ?: "Неизвестный автор",
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.Black,
                             maxLines = 1,
@@ -927,15 +952,15 @@ fun ArticleContent(
                 .padding(top = 20.dp)
         ) {
             Text(
-                text = article.content,
-                style = MaterialTheme.typography.displayMedium.copy(lineHeight = articleHeight),
+                text = post.text ?: "",
+                style = MaterialTheme.typography.displayMedium.copy(lineHeight = postHeight),
                 color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             ReactionPanelBottomContent(
-                article = article,
+                post = post,
                 pattern = pattern,
                 expandProgress = expandProgress
             )
@@ -947,8 +972,8 @@ fun ArticleContent(
 
 @Composable
 fun ReactionPanelBottomContent(
-    article: Article,
-    pattern: ArticleColorPattern,
+    post: Post,
+    pattern: PostColorPattern,
     expandProgress: Float
 ) {
     val reactionPanelOpacity = if (expandProgress < 0.3f) {
@@ -988,7 +1013,7 @@ fun ReactionPanelBottomContent(
             )
 
             Text(
-                text = article.likes.toString(),
+                text = post.likes.toString(),
                 color = Color.Black,
                 style = MaterialTheme.typography.displayLarge,
             )
@@ -1001,7 +1026,7 @@ fun ReactionPanelBottomContent(
                     .size(35.dp),
             )
             Text(
-                text = article.comments.toString(),
+                text = post.comments.toString(),
                 color = Color.Black,
                 style = MaterialTheme.typography.displayLarge,
             )
@@ -1015,19 +1040,19 @@ fun ReactionPanelBottomContent(
             )
 
             Text(
-                text = article.sakladka.toString(),
+                text = "0", // Можно добавить сохранения в модель Post
                 color = Color.Black,
                 style = MaterialTheme.typography.displayLarge,
             )
 
-            Spacer(modifier = Modifier.width(140.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             Image(
                 painter = painterResource(id = R.drawable.flag),
-                contentDescription = "Bookmark Logo",
+                contentDescription = "Report Logo",
                 colorFilter = ColorFilter.tint(pattern.reactionColor),
                 modifier = Modifier
-                    .clickable { /* TODO Сохранить себе*/ }
+                    .clickable { /* TODO Пожаловаться */ }
                     .size(27.dp),
             )
         }

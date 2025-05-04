@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,10 +44,12 @@ import com.example.urfulive.R
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(onCloseOverlay: () -> Unit = {},
-                   onAccountClick: () -> Unit = {},
-                   onNotificationsClick: () -> Unit = {},
-                   onPrivacyClick: () -> Unit = {}) {
+fun SettingsScreen(
+    onCloseOverlay: () -> Unit = {},
+    onAccountClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {}
+) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     val animatedAlpha = remember { Animatable(0f) }
@@ -83,11 +87,14 @@ fun SettingsScreen(onCloseOverlay: () -> Unit = {},
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .systemBarsPadding(),
+                .systemBarsPadding()
+                .align(Alignment.Center),
+
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = 23.dp, bottom = 15.dp)
+                    .fillMaxWidth()
+                    .padding(top = 23.dp, bottom = 15.dp),
             )
             {
                 Image(
@@ -97,20 +104,22 @@ fun SettingsScreen(onCloseOverlay: () -> Unit = {},
                         .clickable { onCloseOverlay() }
                         .padding(start = 15.dp))
 
+
                 Text(
                     text = "Настройки",
                     color = Color.White,
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier
-                        .align(Alignment.Center)
                         .padding(start = 67.dp)
                 )
             }
 
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally // Center only items in this column
+                modifier = Modifier
+                    .fillMaxWidth() // Make sure this takes full width
+                    .padding(horizontal = 16.dp), // Add horizontal padding
+                horizontalAlignment = Alignment.CenterHorizontally // This centers the children horizontally
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ava),
@@ -123,8 +132,6 @@ fun SettingsScreen(onCloseOverlay: () -> Unit = {},
                     contentScale = ContentScale.Crop
                 )
 
-                // Add more centered elements below the avatar here
-                // For example:
                 Text(
                     text = "username",
                     style = MaterialTheme.typography.labelMedium.copy(
@@ -135,20 +142,36 @@ fun SettingsScreen(onCloseOverlay: () -> Unit = {},
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                SettingsItem(
-                    title = "Аккаунт",
-                    onClick = onAccountClick
-                )
+                // Settings items - these need width constraints
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SettingsItem(
+                        title = "Аккаунт",
+                        onClick = onAccountClick,
 
-                SettingsItem(
-                    title = "Уведомления",
-                    onClick = onNotificationsClick
-                )
+                    )
+                }
 
-                SettingsItem(
-                    title = "Приватность",
-                    onClick = onPrivacyClick
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SettingsItem(
+                        title = "Уведомления",
+                        onClick = onNotificationsClick,
+
+                    )
+                }
+
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SettingsItem(
+                        title = "Приватность",
+                        onClick = onPrivacyClick,
+
+                    )
+                }
             }
         }
     }
@@ -161,16 +184,14 @@ fun SettingsItem(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 10.dp)
             .background(Color(0xFF292929), shape = RoundedCornerShape(15.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 20.dp, horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = 22.sp, lineHeight = 22.sp),
             color = Color.White
         )
     }

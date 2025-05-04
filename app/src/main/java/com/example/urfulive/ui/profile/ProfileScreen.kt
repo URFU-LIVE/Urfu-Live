@@ -1,4 +1,3 @@
-import PostViewModel.*
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -32,7 +31,6 @@ import com.example.urfulive.ui.profile.ProfileViewModel
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 @Preview
-
 fun ProfileScreen(
     viewModel: ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     postViewModel: PostViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
@@ -51,7 +49,7 @@ fun ProfileScreen(
     navbarCallbacks: NavbarCallbacks? = null,
     onCloseOverlay: () -> Unit = {},
 ) {
-    val posts = postViewModel.articles
+    val postsState by postViewModel.posts.collectAsState()
 
     val backgroundColor = Color(0xFF131313)
     val accentColor = Color(0xFFF6ECC9)
@@ -235,14 +233,16 @@ fun ProfileScreen(
                         }
                     }
 
-                    items(posts.size) { index ->
-                        val post = posts[index]
+                    items(postsState.size) { index ->
+                        val post = postsState[index]
+                        val colorPatternIndex = post.id.toLong().rem(PostColorPatterns.size).toInt()
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(100.dp)
                                 .clip(RoundedCornerShape(cornerRadius))
-                                .background(color = ArticleColorPatterns[post.colorPatternIndex].background),
+                                .background(color = PostColorPatterns[colorPatternIndex].background),
                         ) {
                             Text(
                                 text = post.title,
@@ -262,11 +262,11 @@ fun ProfileScreen(
                                     end = 25.dp
                                 ),
                             ) {
-                                post.tags.take(2).forEach { tag ->
+                                post.tags?.take(2)?.forEach { tag ->
                                     TagChip(
-                                        tag = tag,
-                                        color = ArticleColorPatterns[post.colorPatternIndex].buttonColor,
-                                        size = tagSizes.Small
+                                        tag = tag.name,
+                                        color = PostColorPatterns[colorPatternIndex].buttonColor,
+                                        size = TagSizes.Small
                                     )
                                 }
                             }
