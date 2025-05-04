@@ -52,9 +52,12 @@ class PostApiService {
                 println(defaultResponse.message)
                 Result.success(defaultResponse)
             } else {
+                println("Ошибка. Сработал - Else ")
+                print(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
+            println("Ошибка. Сработал - Catch ")
             print(e.message)
             Result.failure(e)
         }
@@ -77,7 +80,6 @@ class PostApiService {
                     prettyPrint = false
                 }
                 val postListResponse = json.decodeFromString<List<PostDto>>(response.bodyAsText())
-                println()
                 Result.success(postListResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
