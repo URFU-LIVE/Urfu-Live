@@ -1,3 +1,5 @@
+package com.example.urfulive.ui.main
+
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope

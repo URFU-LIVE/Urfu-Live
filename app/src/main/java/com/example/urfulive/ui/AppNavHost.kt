@@ -2,20 +2,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.example.urfulive.ui.profile.my.ProfileScreen
 import com.example.urfulive.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -176,7 +173,7 @@ fun MainScreenWithOverlays(navController: NavHostController) {
                     .fillMaxSize()
                     .clickable(enabled = false) { /* Prevent click through */ }
             ) {
-                ProfileScreen(
+                /*ProfileScreen(
                     userName = authorUsername.value,
                     isOwnProfile = false,
                     onHomeClick = {
@@ -212,7 +209,7 @@ fun MainScreenWithOverlays(navController: NavHostController) {
                     onCloseOverlay = {
                         showAuthorProfile.value = false
                     }
-                )
+                )*/
             }
         }
     }

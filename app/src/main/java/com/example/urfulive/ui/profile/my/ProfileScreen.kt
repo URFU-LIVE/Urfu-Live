@@ -1,3 +1,8 @@
+package com.example.urfulive.ui.profile.my
+
+import NavbarCallbacks
+import TagChip
+import TagSizes
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -26,30 +31,27 @@ import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
-import com.example.urfulive.ui.profile.ProfileViewModel
+import com.example.urfulive.ui.main.PostColorPatterns
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 @Preview
 fun ProfileScreen(
     viewModel: ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    postViewModel: PostViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    isOwnProfile: Boolean = true, // Добавляем параметр, по умолчанию - свой профиль
-    userName: String = "username", // Имя пользователя
-    followersCount: String = "123 подписчика", // Количество подписчиков
-    profileDescription: String = "Это описание профиля. Здесь может быть информация о пользователе.",
+    isOwnProfile: Boolean = true,
     onProfileClick: () -> Unit = {},
     onCreateArticleClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
-    onReportClick: () -> Unit = {}, // Обработчик нажатия на кнопку жалобы
-    onSettingsClick: () -> Unit = {}, // Обработчик нажатия на кнопку настроек
+    onReportClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
     onCloseOverlay: () -> Unit = {},
 ) {
-    val postsState by postViewModel.posts.collectAsState()
+    val user = viewModel.user
+    val posts = viewModel.posts
 
     val backgroundColor = Color(0xFF131313)
     val accentColor = Color(0xFFF6ECC9)
@@ -66,9 +68,7 @@ fun ProfileScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // Верхняя часть профиля
             Box(
                 modifier = Modifier
@@ -91,7 +91,7 @@ fun ProfileScreen(
                     )
                 } else {
                     Image(
-                        painter = painterResource(id = R.drawable.flag), // Используйте соответствующую иконку флага
+                        painter = painterResource(id = R.drawable.flag),
                         contentDescription = "Пожаловаться на пользователя",
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -100,14 +100,12 @@ fun ProfileScreen(
                             .clickable { onReportClick() },
                         colorFilter = ColorFilter.tint(Color.White)
                     )
-                }
-                if (!isOwnProfile) {
-                    BackHandler() {
+                    BackHandler {
                         onCloseOverlay()
                     }
                     Image(
                         painter = painterResource(id = R.drawable.chevron_left),
-                        contentDescription = "Пожаловаться на пользователя",
+                        contentDescription = "Назад",
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .offset(x = (8).dp, y = (-8).dp)
@@ -116,6 +114,7 @@ fun ProfileScreen(
                         colorFilter = ColorFilter.tint(Color.White)
                     )
                 }
+
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Image(
                         painter = painterResource(id = R.drawable.ava),
@@ -126,47 +125,49 @@ fun ProfileScreen(
                             .border(2.dp, Color.White, CircleShape),
                         contentScale = ContentScale.Crop
                     )
-                    Text(
-                        text = userName,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 26.sp
-                        ),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                    Text(
-                        text = followersCount,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.DarkGray,
-                    )
 
-                    // Кнопка редактирования профиля только для своего профиля,
-                    // для чужого - кнопка "Подписаться"
-                    Button(
-                        onClick = { /* TODO */ },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isOwnProfile) Color(0xFF191818) else Color(
-                                0xFF3D7BF4
-                            ),
-                            contentColor = Color.White
-                        ),
-                        modifier = Modifier.padding(top = 6.dp, start = 60.dp, end = 60.dp)
-                    ) {
+                    if (user != null) {
                         Text(
-                            text = if (isOwnProfile) "Редактировать профиль" else "Подписаться",
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                            text = user.username,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 26.sp
+                            ),
+                            modifier = Modifier.padding(top = 8.dp)
                         )
-                    }
 
-                    Text(
-                        text = profileDescription,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = Color.Gray,
-                        modifier = Modifier
-                            .padding(top = 6.dp, start = 58.dp, end = 58.dp)
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
+                        Text(
+                            text = "${user.followersCount} подписчиков",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.DarkGray,
+                        )
+
+                        Button(
+                            onClick = { /* TODO: обработка */ },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isOwnProfile) Color(0xFF191818) else Color(0xFF3D7BF4),
+                                contentColor = Color.White
+                            ),
+                            modifier = Modifier.padding(top = 6.dp, start = 60.dp, end = 60.dp)
+                        ) {
+                            Text(
+                                text = if (isOwnProfile) "Редактировать профиль" else "Подписаться",
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                        }
+
+                        Text(
+                            text = user.description ?: "Описание отсутствует",
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .padding(top = 6.dp, start = 58.dp, end = 58.dp)
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                        )
+                    } else {
+                        CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                    }
                 }
             }
 
@@ -188,11 +189,7 @@ fun ProfileScreen(
                     textAlign = TextAlign.Center
                 )
 
-                Divider(
-                    color = accentColor,
-                    thickness = 2.dp,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Divider(color = accentColor, thickness = 2.dp)
 
                 Spacer(modifier = if (isOwnProfile) Modifier.height(16.dp) else Modifier.height(9.dp))
 
@@ -200,7 +197,6 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Кнопка "Добавить пост" только для своего профиля
                     if (isOwnProfile) {
                         item {
                             Button(
@@ -233,9 +229,10 @@ fun ProfileScreen(
                         }
                     }
 
-                    items(postsState.size) { index ->
-                        val post = postsState[index]
-                        val colorPatternIndex = post.id.toLong().rem(PostColorPatterns.size).toInt()
+                    items(posts.size) { index ->
+                        println(posts.toString())
+                        val post = posts[index]
+                        val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
 
                         Box(
                             modifier = Modifier
@@ -246,21 +243,13 @@ fun ProfileScreen(
                         ) {
                             Text(
                                 text = post.title,
-                                modifier = Modifier.padding(
-                                    top = 16.dp,
-                                    start = 25.dp,
-                                    end = 25.dp
-                                ),
+                                modifier = Modifier.padding(top = 16.dp, start = 25.dp, end = 25.dp),
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                             )
 
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.padding(
-                                    top = 58.dp,
-                                    start = 25.dp,
-                                    end = 25.dp
-                                ),
+                                modifier = Modifier.padding(top = 58.dp, start = 25.dp, end = 25.dp),
                             ) {
                                 post.tags?.take(2)?.forEach { tag ->
                                     TagChip(
@@ -275,8 +264,8 @@ fun ProfileScreen(
                 }
             }
         }
+
         if (isOwnProfile) {
-            // Нижняя навигация
             BottomNavBar(
                 onProfileClick = navbarCallbacks?.onProfileClick ?: onProfileClick,
                 onCreateArticleClick = { showCreateArticle = true },

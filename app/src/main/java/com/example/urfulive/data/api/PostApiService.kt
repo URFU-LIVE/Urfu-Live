@@ -47,17 +47,12 @@ class PostApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                println(defaultResponse.message)
                 Result.success(defaultResponse)
             } else {
-                println("Ошибка. Сработал - Else ")
-                print(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            println("Ошибка. Сработал - Catch ")
             print(e.message)
             Result.failure(e)
         }
@@ -73,7 +68,6 @@ class PostApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
                 val json = Json {
                     ignoreUnknownKeys = true
                     isLenient = true

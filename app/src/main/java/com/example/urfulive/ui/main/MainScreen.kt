@@ -76,6 +76,9 @@ import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
+import com.example.urfulive.ui.main.PostColorPattern
+import com.example.urfulive.ui.main.PostColorPatterns
+import com.example.urfulive.ui.main.PostViewModel
 import com.example.urfulive.ui.notifiaction.FullScreenNotifications
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -126,7 +129,7 @@ fun PostCard(
     expansionProgress: Float = .0f,
     onAuthorClick: () -> Unit
 ) {
-    val colorPatternIndex = post.id.toLong().rem(PostColorPatterns.size)
+    val colorPatternIndex = post.id.rem(PostColorPatterns.size)
     val pattern = PostColorPatterns[colorPatternIndex.toInt()]
 
     Box(
@@ -143,7 +146,7 @@ fun PostCard(
         ) {
             Column {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    post.tags?.take(2)?.forEach { tag ->
+                    post.tags.take(2).forEach { tag ->
                         TagChip(tag = tag.name, color = pattern.buttonColor)
                     }
                 }
@@ -188,7 +191,7 @@ fun PostCard(
                                     color = Color.Black
                                 )
                                 Text(
-                                    text = post.author?.username ?: "Неизвестный автор",
+                                    text = post.author.username,
                                     style = MaterialTheme.typography.titleLarge,
                                     color = Color.Black,
                                     maxLines = 1,
@@ -215,7 +218,7 @@ fun PostCard(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = post.text ?: "",
+                    text = post.text,
                     style = MaterialTheme.typography.displayMedium,
                     color = Color.Black,
                     maxLines = 10,
@@ -623,7 +626,7 @@ fun CarouselScreen(
                         },
                         onAuthorClick = {
                             // Навигация на профиль автора
-                            postsState[page].author?.username?.let { username ->
+                            postsState[page].author.username?.let { username ->
                                 onAuthorClick(username)
                             }
                         }

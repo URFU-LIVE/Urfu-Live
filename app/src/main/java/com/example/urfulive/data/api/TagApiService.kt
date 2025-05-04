@@ -40,7 +40,6 @@ class TagApiService {
 
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                println(defaultResponse.message)
                 Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -63,7 +62,6 @@ class TagApiService {
 
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                println(defaultResponse.message)
                 Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -86,7 +84,6 @@ class TagApiService {
 
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<TagListResponse>(response.bodyAsText())
-                println(response.status)
                 Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))

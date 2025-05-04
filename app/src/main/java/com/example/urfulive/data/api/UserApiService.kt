@@ -1,11 +1,9 @@
 package com.example.urfulive.data.api
 
-import TokenManager
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.RefreshResponse
 import com.example.urfulive.data.DTOs.UserDto
-import com.example.urfulive.data.model.User
 import io.ktor.client.*
 import io.ktor.client.engine.android.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -13,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.util.InternalAPI
 import kotlinx.serialization.json.Json
 
 class UserApiService {
@@ -44,7 +41,6 @@ class UserApiService {
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
-                println(authResponse)
                 Result.success(authResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -70,7 +66,6 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
@@ -130,17 +125,41 @@ class UserApiService {
         }
     }
 
-    suspend fun getUserPosts(id: Long): Result<List<PostDto>> {
+    suspend fun getUserProfileByID(id: Long): Result<UserDto> {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
             val tokenValue = tokenManager.getAccessTokenBlocking()
-            val response = client.get("$baseUrl/user/$id/posts") {
+            val response = client.get("$baseUrl/users/$id") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
                 }
             }
 
             if (response.status.isSuccess()) {
+                val user = Json.decodeFromString<UserDto>(response.bodyAsText())
+                Result.success(user)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun getUserPostsByID(id: Long): Result<List<PostDto>> {
+        return try {
+            val tokenManager = TokenManagerInstance.getInstance()
+            val tokenValue = tokenManager.getAccessTokenBlocking()
+            val response = client.get("$baseUrl/users/$id/posts") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val refreshResponse = Json.decodeFromString<List<PostDto>>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {
