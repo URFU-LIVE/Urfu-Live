@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.urfulive.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +88,12 @@ fun AppNavHost() {
             MainScreenWithOverlays(navController)
         }
 
+        composable("settings") {
+            SettingsScreen(
+                onCloseOverlay = {navController.navigate("profile")}
+            )
+        }
+
         // Own profile route
         composable("profile") {
             ProfileScreen(
@@ -117,7 +124,8 @@ fun AppNavHost() {
                         // Already on profile, do nothing
                     }
                 ),
-                currentScreen = "profile"
+                currentScreen = "profile",
+                onSettingsClick = {navController.navigate("settings")}
             )
         }
     }

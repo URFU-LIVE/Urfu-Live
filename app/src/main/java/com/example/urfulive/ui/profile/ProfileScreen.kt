@@ -52,7 +52,7 @@ fun ProfileScreen(
     onSettingsClick: () -> Unit = {}, // Обработчик нажатия на кнопку настроек
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
-    onCloseOverlay: () -> Unit = {}
+    onCloseOverlay: () -> Unit = {},
 ) {
     val posts = articlesViewModel.articles
 
@@ -84,9 +84,7 @@ fun ProfileScreen(
                     .systemBarsPadding(),
                 contentAlignment = Alignment.Center
             ) {
-                // Иконка справа сверху (настройки или флажок для жалоб)
                 if (isOwnProfile) {
-                    // Для своего профиля - иконка настроек
                     Image(
                         painter = painterResource(id = R.drawable.settings),
                         contentDescription = "Настройки пользователя",
@@ -97,7 +95,6 @@ fun ProfileScreen(
                             .clickable { onSettingsClick() }
                     )
                 } else {
-                    // Для чужого профиля - иконка жалобы
                     Image(
                         painter = painterResource(id = R.drawable.flag), // Используйте соответствующую иконку флага
                         contentDescription = "Пожаловаться на пользователя",
@@ -111,9 +108,7 @@ fun ProfileScreen(
                 }
                 if (!isOwnProfile) {
                     BackHandler() {
-                        // Custom back action
                         onCloseOverlay()
-                        // Any other actions you want to perform
                     }
                     Image(
                         painter = painterResource(id = R.drawable.chevron_left),
@@ -131,7 +126,7 @@ fun ProfileScreen(
                         painter = painterResource(id = R.drawable.ava),
                         contentDescription = "Аватар пользователя",
                         modifier = Modifier
-                            .size(120.dp)
+                            .size(110.dp)
                             .clip(CircleShape)
                             .border(2.dp, Color.White, CircleShape),
                         contentScale = ContentScale.Crop
@@ -287,12 +282,10 @@ fun ProfileScreen(
             // Нижняя навигация
             BottomNavBar(
                 onProfileClick = navbarCallbacks?.onProfileClick ?: onProfileClick,
-                onCreateArticleClick =  {
-                    showCreateArticle = true
-                },
+                onCreateArticleClick = { showCreateArticle = true },
                 onHomeClick = navbarCallbacks?.onHomeClick ?: onHomeClick,
-                onSavedClick = navbarCallbacks?.onSavedClick ?: onSavedClick,
-                onMessagesClick = navbarCallbacks?.onMessagesClick ?: onMessagesClick,
+                onSavedClick = onSavedClick,
+                onMessagesClick = onMessagesClick,
                 currentScreen = currentScreen,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
