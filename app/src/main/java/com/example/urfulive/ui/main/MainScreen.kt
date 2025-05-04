@@ -127,7 +127,7 @@ fun PostCard(
     post: Post,
     onClick: () -> Unit,
     expansionProgress: Float = .0f,
-    onAuthorClick: () -> Unit
+    onAuthorClick: (String) -> Unit
 ) {
     val colorPatternIndex = post.id.rem(PostColorPatterns.size)
     val pattern = PostColorPatterns[colorPatternIndex.toInt()]
@@ -179,7 +179,7 @@ fun PostCard(
                                 contentDescription = "Author Icon",
                                 modifier = Modifier
                                     .size(50.dp)
-                                    .clickable { onAuthorClick() },
+                                    .clickable { onAuthorClick(post.author.id) },
                                 contentScale = ContentScale.Fit
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -196,7 +196,7 @@ fun PostCard(
                                     color = Color.Black,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.clickable { onAuthorClick() }
+                                    modifier = Modifier.clickable { onAuthorClick(post.author.id)  }
                                 )
                             }
 
@@ -626,9 +626,7 @@ fun CarouselScreen(
                         },
                         onAuthorClick = {
                             // Навигация на профиль автора
-                            postsState[page].author.username?.let { username ->
-                                onAuthorClick(username)
-                            }
+                            onAuthorClick(postsState[page].author.id)
                         }
                     )
                 }
@@ -764,7 +762,8 @@ fun CarouselScreen(
                             } else {
                                 expansionProgress
                             },
-                            onHeaderSwipe = { toggleFullExpansion() }
+                            onHeaderSwipe = { toggleFullExpansion() },
+                            onAuthorClick = onAuthorClick
                         )
                     }
 
@@ -830,6 +829,7 @@ fun ExpandedPostContent(
     post: Post,
     expandProgress: Float,
     onHeaderSwipe: () -> Unit,
+    onAuthorClick: (String) -> Unit = {},
 ) {
     val titleSizeAndHeight = lerp(24.sp, 26.sp, expandProgress)
     val postHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
@@ -910,7 +910,7 @@ fun ExpandedPostContent(
                         contentDescription = "Author Icon",
                         modifier = Modifier
                             .size(50.dp)
-                            .clickable { /* Navigate to author profile */ },
+                            .clickable { onAuthorClick(post.author.id)  },
                         contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -924,11 +924,12 @@ fun ExpandedPostContent(
                             color = Color.Black
                         )
                         Text(
-                            text = post.author?.username ?: "Неизвестный автор",
+                            text = post.author.username,
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.Black,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.clickable { onAuthorClick(post.author.id)  }
                         )
                     }
 

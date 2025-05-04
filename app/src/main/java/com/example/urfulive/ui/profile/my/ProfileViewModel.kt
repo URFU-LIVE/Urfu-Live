@@ -23,7 +23,7 @@ class ProfileViewModel : ViewModel() {
         fetchProfile()
     }
 
-    private fun fetchProfile() {
+    fun fetchProfile() {
         viewModelScope.launch {
             val result = userApiService.getUserProfile()
             result.onSuccess { userData ->
@@ -46,5 +46,23 @@ class ProfileViewModel : ViewModel() {
                 it.printStackTrace()
             }
         }
+    }
+
+    fun fetchUserProfileById(userId: Long) {
+        viewModelScope.launch {
+            val result = userApiService.getUserProfileByID(userId)
+            result.onSuccess { userData ->
+                val dtoManager = DtoManager()
+                user = dtoManager.run { userData.toUser() }
+                fetchUserPosts(userData.id)
+            }.onFailure {
+                it.printStackTrace()
+            }
+        }
+    }
+
+    fun clearData() {
+        user = null
+        posts = emptyList()
     }
 }
