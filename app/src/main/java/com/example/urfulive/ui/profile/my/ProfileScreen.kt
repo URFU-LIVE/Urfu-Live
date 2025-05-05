@@ -230,7 +230,6 @@ fun ProfileScreen(
                     }
 
                     items(posts.size) { index ->
-                        println(posts.toString())
                         val post = posts[index]
                         val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
 

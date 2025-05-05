@@ -43,9 +43,6 @@ class LoginViewModel : ViewModel() {
                 // Переключаемся на главный поток для обратного вызова
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
-
-                        //todo Говнокод
-                        println(TokenManagerInstance.getInstance().accessToken)
                         TokenManagerInstance.getInstance().saveID(
                             userApiService.getUserProfile().getOrNull()?.id.toString()
                         )

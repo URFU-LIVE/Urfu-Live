@@ -1,9 +1,13 @@
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.expandHorizontally
@@ -42,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +54,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -127,10 +134,30 @@ fun PostCard(
     post: Post,
     onClick: () -> Unit,
     expansionProgress: Float = .0f,
-    onAuthorClick: (String) -> Unit
+    onAuthorClick: (String) -> Unit,
+    viewModel: PostViewModel = viewModel()
 ) {
-    val colorPatternIndex = post.id.rem(PostColorPatterns.size)
-    val pattern = PostColorPatterns[colorPatternIndex.toInt()]
+    val colorPatternIndex = remember(post.id) { post.id.rem(PostColorPatterns.size) }
+    val pattern = remember(colorPatternIndex) { PostColorPatterns[colorPatternIndex.toInt()] }
+    val rememberedPost = remember(post) { post }
+
+    val isLiked by remember(rememberedPost.likedBy, viewModel.currentUserId) {
+        derivedStateOf { viewModel.isPostLikedByCurrentUser(rememberedPost) }
+    }
+
+    val likeColor by animateColorAsState(
+        targetValue = if (isLiked) Color.Red else pattern.reactionColor,
+        animationSpec = tween(durationMillis = 200)
+    )
+
+    var likeScale by remember { mutableStateOf(1f) }
+    val animatedLikeScale by animateFloatAsState(
+        targetValue = likeScale,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
+    )
 
     Box(
         modifier = Modifier
@@ -145,80 +172,86 @@ fun PostCard(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
+                // Tags row
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    post.tags.take(2).forEach { tag ->
+                    rememberedPost.tags.take(2).forEach { tag ->
                         TagChip(tag = tag.name, color = pattern.buttonColor)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Post title
                 Text(
-                    text = post.title,
+                    text = rememberedPost.title ?: "",
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Author and publish info
                 Column {
                     Text(
-                        text = "Опубликовано: ${post.time.substring(0, 10)}",
+                        text = "Опубликовано: ${rememberedPost.time?.substring(0, 10) ?: ""}",
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Column {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.profile),
-                                contentDescription = "Author Icon",
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clickable { onAuthorClick(post.author.id) },
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.profile),
+                            contentDescription = "Author Icon",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clickable { onAuthorClick(rememberedPost.author.id) },
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
 
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Автор:",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = Color.Black
-                                )
-                                Text(
-                                    text = post.author.username,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = Color.Black,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.clickable { onAuthorClick(post.author.id)  }
-                                )
-                            }
-
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Подписаться",
-                                modifier = Modifier
-                                    .clickable { }
-                                    .background(
-                                        pattern.buttonColor,
-                                        shape = RoundedCornerShape(52.dp)
-                                    )
-                                    .padding(horizontal = 15.dp, vertical = 10.dp),
+                                text = "Автор:",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.Black
+                            )
+                            Text(
+                                text = rememberedPost.author.username
+                                    ?: rememberedPost.author.name
+                                    ?: "Неизвестный автор",
+                                style = MaterialTheme.typography.titleLarge,
                                 color = Color.Black,
-                                style = MaterialTheme.typography.displaySmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.clickable {
+                                    onAuthorClick(rememberedPost.author.id)
+                                }
                             )
                         }
+
+                        Text(
+                            text = "Подписаться",
+                            modifier = Modifier
+                                .clickable { }
+                                .background(
+                                    pattern.buttonColor,
+                                    shape = RoundedCornerShape(52.dp)
+                                )
+                                .padding(horizontal = 15.dp, vertical = 10.dp),
+                            color = Color.Black,
+                            style = MaterialTheme.typography.displaySmall,
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Post content
                 Text(
-                    text = post.text,
+                    text = rememberedPost.text ?: "",
                     style = MaterialTheme.typography.displayMedium,
                     color = Color.Black,
                     maxLines = 10,
@@ -226,6 +259,7 @@ fun PostCard(
                 )
             }
 
+            // Footer with actions
             val animatedAlpha = (1f - (expansionProgress * 1f)).coerceIn(0f, 1f)
 
             Row(
@@ -233,44 +267,51 @@ fun PostCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.graphicsLayer { alpha = animatedAlpha }
             ) {
+                // Like button
                 Image(
                     painter = painterResource(id = R.drawable.likebottom),
-                    contentDescription = "Like Logo",
-                    colorFilter = ColorFilter.tint(pattern.reactionColor),
+                    contentDescription = "Like",
+                    colorFilter = ColorFilter.tint(likeColor),
                     modifier = Modifier
-                        .clickable { /* TODO Поставить лайк*/ }
-                        .size(33.dp),
+                        .clickable {
+                            likeScale = if (isLiked) 0.8f else 1.2f
+                            viewModel.likeAndDislike(rememberedPost.id)
+                        }
+                        .size(33.dp)
+                        .scale(animatedLikeScale),
                 )
-
                 Text(
-                    text = post.likes.toString(),
+                    text = rememberedPost.likes.toString(),
                     color = Color.Black,
                     style = MaterialTheme.typography.displayLarge,
                 )
+
+                // Comment button
                 Image(
                     painter = painterResource(id = R.drawable.commentbottom),
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
-                    contentDescription = "Comment Logo",
+                    contentDescription = "Comment",
                     modifier = Modifier
-                        .clickable { /* TODO Оставить комментарий*/ }
+                        .clickable { /* TODO: Handle comments */ }
                         .size(35.dp),
                 )
                 Text(
-                    text = post.comments.toString(),
+                    text = rememberedPost.comments.toString(),
                     color = Color.Black,
                     style = MaterialTheme.typography.displayLarge,
                 )
+
+                // Bookmark button
                 Image(
                     painter = painterResource(id = R.drawable.bookmarkbottom1),
-                    contentDescription = "Bookmark Logo",
+                    contentDescription = "Bookmark",
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
                     modifier = Modifier
-                        .clickable { /* TODO Сохранить себе*/ }
+                        .clickable { /* TODO: Handle bookmark */ }
                         .size(30.dp),
                 )
-
                 Text(
-                    text = "0", // Можно добавить сохранения в модель Post
+                    text = "0", // TODO: Add bookmarks count to Post model
                     color = Color.Black,
                     style = MaterialTheme.typography.displayLarge,
                 )
@@ -278,6 +319,7 @@ fun PostCard(
         }
     }
 }
+
 
 @Composable
 fun TopBar(

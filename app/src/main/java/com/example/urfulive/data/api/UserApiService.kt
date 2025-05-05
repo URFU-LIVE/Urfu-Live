@@ -80,7 +80,6 @@ class UserApiService {
         }
     }
 
-    // todo Данный метод уже полностью рабочий.
     suspend fun getUserProfile(): Result<UserDto> {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
@@ -109,7 +108,7 @@ class UserApiService {
             val tokenValue = tokenManager.getRefreshTokenBlocking()
             val response = client.get("$baseUrl/auth/me") {
                 headers {
-                    append("X-Resfresh-token", "$tokenValue")
+                    append("X-Refresh-token", "$tokenValue")
                 }
             }
 
@@ -159,7 +158,6 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println(response.bodyAsText())
                 val refreshResponse = Json {ignoreUnknownKeys = true }.decodeFromString<List<PostDto>>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {

@@ -4,8 +4,6 @@ import TokenManagerInstance
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import com.example.urfulive.data.DTOs.PostDto
-import com.example.urfulive.data.DTOs.PostListResponse
-import com.example.urfulive.data.model.Post
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -55,7 +53,7 @@ class PostApiService {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            print(e.message)
+            println(e.message)
             Result.failure(e)
         }
     }
@@ -75,14 +73,13 @@ class PostApiService {
                     isLenient = true
                     prettyPrint = false
                 }
-                println(response.bodyAsText())
                 val postListResponse = json.decodeFromString<List<PostDto>>(response.bodyAsText())
                 Result.success(postListResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            print(e.message)
+            println(e.message)
             Result.failure(e)
         }
     }
@@ -98,13 +95,12 @@ class PostApiService {
 
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                println(response.bodyAsText())
                 Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            print(e.message)
+            println(e.message)
             Result.failure(e)
         }
     }
@@ -125,7 +121,7 @@ class PostApiService {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            print(e.message)
+            println(e.message)
             Result.failure(e)
         }
     }

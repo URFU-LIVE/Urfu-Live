@@ -49,39 +49,47 @@ class PostViewModel : ViewModel() {
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> get() = _posts
 
-    var userId: String? = null
+    private val _currentUserId = MutableStateFlow<String?>(null)
+    val currentUserId: StateFlow<String?> get() = _currentUserId
 
     init {
         viewModelScope.launch {
-            userId = TokenManagerInstance.getInstance().getUserIdBlocking()
+            _currentUserId.value = TokenManagerInstance.getInstance().getUserIdBlocking()
             fetchPosts()
         }
     }
+
     private fun fetchPosts() {
         viewModelScope.launch {
             val result = postApiService.getAll()
             result.onSuccess { postList ->
                 val dtoManager = DtoManager()
                 _posts.value = postList.map { dtoManager.run { it.toPost() } }
-
             }.onFailure {
                 it.printStackTrace()
             }
         }
     }
 
+    fun isPostLikedByCurrentUser(post: Post): Boolean {
+        val result = _currentUserId.value?.let { userId ->
+            post.likedBy.contains(userId)
+        } ?: false
+        return result
+    }
+
+
     fun likeAndDislike(id: Long) {
         viewModelScope.launch {
+            val currentUserId = _currentUserId.value ?: return@launch
             val currentPosts = _posts.value.toMutableList()
             val index = currentPosts.indexOfFirst { it.id == id }
 
-            if (index != -1 && userId != null) {
+            if (index != -1) {
                 val post = currentPosts[index]
                 val likedBy = post.likedBy.toMutableList()
+                val isLiked = likedBy.contains(currentUserId)
 
-                val isLiked = likedBy.contains(userId)
-
-                // Вызываем нужный API в зависимости от текущего состояния
                 val result = if (isLiked) {
                     postApiService.dislike(id)
                 } else {
@@ -90,9 +98,9 @@ class PostViewModel : ViewModel() {
 
                 result.onSuccess {
                     if (isLiked) {
-                        likedBy.remove(userId)
+                        likedBy.remove(currentUserId)
                     } else {
-                        likedBy.add(userId!!)
+                        likedBy.add(currentUserId)
                     }
 
                     currentPosts[index] = post.copy(
