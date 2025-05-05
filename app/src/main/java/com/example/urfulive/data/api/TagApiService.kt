@@ -3,6 +3,7 @@ package com.example.urfulive.data.api
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import com.example.urfulive.data.DTOs.TagListResponse
+import com.example.urfulive.data.model.Tag
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -72,7 +73,7 @@ class TagApiService {
         }
     }
 
-    suspend fun getAll(name: String): Result<TagListResponse> {
+    suspend fun getAll(name: String): Result<List<Tag>> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
 
@@ -83,8 +84,8 @@ class TagApiService {
             }
 
             if (response.status.isSuccess()) {
-                val defaultResponse = Json.decodeFromString<TagListResponse>(response.bodyAsText())
-                Result.success(defaultResponse)
+                val tagList = Json.decodeFromString<List<Tag>>(response.bodyAsText())
+                Result.success(tagList)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }

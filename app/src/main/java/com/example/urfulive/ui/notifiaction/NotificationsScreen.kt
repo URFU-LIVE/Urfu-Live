@@ -27,11 +27,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.data.model.Notification
+import com.example.urfulive.ui.main.PostViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun FullScreenNotifications(onClose: () -> Unit) {
+fun FullScreenNotifications(
+    onClose: () -> Unit,
+    viewModel: NotificationViewModel = viewModel(),
+) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     val animatedAlpha = remember { Animatable(0f) }
@@ -92,9 +97,9 @@ fun FullScreenNotifications(onClose: () -> Unit) {
                             .fillMaxSize()
                             .padding(horizontal = 16.dp))
                     {
-                        val notifications = com.example.urfulive.data.model.Notifications;
+                        val notifications = viewModel.notifications
 
-                        if (notifications.isEmpty()) {
+                        if (notifications.value.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier
@@ -117,7 +122,8 @@ fun FullScreenNotifications(onClose: () -> Unit) {
                                 }
                             }
                         } else {
-                            items(notifications) { notification ->
+                            println(notifications)
+                            items(notifications.value) { notification ->
                                 NotificationItemEnhanced(notification) {
 
                                 }
@@ -131,7 +137,8 @@ fun FullScreenNotifications(onClose: () -> Unit) {
 @Composable
 fun NotificationItemEnhanced(
     notification: Notification,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+
 ) {
     Row(
         modifier = Modifier

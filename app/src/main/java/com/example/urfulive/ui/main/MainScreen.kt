@@ -54,7 +54,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -92,7 +91,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 enum class TagSizes {
-    Standart, Small
+    Standard, Small
 }
 
 @Preview(showBackground = true)
@@ -106,7 +105,7 @@ fun ArticlesScreenPreview() {
 }
 
 @Composable
-fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standart) {
+fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standard) {
     Box(
         modifier = Modifier
             .graphicsLayer {
@@ -117,14 +116,14 @@ fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standart) {
                 shape = RoundedCornerShape(52.dp)
             )
             .padding(
-                horizontal = if (size == TagSizes.Standart) 15.dp else 13.dp,
-                vertical = if (size == TagSizes.Standart) 13.dp else 7.dp
+                horizontal = if (size == TagSizes.Standard) 15.dp else 13.dp,
+                vertical = if (size == TagSizes.Standard) 13.dp else 7.dp
             )
     ) {
         Text(
             text = tag,
             color = Color.Black,
-            style = if (size == TagSizes.Standart) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 12.sp),
+            style = if (size == TagSizes.Standard) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 12.sp),
         )
     }
 }
@@ -878,7 +877,7 @@ fun ExpandedPostContent(
     val paddingAfterDate = lerp(6.dp, 15.dp, expandProgress)
 
     val scrollState = rememberScrollState()
-    val colorPatternIndex = post.id.toLong().rem(PostColorPatterns.size).toInt()
+    val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val pattern = PostColorPatterns[colorPatternIndex]
 
     Column(

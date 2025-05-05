@@ -1,7 +1,9 @@
 package com.example.urfulive.data.manager
 
+import com.example.urfulive.data.DTOs.NotificationDto
 import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.UserDto
+import com.example.urfulive.data.model.Notification
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.User
@@ -77,6 +79,28 @@ class DtoManager {
             followersCount = followersCount,
             followingCount = followingCount,
             description = this.description
+        )
+    }
+
+    fun NotificationDto.toNotification(): Notification {
+        val formattedTime = try {
+            val year = createdAt.getOrNull(0) ?: 0
+            val month = createdAt.getOrNull(1) ?: 0
+            val day = createdAt.getOrNull(2) ?: 0
+            val hour = createdAt.getOrNull(3) ?: 0
+            val minute = createdAt.getOrNull(4) ?: 0
+            val second = createdAt.getOrNull(5) ?: 0
+            "%02d.%02d.%04d %02d:%02d:%02d".format(day, month, year, hour, minute, second)
+        } catch (e: Exception) {
+            "N/A"
+        }
+
+        return Notification(
+            id = this.id,
+            title = "${user.name} ${user.surname}",
+            message = this.message,
+            time = formattedTime,
+            isRead = this.read
         )
     }
 }

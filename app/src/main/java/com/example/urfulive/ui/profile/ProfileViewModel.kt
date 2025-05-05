@@ -1,4 +1,4 @@
-package com.example.urfulive.ui.profile.my
+package com.example.urfulive.ui.profile
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

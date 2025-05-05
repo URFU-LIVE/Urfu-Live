@@ -3,15 +3,12 @@ package com.example.urfulive.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.data.api.PostApiService
 import com.example.urfulive.data.manager.DtoManager
 import com.example.urfulive.data.model.Post
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
-val dtoManager = DtoManager()
 
 data class PostColorPattern(
     val background: Color,

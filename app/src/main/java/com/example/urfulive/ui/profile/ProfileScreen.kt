@@ -1,4 +1,4 @@
-package com.example.urfulive.ui.profile.my
+package com.example.urfulive.ui.profile
 
 import NavbarCallbacks
 import TagChip
