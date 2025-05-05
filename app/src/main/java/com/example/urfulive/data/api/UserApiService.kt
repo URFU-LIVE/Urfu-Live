@@ -160,7 +160,7 @@ class UserApiService {
 
             if (response.status.isSuccess()) {
                 println(response.bodyAsText())
-                val refreshResponse = Json.decodeFromString<List<PostDto>>(response.bodyAsText());
+                val refreshResponse = Json {ignoreUnknownKeys = true }.decodeFromString<List<PostDto>>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
