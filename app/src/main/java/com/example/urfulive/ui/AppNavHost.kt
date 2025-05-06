@@ -11,8 +11,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.urfulive.ui.profile.EditProfile
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
+import com.example.urfulive.ui.settings.AccountSettings
+import com.example.urfulive.ui.settings.NotificationsSettings
+import com.example.urfulive.ui.settings.PrivacySettings
 import com.example.urfulive.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +102,143 @@ fun AppNavHost() {
 
         composable("settings") {
             SettingsScreen(
-                onCloseOverlay = {navController.navigate("profile")}
+                onCloseOverlay = {navController.navigate("profile")},
+                onAccountClick = {navController.navigate("accountSettings")},
+                onNotificationsClick = {navController.navigate("notificationsSettings")},
+                onPrivacyClick = {navController.navigate("privacySettings")},
+                onHomeClick = {navController.navigate("main") {
+                    popUpTo("main") { inclusive = true }
+                }},
+                navbarCallbacks = NavbarCallbacks(
+                    onHomeClick = {navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }},
+                    onSavedClick = {
+                        // Navigate to saved articles
+                        navController.navigate("saved")
+                    },
+                    onCreateArticleClick = {
+                        // Handle creation in the ProfileScreen
+                    },
+                    onMessagesClick = {
+                        // Navigate to messages
+                        navController.navigate("messages")
+                    },
+                    onProfileClick = {
+                        // Already on profile, do nothing
+                    }
+                )
+            )
+        }
+
+        composable("accountSettings") {
+            AccountSettings(
+                onClose = {navController.navigate("settings")},
+                onHomeClick = {navController.navigate("main") {
+                    popUpTo("main") { inclusive = true }
+                }},
+                navbarCallbacks = NavbarCallbacks(
+                    onHomeClick = {navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }},
+                    onSavedClick = {
+                        // Navigate to saved articles
+                        navController.navigate("saved")
+                    },
+                    onCreateArticleClick = {
+                        // Handle creation in the ProfileScreen
+                    },
+                    onMessagesClick = {
+                        // Navigate to messages
+                        navController.navigate("messages")
+                    },
+                    onProfileClick = {
+                        // Already on profile, do nothing
+                    }
+                )
+            )
+        }
+
+        composable("notificationsSettings") {
+            NotificationsSettings(
+                onClose = {navController.navigate("settings")},
+                onHomeClick = {navController.navigate("main") {
+                    popUpTo("main") { inclusive = true }
+                }},
+                navbarCallbacks = NavbarCallbacks(
+                    onHomeClick = {navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }},
+                    onSavedClick = {
+                        // Navigate to saved articles
+                        navController.navigate("saved")
+                    },
+                    onCreateArticleClick = {
+                        // Handle creation in the ProfileScreen
+                    },
+                    onMessagesClick = {
+                        // Navigate to messages
+                        navController.navigate("messages")
+                    },
+                    onProfileClick = {
+                        // Already on profile, do nothing
+                    }
+                )
+            )
+        }
+
+        composable("privacySettings") {
+            PrivacySettings(
+                onClose = {navController.navigate("settings")},
+                onHomeClick = {navController.navigate("main") {
+                    popUpTo("main") { inclusive = true }
+                }},
+                navbarCallbacks = NavbarCallbacks(
+                    onHomeClick = {navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }},
+                    onSavedClick = {
+                        // Navigate to saved articles
+                        navController.navigate("saved")
+                    },
+                    onCreateArticleClick = {
+                        // Handle creation in the ProfileScreen
+                    },
+                    onMessagesClick = {
+                        // Navigate to messages
+                        navController.navigate("messages")
+                    },
+                    onProfileClick = {
+                        // Already on profile, do nothing
+                    }
+                )
+            )
+        }
+        composable("editProfile") {
+            EditProfile(
+                onClose = {navController.navigate("profile")},
+                onHomeClick = {navController.navigate("main") {
+                    popUpTo("main") { inclusive = true }
+                }},
+                navbarCallbacks = NavbarCallbacks(
+                    onHomeClick = {navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }},
+                    onSavedClick = {
+                        // Navigate to saved articles
+                        navController.navigate("saved")
+                    },
+                    onCreateArticleClick = {
+                        // Handle creation in the ProfileScreen
+                    },
+                    onMessagesClick = {
+                        // Navigate to messages
+                        navController.navigate("messages")
+                    },
+                    onProfileClick = {
+                        // Already on profile, do nothing
+                    }
+                )
             )
         }
 
@@ -116,6 +256,7 @@ fun AppNavHost() {
                         popUpTo("main") { inclusive = true }
                     }
                 },
+                onEditProfileClick = {navController.navigate("editProfile")},
                 // Add navbar callbacks for user's own profile
                 navbarCallbacks = NavbarCallbacks(
                     onHomeClick = {
