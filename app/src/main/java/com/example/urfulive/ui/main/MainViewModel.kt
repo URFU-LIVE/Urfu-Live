@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.api.PostApiService
+import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.data.manager.DtoManager
 import com.example.urfulive.data.model.Post
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +47,7 @@ val PostColorPatterns: List<PostColorPattern> get() = postColorPattern
 
 class PostViewModel : ViewModel() {
     private val postApiService = PostApiService()
+    private val userApiService = UserApiService()
 
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> get() = _posts
@@ -73,10 +75,17 @@ class PostViewModel : ViewModel() {
     }
 
     fun isPostLikedByCurrentUser(post: Post): Boolean {
+        println("Post ID: " + post.id)
+        println("Is sub: " + isUserSubscribe(post))
+        println("Post author: " + post.author.username)
         val result = _currentUserId.value?.let { userId ->
-            post.likedBy.contains(userId)
+            post.likedBy.contains(userId.toInt())
         } ?: false
         return result
+    }
+
+    fun isUserSubscribe(post: Post): Boolean {
+        return post.author.followers.contains(_currentUserId.value?.toInt())
     }
 
 
@@ -89,7 +98,7 @@ class PostViewModel : ViewModel() {
             if (index != -1) {
                 val post = currentPosts[index]
                 val likedBy = post.likedBy.toMutableList()
-                val isLiked = likedBy.contains(currentUserId)
+                val isLiked = likedBy.contains(currentUserId.toInt())
 
                 val result = if (isLiked) {
                     postApiService.dislike(id)
@@ -99,9 +108,9 @@ class PostViewModel : ViewModel() {
 
                 result.onSuccess {
                     if (isLiked) {
-                        likedBy.remove(currentUserId)
+                        likedBy.remove(currentUserId.toInt())
                     } else {
-                        likedBy.add(currentUserId)
+                        likedBy.add(currentUserId.toInt())
                     }
 
                     currentPosts[index] = post.copy(
@@ -112,6 +121,23 @@ class PostViewModel : ViewModel() {
                 }.onFailure {
                     it.printStackTrace()
                 }
+            }
+        }
+    }
+
+
+    fun subscribeAndUnsubscribe(post: Post) {
+        viewModelScope.launch {
+            val isSub = isUserSubscribe(post)
+            val result =
+                if (!isSub) userApiService.subscribe(post.author.id.toLong())
+                else userApiService.unsubscribe(post.author.id.toLong())
+
+            result.onSuccess {
+                fetchPosts()
+            }.onFailure {
+                // Можно показать ошибку пользователю
+                it.printStackTrace()
             }
         }
     }

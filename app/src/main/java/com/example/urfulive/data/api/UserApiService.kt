@@ -1,6 +1,7 @@
 package com.example.urfulive.data.api
 
 import com.example.urfulive.data.DTOs.AuthResponse
+import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.RefreshResponse
 import com.example.urfulive.data.DTOs.UserDto
@@ -161,6 +162,47 @@ class UserApiService {
             if (response.status.isSuccess()) {
                 val refreshResponse = Json {ignoreUnknownKeys = true }.decodeFromString<List<PostDto>>(response.bodyAsText());
                 Result.success(refreshResponse);
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun subscribe(id: Long): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.post("$baseUrl/users/$id/subscribe") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+    suspend fun unsubscribe(id: Long): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.delete("$baseUrl/users/$id/subscribe") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }

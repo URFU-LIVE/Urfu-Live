@@ -40,6 +40,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -66,6 +67,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
@@ -158,6 +160,11 @@ fun PostCard(
         )
     )
 
+    // Состояния для подписки
+    var isSubscribed by remember { mutableStateOf(viewModel.isUserSubscribe(post)) }
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,8 +190,9 @@ fun PostCard(
                 // Post title
                 Text(
                     text = rememberedPost.title ?: "",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.Black
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = pattern.textColor,
+                    fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -192,9 +200,9 @@ fun PostCard(
                 // Author and publish info
                 Column {
                     Text(
-                        text = "Опубликовано: ${rememberedPost.time?.substring(0, 10) ?: ""}",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.Black
+                        text = "Опубликовано ${rememberedPost.time?.substring(0, 10) ?: ""}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = pattern.textColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
@@ -214,16 +222,16 @@ fun PostCard(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Автор:",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = Color.Black
+                                text = "Автор публикации",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = pattern.textColor.copy(alpha = 0.7f)
                             )
                             Text(
                                 text = rememberedPost.author.username
                                     ?: rememberedPost.author.name
                                     ?: "Неизвестный автор",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = Color.Black,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = pattern.textColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.clickable {
@@ -232,18 +240,36 @@ fun PostCard(
                             )
                         }
 
-                        Text(
-                            text = "Подписаться",
-                            modifier = Modifier
-                                .clickable { }
-                                .background(
-                                    pattern.buttonColor,
-                                    shape = RoundedCornerShape(52.dp)
-                                )
-                                .padding(horizontal = 15.dp, vertical = 10.dp),
-                            color = Color.Black,
-                            style = MaterialTheme.typography.displaySmall,
-                        )
+                        // Кнопка подписки
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = pattern.textColor,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                                modifier = Modifier
+                                    .clickable {
+                                        coroutineScope.launch {
+                                            isLoading = true
+                                            viewModel.subscribeAndUnsubscribe(rememberedPost)
+                                            // После успешного запроса обновляем состояние
+                                            isSubscribed = viewModel.isUserSubscribe(rememberedPost)
+                                            isLoading = false
+                                        }
+                                    }
+                                    .background(
+                                        pattern.buttonColor,
+                                        shape = RoundedCornerShape(52.dp)
+                                    )
+                                    .padding(horizontal = 15.dp, vertical = 10.dp),
+                                color = pattern.textColor,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -251,8 +277,8 @@ fun PostCard(
                 // Post content
                 Text(
                     text = rememberedPost.text ?: "",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = Color.Black,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = pattern.textColor,
                     maxLines = 10,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -270,11 +296,11 @@ fun PostCard(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .clickable {
-//                            likeScale = if (isLiked) 0.8f else 1.2f
                             viewModel.likeAndDislike(rememberedPost.id)
+                            likeScale = if (isLiked) 0.8f else 1.2f
                         }
                         .size(33.dp)
-                    //.scale(animatedLikeScale)
+                        .scale(animatedLikeScale)
                 ) {
                     if (isLiked) {
                         Image(
@@ -295,8 +321,9 @@ fun PostCard(
 
                 Text(
                     text = rememberedPost.likes.toString(),
-                    color = Color.Black,
-                    style = MaterialTheme.typography.displayLarge,
+                    color = pattern.textColor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
                 )
 
                 // Comment button
@@ -310,8 +337,9 @@ fun PostCard(
                 )
                 Text(
                     text = rememberedPost.comments.toString(),
-                    color = Color.Black,
-                    style = MaterialTheme.typography.displayLarge,
+                    color = pattern.textColor,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
                 )
 
                 // Bookmark button
@@ -323,16 +351,10 @@ fun PostCard(
                         .clickable { /* TODO: Handle bookmark */ }
                         .size(30.dp),
                 )
-                Text(
-                    text = "0", // TODO: Add bookmarks count to Post model
-                    color = Color.Black,
-                    style = MaterialTheme.typography.displayLarge,
-                )
             }
         }
     }
 }
-
 
 @Composable
 fun TopBar(

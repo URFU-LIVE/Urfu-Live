@@ -12,6 +12,6 @@ data class Post(
     val time: String,
     val comments: Int,
     var likes: Int,
-    val likedBy: List<String> = emptyList()
+    val likedBy: List<Int> = emptyList()
 )
 

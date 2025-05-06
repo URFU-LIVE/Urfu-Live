@@ -35,7 +35,8 @@ class DtoManager {
                     "WRITER" -> UserRole.WRITER
                     "ADMIN" -> UserRole.ADMIN
                     else -> UserRole.USER
-                }
+                },
+                followers = author.followers
             ),
             tags = this.tags.map { Tag(it.id, it.name) },
             time = formattedTime,
@@ -78,7 +79,8 @@ class DtoManager {
             role = userRole,
             followersCount = followersCount,
             followingCount = followingCount,
-            description = this.description
+            description = this.description,
+            followers = this.followers
         )
     }
 
