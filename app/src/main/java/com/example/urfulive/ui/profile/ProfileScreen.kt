@@ -49,6 +49,8 @@ fun ProfileScreen(
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
     onCloseOverlay: () -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
+    onSubscribeClick: () -> Unit = {},
 ) {
     val user = viewModel.user
     val posts = viewModel.posts
@@ -143,7 +145,7 @@ fun ProfileScreen(
                         )
 
                         Button(
-                            onClick = { /* TODO: обработка */ },
+                            onClick = { if (isOwnProfile) onEditProfileClick() else onSubscribeClick() },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isOwnProfile) Color(0xFF191818) else Color(0xFF3D7BF4),
                                 contentColor = Color.White
