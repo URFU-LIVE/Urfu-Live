@@ -10,6 +10,7 @@ import com.example.urfulive.data.manager.DtoManager
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.data.model.User
 import kotlinx.coroutines.launch
+
 class ProfileViewModel : ViewModel() {
     private val userApiService = UserApiService()
 

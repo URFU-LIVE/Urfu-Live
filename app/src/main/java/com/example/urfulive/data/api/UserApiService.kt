@@ -151,6 +151,7 @@ class UserApiService {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
             val tokenValue = tokenManager.getAccessTokenBlocking()
+            println(id)
             val response = client.get("$baseUrl/users/$id/posts") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
@@ -168,4 +169,5 @@ class UserApiService {
             Result.failure(e)
         }
     }
+    
 }

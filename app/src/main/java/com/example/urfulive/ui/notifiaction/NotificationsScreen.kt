@@ -122,7 +122,6 @@ fun FullScreenNotifications(
                                 }
                             }
                         } else {
-                            println(notifications)
                             items(notifications.value) { notification ->
                                 NotificationItemEnhanced(notification) {
 

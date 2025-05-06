@@ -10,7 +10,6 @@ data class UserDto(
     val surname: String?,
     val email: String,
     val birthDate: List<Int>,
-    val hashedPassword: String,
     val role: String,
     val followers: List<UserDto> = emptyList(),
     val following: List<UserDto> = emptyList(),
