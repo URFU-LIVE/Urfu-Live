@@ -266,19 +266,33 @@ fun PostCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.graphicsLayer { alpha = animatedAlpha }
             ) {
-                // Like button
-                Image(
-                    painter = painterResource(id = R.drawable.likebottom),
-                    contentDescription = "Like",
-                    colorFilter = ColorFilter.tint(likeColor),
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .clickable {
-                            likeScale = if (isLiked) 0.8f else 1.2f
+//                            likeScale = if (isLiked) 0.8f else 1.2f
                             viewModel.likeAndDislike(rememberedPost.id)
                         }
                         .size(33.dp)
-                        .scale(animatedLikeScale),
-                )
+                    //.scale(animatedLikeScale)
+                ) {
+                    if (isLiked) {
+                        Image(
+                            painter = painterResource(id = R.drawable.like_filling),
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(pattern.reactionColorFilling),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    Image(
+                        painter = painterResource(id = R.drawable.likebottom),
+                        colorFilter = ColorFilter.tint(pattern.reactionColor),
+                        contentDescription = "Like",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
                 Text(
                     text = rememberedPost.likes.toString(),
                     color = Color.Black,

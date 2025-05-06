@@ -15,6 +15,7 @@ data class PostColorPattern(
     val buttonColor: Color,
     val textColor: Color,
     val reactionColor: Color,
+    val reactionColorFilling: Color
 )
 
 private val postColorPattern = listOf(
@@ -23,18 +24,21 @@ private val postColorPattern = listOf(
         buttonColor = Color(0xFFF6ECC9),
         textColor = Color.Black,
         reactionColor = (Color(0xFF6E9A3C)),
+        reactionColorFilling = (Color(0xFF4A6828)),
     ),
     PostColorPattern(
         background = Color(0xFFEBE6FD),
         buttonColor = Color(0xFFBA55D3),
         textColor = Color.Black,
         reactionColor = (Color(0xFF8C3F9F)),
+        reactionColorFilling = (Color(0xFF5E2A6B)),
     ),
     PostColorPattern(
         background = Color(0xFFF6ECC9),
         buttonColor = Color(0xFFEE7E56),
         textColor = Color.Black,
         reactionColor = (Color(0xFFAE451F)),
+        reactionColorFilling = (Color(0xFF702E16)),
     ),
 )
 
