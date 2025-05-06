@@ -10,6 +10,6 @@ data class PostDto(
     val author: UserDto,
     val createdAt: List<Int>,
     val tags: List<TagDto>,
-    val likedBy: List<UserIdDto>,
+    val likedBy: List<String>,
     val comments: List<String>
 )

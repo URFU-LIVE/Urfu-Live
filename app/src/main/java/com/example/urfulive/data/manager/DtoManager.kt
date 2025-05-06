@@ -41,7 +41,7 @@ class DtoManager {
             time = formattedTime,
             comments = this.comments.size,
             likes = this.likedBy.size,
-            likedBy = this.likedBy.map { it.id.toString() }
+            likedBy = this.likedBy
         )
     }
 
