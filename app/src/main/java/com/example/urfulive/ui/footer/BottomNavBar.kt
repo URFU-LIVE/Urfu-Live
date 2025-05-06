@@ -28,7 +28,7 @@ fun BottomNavBar(
     currentScreen: String,
     modifier: Modifier = Modifier,
     containerWidth: Dp = 400.dp,
-    containerHeight: Dp = 80.dp,
+    containerHeight: Dp = 110.dp,
     horizontalPadding: Dp = 16.dp,
     verticalPadding: Dp = 12.dp
 ) {
@@ -54,33 +54,36 @@ fun BottomNavBar(
                 NavItem(
                     iconRes = R.drawable.home_icon,
                     isSelected = currentScreen == "home",
-                    onClick = onHomeClick
+                    onClick = onHomeClick,
+                    iconSize = 42.dp
                 )
 
                 NavItem(
                     iconRes = R.drawable.savenew,
                     isSelected = currentScreen == "saved",
-                    onClick = onSavedClick
+                    onClick = onSavedClick,
+                    iconSize = 40.dp
                 )
 
                 NavItem(
                     iconRes = R.drawable.resource_new,
                     isSelected = currentScreen == "create",
                     onClick = onCreateArticleClick,
-                    iconSize = 28.dp
+                    iconSize = 60.dp
                 )
 
                 NavItem(
                     iconRes = R.drawable.messagenew,
                     isSelected = currentScreen == "messages",
-                    onClick = onMessagesClick
+                    onClick = onMessagesClick,
+                    iconSize = 40.dp
                 )
 
                 NavItem(
                     iconRes = R.drawable.profilenew,
                     isSelected = currentScreen == "profile",
                     onClick = onProfileClick,
-                    iconSize = 30.dp
+                    iconSize = 42.dp
                 )
             }
         }
@@ -96,7 +99,7 @@ private fun NavItem(
 ) {
     Box(
         modifier = Modifier
-            .size(44.dp)
+            .size(60.dp)
             .clip(CircleShape)
             .background(
                 if (isSelected) Color.White
