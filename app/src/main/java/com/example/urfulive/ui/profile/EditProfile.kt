@@ -2,43 +2,33 @@ package com.example.urfulive.ui.profile
 
 import NavbarCallbacks
 import android.annotation.SuppressLint
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.settings.ArrowSettingsItem
-import com.example.urfulive.ui.settings.SettingsItem
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -53,7 +43,17 @@ fun EditProfile(
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
 ) {
+    val context = LocalContext.current
+    val viewModel: EditProfileViewModel = viewModel()
     var showCreateArticle by remember { mutableStateOf(false) }
+
+    // Лаунчер для выбора изображения
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.onImageSelected(context, it) }
+    }
+
     if (showCreateArticle) {
         Box(
             modifier = Modifier
@@ -68,64 +68,63 @@ fun EditProfile(
             )
         }
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .zIndex(100f)
             .background(Color(0xFF131313))
-    )
-    {
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .systemBarsPadding(),
-
-            ) {
+                .systemBarsPadding()
+        ) {
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 23.dp, bottom = 15.dp),
-            )
-            {
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
-
                     Image(
                         painter = painterResource(id = R.drawable.chevron_left),
                         contentDescription = "Arrow",
                         modifier = Modifier
                             .clickable { onClose() }
-                            .padding(start = 15.dp))
-
+                            .padding(start = 15.dp)
+                    )
 
                     Text(
                         text = "Редактировать профиль",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineLarge,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
+                        modifier = Modifier.padding(start = 10.dp)
                     )
                 }
             }
 
-
+            // Content
             Column(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Блок аватарки
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .padding(top = 24.dp)
-                        .clickable { /* TODO изменение фото*/ }
+                        .clickable {
+                            galleryLauncher.launch("image/*")
+                        }
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ava),
-                        contentDescription = "Аватар пользователя",
+                        contentDescription = "Аватар по умолчанию",
                         modifier = Modifier
                             .size(110.dp)
                             .clip(CircleShape)
@@ -136,26 +135,24 @@ fun EditProfile(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(Color.Black.copy(alpha = 0.8f))
-                            .size(110.dp)
+                            .size(110.dp),
                     )
                     Image(
                         painter = painterResource(id = R.drawable.camera),
                         contentDescription = "Значок камеры",
-                        modifier = Modifier
-                            .size(48.dp)
+                        modifier = Modifier.size(48.dp)
                     )
                 }
+
                 Text(
                     text = "Изменить фото",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        color = Color.White
-                    ),
+                    style = MaterialTheme.typography.headlineMedium.copy(color = Color.White),
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
                 ArrowSettingsItem(
                     title = "Имя пользователя",
-                    currentValue = "${"@"}username",
+                    currentValue = "@username",
                     onClick = onUsernameChangeClick,
                 )
 
@@ -170,6 +167,7 @@ fun EditProfile(
                 )
             }
         }
+
         BottomNavBar(
             onProfileClick = onClose,
             onCreateArticleClick = { showCreateArticle = true },

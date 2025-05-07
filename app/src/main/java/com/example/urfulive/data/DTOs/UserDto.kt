@@ -11,6 +11,7 @@ data class UserDto(
     val email: String,
     val birthDate: List<Int>,
     val role: String,
+    val avatar_url: String?,
     val followers: List<Int> = emptyList(),
     val following: List<Int> = emptyList(),
     val description: String? = null
