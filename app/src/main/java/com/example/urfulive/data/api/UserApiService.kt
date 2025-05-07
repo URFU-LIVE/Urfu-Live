@@ -2,6 +2,7 @@ package com.example.urfulive.data.api
 
 import TokenManagerInstance
 import android.graphics.Bitmap
+import android.util.EventLogTags.Description
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostDto
@@ -15,6 +16,7 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -309,6 +311,56 @@ class UserApiService {
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 println(defaultResponse)
+                Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateUsername(username: String): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.patch("$baseUrl/users/me") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+                contentType(ContentType.Application.Json)
+                setBody(mapOf(
+                    "username" to username,
+                ))
+            }
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateDescription(description: String): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val response = client.patch("$baseUrl/users/me") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+                contentType(ContentType.Application.Json)
+                setBody(mapOf(
+                    "description" to description,
+                ))
+            }
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 Result.success(defaultResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))

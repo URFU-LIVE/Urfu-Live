@@ -1010,13 +1010,18 @@ fun ExpandedPostContent(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.profile),
+                    AsyncImage(
+                        model = post.author.avatarUrl, // URL из объекта пользователя
+
                         contentDescription = "Author Icon",
                         modifier = Modifier
                             .size(50.dp)
-                            .clickable { onAuthorClick(post.author.id)  },
-                        contentScale = ContentScale.Fit
+                            .clip(CircleShape)
+                            .border(2.dp, Color.White, CircleShape)
+                            .clickable { onAuthorClick(post.author.id) },
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
+                        error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
                     )
                     Spacer(modifier = Modifier.width(10.dp))
 

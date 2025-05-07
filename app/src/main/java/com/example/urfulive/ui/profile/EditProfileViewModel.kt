@@ -1,5 +1,6 @@
 package com.example.urfulive.ui.profile
 
+import android.content.ClipDescription
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -71,6 +72,32 @@ class EditProfileViewModel: ViewModel() {
                 }
             } catch (e: Exception) {
                 // Ошибки игнорируем
+            }
+        }
+    }
+
+    fun updateUsername(username: String) {
+        viewModelScope.launch {
+            val result = userApiService.updateUsername(username)
+            result.onSuccess {
+
+            }
+
+            result.onFailure {
+                it.printStackTrace()
+            }
+        }
+    }
+
+    fun updateDescription(description: String) {
+        viewModelScope.launch {
+            val result = userApiService.updateDescription(description)
+            result.onSuccess {
+
+            }
+
+            result.onFailure {
+                it.printStackTrace()
             }
         }
     }

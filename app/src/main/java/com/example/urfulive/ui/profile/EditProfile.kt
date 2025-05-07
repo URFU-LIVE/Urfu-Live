@@ -11,8 +11,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +37,6 @@ import com.example.urfulive.ui.settings.ArrowSettingsItem
 @Composable
 fun EditProfile(
     onClose: () -> Unit = {},
-    onUsernameChangeClick: () -> Unit = {},
-    onProfileDescriptionChangeClick: () -> Unit = {},
-    onBackgroundChangeClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
@@ -46,6 +46,8 @@ fun EditProfile(
 ) {
     val context = LocalContext.current
     var showCreateArticle by remember { mutableStateOf(false) }
+    var showUsernameDialog by remember { mutableStateOf(false) }
+    var showDescriptionDialog by remember { mutableStateOf(false) }
 
     // Лаунчер для выбора аватарки
     val avatarGalleryLauncher = rememberLauncherForActivityResult(
@@ -59,6 +61,30 @@ fun EditProfile(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.onBackgroundImageSelected(context, it) }
+    }
+
+    if (showUsernameDialog) {
+        EditTextDialog(
+            title = "Change username",
+            initialValue = "@username", // You should get this from viewModel
+            onDismiss = { showUsernameDialog = false },
+            onConfirm = { newUsername ->
+                viewModel.updateUsername(newUsername)
+                showUsernameDialog = false
+            }
+        )
+    }
+
+    if (showDescriptionDialog) {
+        EditTextDialog(
+            title = "Change description",
+            initialValue = "", // You should get this from viewModel
+            onDismiss = { showDescriptionDialog = false },
+            onConfirm = { newDescription ->
+                viewModel.updateDescription(newDescription)
+                showDescriptionDialog = false
+            }
+        )
     }
 
     if (showCreateArticle) {
@@ -160,12 +186,12 @@ fun EditProfile(
                 ArrowSettingsItem(
                     title = "Имя пользователя",
                     currentValue = "@username",
-                    onClick = onUsernameChangeClick,
+                    onClick = { showUsernameDialog = true },
                 )
 
                 ArrowSettingsItem(
                     title = "Описание",
-                    onClick = onProfileDescriptionChangeClick,
+                    onClick = { showDescriptionDialog = true },
                 )
 
                 ArrowSettingsItem(
@@ -185,4 +211,40 @@ fun EditProfile(
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
+}
+
+@Composable
+fun EditTextDialog(
+    title: String,
+    initialValue: String = "",
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var textValue by remember { mutableStateOf(initialValue) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = title) },
+        text = {
+            TextField(
+                value = textValue,
+                onValueChange = { textValue = it },
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(textValue) }
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
 }
