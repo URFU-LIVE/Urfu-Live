@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.urfulive.ui.comments.Comments
 import com.example.urfulive.ui.profile.EditProfile
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
@@ -242,6 +243,12 @@ fun AppNavHost() {
             )
         }
 
+        composable("comments") {
+            Comments(
+                onClose = {navController.navigate("main")}
+            )
+        }
+
         // Own profile route
         composable("profile") {
             // При переходе на собственный профиль загружаем данные текущего пользователя
@@ -356,8 +363,10 @@ fun MainScreenWithOverlays(
                 navController.navigate("author/$authorId")
             },
             navController = navController,
-            showNavBar = true
+            showNavBar = true,
+            onCommentsClick = {navController.navigate("comments")}
         )
+
     }
 }
 data class NavbarCallbacks(
