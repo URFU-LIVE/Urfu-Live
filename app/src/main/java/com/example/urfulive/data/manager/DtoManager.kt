@@ -36,7 +36,9 @@ class DtoManager {
                     "ADMIN" -> UserRole.ADMIN
                     else -> UserRole.USER
                 },
-                followers = author.followers
+                followers = author.followers,
+                // todo Хардкод в проде надо поменять
+                avatarUrl = author.avatar_url?.replace("localhost", "10.0.2.2")
             ),
             tags = this.tags.map { Tag(it.id, it.name) },
             time = formattedTime,
@@ -80,7 +82,9 @@ class DtoManager {
             followersCount = followersCount,
             followingCount = followingCount,
             description = this.description,
-            followers = this.followers
+            followers = this.followers,
+            // todo Хардкод в проде надо поменять
+            avatarUrl = this.avatar_url?.replace("localhost", "10.0.2.2")
         )
     }
 

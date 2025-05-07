@@ -64,6 +64,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
     implementation(libs.androidx.material3.android)
 
+    // build.gradle (Module)
+    implementation(libs.coil.compose)
+
     debugImplementation("androidx.compose.ui:ui-tooling:1.7.8")
 
     // Material

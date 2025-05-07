@@ -32,6 +32,9 @@ import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.main.PostColorPatterns
+import coil.compose.AsyncImage
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -118,14 +121,18 @@ fun ProfileScreen(
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ava),
+                    // Блок аватарки
+                    AsyncImage(
+                        model = user?.avatarUrl, // URL из объекта пользователя
+
                         contentDescription = "Аватар пользователя",
                         modifier = Modifier
                             .size(110.dp)
                             .clip(CircleShape)
                             .border(2.dp, Color.White, CircleShape),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
+                        error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
                     )
 
                     if (user != null) {

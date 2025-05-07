@@ -26,6 +26,7 @@ class NotificationApiService {
         }
     }
 
+    // todo надо вынести в одну переменную
     private val baseUrl = "http://10.0.2.2:7070"
 
     suspend fun getAll(): Result<List<NotificationDto>> {

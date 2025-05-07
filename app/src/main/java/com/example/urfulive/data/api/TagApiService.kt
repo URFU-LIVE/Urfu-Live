@@ -27,7 +27,8 @@ class TagApiService {
         }
     }
 
-    private val baseUrl = "http://10.0.2.2:7070" // Замените на URL вашего бэкенда
+    // todo надо вынести в одну переменную
+    private val baseUrl = "http://10.0.2.2:7070"
 
     suspend fun create(name: String): Result<DefaultResponse> {
         return try {

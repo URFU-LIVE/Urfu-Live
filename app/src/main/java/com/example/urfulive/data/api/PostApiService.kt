@@ -31,6 +31,7 @@ class PostApiService {
         }
     }
 
+    // todo надо вынести в одну переменную
     private val baseUrl = "http://10.0.2.2:7070"
 
     suspend fun create(title: String, text: String): Result<DefaultResponse> {
@@ -68,6 +69,7 @@ class PostApiService {
             }
 
             if (response.status.isSuccess()) {
+                // todo Хардкод надо сделать нормальную иницилазацию
                 val json = Json {
                     ignoreUnknownKeys = true
                     isLenient = true
@@ -76,7 +78,6 @@ class PostApiService {
                 val postListResponse = json.decodeFromString<List<PostDto>>(response.bodyAsText())
                 Result.success(postListResponse)
             } else {
-                println("Произошла ошибка: " + response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
@@ -87,7 +88,6 @@ class PostApiService {
 
     suspend fun like(id: Long): Result<DefaultResponse> {
         return try {
-            println("Попытка лайкнуть пост")
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
             val response = client.post("$baseUrl/posts/$id/like") {
                 headers {
@@ -97,10 +97,8 @@ class PostApiService {
 
             if (response.status.isSuccess()) {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
-                println("Успешно")
                 Result.success(defaultResponse)
             } else {
-                println("Произошла ошибка: " + response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {

@@ -1,6 +1,7 @@
 [versions]
 activityComposeVersion = "1.7.0"
 agp = "8.9.1"
+coilCompose = "2.4.0"
 datastorePreferencesVersion = "1.1.5"
 foundation = "1.7.8"
 kotlin = "2.0.21"
@@ -32,6 +33,7 @@ androidx-activity-compose-v170 = { module = "androidx.activity:activity-compose"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferencesVersion" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

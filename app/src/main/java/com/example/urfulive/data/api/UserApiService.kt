@@ -40,7 +40,8 @@ class UserApiService {
         }
     }
 
-    private val baseUrl = "http://10.0.2.2:7070" // Замените на URL вашего бэкенда
+    // todo надо вынести в одну переменную
+    private val baseUrl = "http://10.0.2.2:7070"
 
     suspend fun login(username: String, password: String): Result<AuthResponse> {
         return try {
@@ -175,6 +176,7 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
+                // todo Хардкод надо сделать нормальную иницилазацию
                 val refreshResponse = Json {ignoreUnknownKeys = true }.decodeFromString<List<PostDto>>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {
@@ -230,7 +232,6 @@ class UserApiService {
     suspend fun updatePhoto(image: Bitmap): Result<DefaultResponse> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-
             val file = withContext(Dispatchers.IO) {
                 File.createTempFile("avatar", ".jpg")
             }
