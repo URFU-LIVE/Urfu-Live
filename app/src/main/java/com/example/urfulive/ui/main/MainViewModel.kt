@@ -55,6 +55,19 @@ class PostViewModel : ViewModel() {
     private val _currentUserId = MutableStateFlow<String?>(null)
     val currentUserId: StateFlow<String?> get() = _currentUserId
 
+
+    private val _likedPostIds = MutableStateFlow<Set<Long>>(emptySet())
+    val likedPostIds: StateFlow<Set<Long>> = _likedPostIds
+
+    private val _subscriptions = MutableStateFlow<Set<String>>(emptySet())
+    val subscriptions: StateFlow<Set<String>> = _subscriptions
+
+    private val _isSubscriptionLoading = MutableStateFlow<Set<String>>(emptySet())
+    val isSubscriptionLoading: StateFlow<Set<String>> = _isSubscriptionLoading
+    private val _likesLoading = MutableStateFlow<Set<Long>>(emptySet())
+    val likesLoading: StateFlow<Set<Long>> = _likesLoading
+    private val _processingLikeRequests = MutableStateFlow<Set<Long>>(emptySet())
+
     init {
         viewModelScope.launch {
             _currentUserId.value = TokenManagerInstance.getInstance().getUserIdBlocking()
@@ -67,10 +80,67 @@ class PostViewModel : ViewModel() {
             val result = postApiService.getAll()
             result.onSuccess { postList ->
                 val dtoManager = DtoManager()
-                _posts.value = postList.map { dtoManager.run { it.toPost() } }
+                val posts = postList.map { dtoManager.run { it.toPost() } }
+                _posts.value = posts
+
+                initLikedPosts(posts)
+                initSubscriptions(posts)
             }.onFailure {
                 it.printStackTrace()
             }
+        }
+    }
+
+    private fun initLikedPosts(posts: List<Post>) {
+        val userId = _currentUserId.value?.toInt() ?: return
+        val likedIds = posts
+            .filter { post -> post.likedBy.contains(userId) }
+            .map { it.id }
+            .toSet()
+        _likedPostIds.value = likedIds
+    }
+
+    private fun initSubscriptions(posts: List<Post>) {
+        val userId = _currentUserId.value?.toInt() ?: return
+        val authorIds = posts
+            .filter { post -> post.author.followers.contains(userId) }
+            .map { it.author.id }
+            .toSet()
+        _subscriptions.value = authorIds
+    }
+
+    private fun updateLikeStateLocally(id: Long) {
+        // Обновляем состояние в _likedPostIds
+        val currentLikedIds = _likedPostIds.value.toMutableSet()
+        val isCurrentlyLiked = currentLikedIds.contains(id)
+
+        if (isCurrentlyLiked) {
+            currentLikedIds.remove(id)
+        } else {
+            currentLikedIds.add(id)
+        }
+        _likedPostIds.value = currentLikedIds
+
+        // Обновляем счетчик лайков в посте
+        val currentPosts = _posts.value.toMutableList()
+        val index = currentPosts.indexOfFirst { it.id == id }
+
+        if (index != -1) {
+            val post = currentPosts[index]
+            val likedBy = post.likedBy.toMutableList()
+            val userId = _currentUserId.value?.toInt() ?: return
+
+            if (isCurrentlyLiked) {
+                likedBy.remove(userId)
+            } else {
+                likedBy.add(userId)
+            }
+
+            currentPosts[index] = post.copy(
+                likes = if (isCurrentlyLiked) post.likes - 1 else post.likes + 1,
+                likedBy = likedBy
+            )
+            _posts.value = currentPosts
         }
     }
 
@@ -78,28 +148,27 @@ class PostViewModel : ViewModel() {
         println("Post ID: " + post.id)
         println("Is sub: " + isUserSubscribe(post))
         println("Post author: " + post.author.username)
-        val result = _currentUserId.value?.let { userId ->
-            post.likedBy.contains(userId.toInt())
-        } ?: false
-        return result
+        return _likedPostIds.value.contains(post.id)
     }
 
     fun isUserSubscribe(post: Post): Boolean {
-        return post.author.followers.contains(_currentUserId.value?.toInt())
+        return _subscriptions.value.contains(post.author.id)
     }
 
 
     fun likeAndDislike(id: Long) {
         viewModelScope.launch {
-            val currentUserId = _currentUserId.value ?: return@launch
-            val currentPosts = _posts.value.toMutableList()
-            val index = currentPosts.indexOfFirst { it.id == id }
+            try {
+                // Добавляем пост в множество обрабатываемых запросов
+                _processingLikeRequests.value = _processingLikeRequests.value + id
 
-            if (index != -1) {
-                val post = currentPosts[index]
-                val likedBy = post.likedBy.toMutableList()
-                val isLiked = likedBy.contains(currentUserId.toInt())
+                // Устанавливаем состояние загрузки
+                _likesLoading.value = _likesLoading.value + id
 
+                // Определяем текущее состояние лайка
+                val isLiked = _likedPostIds.value.contains(id)
+
+                // Отправляем запрос на сервер
                 val result = if (isLiked) {
                     postApiService.dislike(id)
                 } else {
@@ -107,38 +176,95 @@ class PostViewModel : ViewModel() {
                 }
 
                 result.onSuccess {
-                    if (isLiked) {
-                        likedBy.remove(currentUserId.toInt())
-                    } else {
-                        likedBy.add(currentUserId.toInt())
-                    }
+                    updateLikeStateLocally(id)
 
-                    currentPosts[index] = post.copy(
-                        likes = if (isLiked) post.likes - 1 else post.likes + 1,
-                        likedBy = likedBy
-                    )
-                    _posts.value = currentPosts
+                    kotlinx.coroutines.delay(300)
                 }.onFailure {
                     it.printStackTrace()
                 }
-            }
-        }
-    }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                // Убираем состояние загрузки
+                _likesLoading.value = _likesLoading.value - id
+
+                // Удаляем пост из обрабатываемых запросов
+                _processingLikeRequests.value = _processingLikeRequests.value - id
+            }}}
 
 
     fun subscribeAndUnsubscribe(post: Post) {
         viewModelScope.launch {
-            val isSub = isUserSubscribe(post)
-            val result =
-                if (!isSub) userApiService.subscribe(post.author.id.toLong())
-                else userApiService.unsubscribe(post.author.id.toLong())
+            // Сохраняем ID автора
+            val authorId = post.author.id
 
-            result.onSuccess {
-                fetchPosts()
-            }.onFailure {
-                // Можно показать ошибку пользователю
-                it.printStackTrace()
+            try {
+                // Устанавливаем состояние загрузки
+                _isSubscriptionLoading.value = _isSubscriptionLoading.value + authorId
+
+                // Определяем текущее состояние подписки
+                val isSub = _subscriptions.value.contains(authorId)
+
+                // Выполняем запрос
+                val result = if (!isSub)
+                    userApiService.subscribe(authorId.toLong())
+                else
+                    userApiService.unsubscribe(authorId.toLong())
+
+                result.onSuccess {
+                    updateSubscriptionStateLocally(authorId)
+
+                    kotlinx.coroutines.delay(300)
+                }.onFailure {
+                    it.printStackTrace()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                // В любом случае снимаем состояние загрузки
+                _isSubscriptionLoading.value = _isSubscriptionLoading.value - authorId
             }
         }
+    }
+
+    // Обновление локального состояния подписки
+    private fun updateSubscriptionStateLocally(authorId: String) {
+        val currentSubscriptions = _subscriptions.value.toMutableSet()
+        val isCurrentlySubscribed = currentSubscriptions.contains(authorId)
+
+        if (isCurrentlySubscribed) {
+            currentSubscriptions.remove(authorId)
+        } else {
+            currentSubscriptions.add(authorId)
+        }
+        _subscriptions.value = currentSubscriptions
+
+        // Обновляем список подписчиков в авторе
+        val currentPosts = _posts.value.toMutableList()
+        val userId = _currentUserId.value?.toInt() ?: return
+
+        for (i in currentPosts.indices) {
+            val post = currentPosts[i]
+            if (post.author.id == authorId) {
+                val followers = post.author.followers.toMutableList()
+
+                if (isCurrentlySubscribed) {
+                    followers.remove(userId)
+                } else {
+                    followers.add(userId)
+                }
+
+                // Создаем копию автора с обновленным списком подписчиков
+                val updatedAuthor = post.author.copy(followers = followers)
+                // Создаем копию поста с обновленным автором
+                currentPosts[i] = post.copy(author = updatedAuthor)
+            }
+        }
+        _posts.value = currentPosts
+    }
+
+    fun reinitializeStates(posts: List<Post>) {
+        initLikedPosts(posts)
+        initSubscriptions(posts)
     }
 }

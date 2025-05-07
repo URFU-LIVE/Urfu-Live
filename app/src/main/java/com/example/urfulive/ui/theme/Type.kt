@@ -72,8 +72,8 @@ val Typography = Typography(
     titleLarge = TextStyle( // Имя автора
         fontFamily = Montserrat,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 18.2.sp,
+        fontSize = 15.sp,
+        lineHeight = 19.5.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle( // Подписаться, текст уведомления

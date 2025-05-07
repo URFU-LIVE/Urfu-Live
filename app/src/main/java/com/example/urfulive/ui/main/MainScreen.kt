@@ -142,9 +142,8 @@ fun PostCard(
     val pattern = remember(colorPatternIndex) { PostColorPatterns[colorPatternIndex.toInt()] }
     val rememberedPost = remember(post) { post }
 
-    val isLiked by remember(rememberedPost.likedBy, viewModel.currentUserId) {
-        derivedStateOf { viewModel.isPostLikedByCurrentUser(rememberedPost) }
-    }
+    val likedPosts by viewModel.likedPostIds.collectAsState()
+    val isLiked = likedPosts.contains(rememberedPost.id)
 
     val likeColor by animateColorAsState(
         targetValue = if (isLiked) Color.Red else pattern.reactionColor,
@@ -161,8 +160,9 @@ fun PostCard(
     )
 
     // Состояния для подписки
-    var isSubscribed by remember { mutableStateOf(viewModel.isUserSubscribe(post)) }
-    var isLoading by remember { mutableStateOf(false) }
+    val subscriptions by viewModel.subscriptions.collectAsState()
+    val isSubscribed = subscriptions.contains(rememberedPost.author.id)
+    var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     Box(
@@ -190,7 +190,7 @@ fun PostCard(
                 // Post title
                 Text(
                     text = rememberedPost.title ?: "",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.labelLarge,
                     color = pattern.textColor,
                     fontWeight = FontWeight.Bold
                 )
@@ -200,9 +200,9 @@ fun PostCard(
                 // Author and publish info
                 Column {
                     Text(
-                        text = "Опубликовано ${rememberedPost.time?.substring(0, 10) ?: ""}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = pattern.textColor.copy(alpha = 0.7f)
+                        text = "Опубликовано: ${rememberedPost.time?.substring(0, 10) ?: ""}",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
@@ -218,19 +218,19 @@ fun PostCard(
                                 .clickable { onAuthorClick(rememberedPost.author.id) },
                             contentScale = ContentScale.Fit
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(10.dp)) //уменьшить до 8, если не влезает
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Автор публикации",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = pattern.textColor.copy(alpha = 0.7f)
+                                text = "Автор:",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = Color.Black
                             )
                             Text(
                                 text = rememberedPost.author.username
                                     ?: rememberedPost.author.name
                                     ?: "Неизвестный автор",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 color = pattern.textColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -255,8 +255,6 @@ fun PostCard(
                                         coroutineScope.launch {
                                             isLoading = true
                                             viewModel.subscribeAndUnsubscribe(rememberedPost)
-                                            // После успешного запроса обновляем состояние
-                                            isSubscribed = viewModel.isUserSubscribe(rememberedPost)
                                             isLoading = false
                                         }
                                     }
@@ -266,8 +264,7 @@ fun PostCard(
                                     )
                                     .padding(horizontal = 15.dp, vertical = 10.dp),
                                 color = pattern.textColor,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold
+                                style = MaterialTheme.typography.displaySmall
                             )
                         }
                     }
@@ -277,7 +274,7 @@ fun PostCard(
                 // Post content
                 Text(
                     text = rememberedPost.text ?: "",
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.displayMedium,
                     color = pattern.textColor,
                     maxLines = 10,
                     overflow = TextOverflow.Ellipsis
@@ -460,6 +457,12 @@ fun CarouselScreen(
         updateTransition(targetState = isFullyExpanded, label = "fullExpansionTransition")
     val closeAnimator = remember { Animatable(0f) }
     val SmoothEasing = CubicBezierEasing(0.05f, 0.0f, 0.15f, 1.0f)
+
+    LaunchedEffect(postsState) {
+        if (postsState.isNotEmpty()) {
+            viewModel.reinitializeStates(postsState)
+        }
+    }
 
     LaunchedEffect(key1 = isAnimationInProgress) {
         if (isAnimationInProgress) {
@@ -704,7 +707,8 @@ fun CarouselScreen(
                         onAuthorClick = {
                             // Навигация на профиль автора
                             onAuthorClick(postsState[page].author.id)
-                        }
+                        },
+                        viewModel = viewModel
                     )
                 }
             }
@@ -840,7 +844,8 @@ fun CarouselScreen(
                                 expansionProgress
                             },
                             onHeaderSwipe = { toggleFullExpansion() },
-                            onAuthorClick = onAuthorClick
+                            onAuthorClick = onAuthorClick,
+                            viewModel = viewModel
                         )
                     }
 
@@ -907,6 +912,7 @@ fun ExpandedPostContent(
     expandProgress: Float,
     onHeaderSwipe: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
+    viewModel: PostViewModel = viewModel()
 ) {
     val titleSizeAndHeight = lerp(24.sp, 26.sp, expandProgress)
     val postHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
@@ -915,6 +921,14 @@ fun ExpandedPostContent(
     val scrollState = rememberScrollState()
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val pattern = PostColorPatterns[colorPatternIndex]
+
+    val subscriptions by viewModel.subscriptions.collectAsState()
+    val isSubscribed = subscriptions.contains(post.author.id)
+    var isLoading by remember(post.author.id) { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val likedPosts by viewModel.likedPostIds.collectAsState()
+    val isLiked = likedPosts.contains(post.id)
 
     Column(
         modifier = Modifier
@@ -990,7 +1004,7 @@ fun ExpandedPostContent(
                             .clickable { onAuthorClick(post.author.id)  },
                         contentScale = ContentScale.Fit
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
 
                     Column(
                         modifier = Modifier.weight(1f)
@@ -1010,18 +1024,32 @@ fun ExpandedPostContent(
                         )
                     }
 
-                    Text(
-                        text = "Подписаться",
-                        modifier = Modifier
-                            .clickable { /*TODO: подписка*/ }
-                            .background(pattern.buttonColor, shape = RoundedCornerShape(52.dp))
-                            .padding(
-                                horizontal = 15.dp,
-                                vertical = 10.dp
-                            ),
-                        color = Color.Black,
-                        style = MaterialTheme.typography.displaySmall,
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = pattern.textColor,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                            modifier = Modifier
+                                .clickable {
+                                    coroutineScope.launch {
+                                        isLoading = true
+                                        viewModel.subscribeAndUnsubscribe(post)
+                                        isLoading = false
+                                    }
+                                }
+                                .background(
+                                    pattern.buttonColor,
+                                    shape = RoundedCornerShape(52.dp)
+                                )
+                                .padding(horizontal = 15.dp, vertical = 10.dp),
+                            color = pattern.textColor,
+                            style = MaterialTheme.typography.displaySmall
+                        )
+                    }
                 }
             }
         }
@@ -1043,7 +1071,8 @@ fun ExpandedPostContent(
             ReactionPanelBottomContent(
                 post = post,
                 pattern = pattern,
-                expandProgress = expandProgress
+                expandProgress = expandProgress,
+                viewModel = viewModel
             )
 
             Spacer(modifier = Modifier.height(100.dp))
@@ -1055,7 +1084,8 @@ fun ExpandedPostContent(
 fun ReactionPanelBottomContent(
     post: Post,
     pattern: PostColorPattern,
-    expandProgress: Float
+    expandProgress: Float,
+    viewModel: PostViewModel
 ) {
     val reactionPanelOpacity = if (expandProgress < 0.3f) {
         0f
@@ -1068,6 +1098,9 @@ fun ReactionPanelBottomContent(
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
         label = "reactionPanelOffset"
     )
+
+    val likedPosts by viewModel.likedPostIds.collectAsState()
+    val isLiked = likedPosts.contains(post.id)
 
     Box(
         modifier = Modifier
@@ -1084,14 +1117,30 @@ fun ReactionPanelBottomContent(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.likebottom),
-                contentDescription = "Like Logo",
-                colorFilter = ColorFilter.tint(pattern.reactionColor),
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .clickable { /* TODO Поставить лайк*/ }
-                    .size(33.dp),
-            )
+                    .clickable {
+                        viewModel.likeAndDislike(post.id)
+                    }
+                    .size(33.dp)
+            ) {
+                if (isLiked) {
+                    Image(
+                        painter = painterResource(id = R.drawable.like_filling),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(pattern.reactionColorFilling),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Image(
+                    painter = painterResource(id = R.drawable.likebottom),
+                    colorFilter = ColorFilter.tint(pattern.reactionColor),
+                    contentDescription = "Like",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
 
             Text(
                 text = post.likes.toString(),
