@@ -16,7 +16,8 @@ data class User(
     val description: String? = null,
     val token: String? = null,
     val followers: List<Int>,
-    val avatarUrl: String?
+    val avatarUrl: String?,
+    val backgroundUrl: String?
 )
 
 enum class UserRole {

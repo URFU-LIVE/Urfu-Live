@@ -42,16 +42,23 @@ fun EditProfile(
     onMessagesClick: () -> Unit = {},
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
+    viewModel: EditProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
     val context = LocalContext.current
-    val viewModel: EditProfileViewModel = viewModel()
     var showCreateArticle by remember { mutableStateOf(false) }
 
-    // Лаунчер для выбора изображения
-    val galleryLauncher = rememberLauncherForActivityResult(
+    // Лаунчер для выбора аватарки
+    val avatarGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { viewModel.onImageSelected(context, it) }
+        uri?.let { viewModel.onAvatarImageSelected(context, it) }
+    }
+
+    // Лаунчер для выбора фона
+    val backgroundGalleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.onBackgroundImageSelected(context, it) }
     }
 
     if (showCreateArticle) {
@@ -119,7 +126,7 @@ fun EditProfile(
                     modifier = Modifier
                         .padding(top = 24.dp)
                         .clickable {
-                            galleryLauncher.launch("image/*")
+                            avatarGalleryLauncher.launch("image/*")
                         }
                 ) {
                     Image(
@@ -163,7 +170,7 @@ fun EditProfile(
 
                 ArrowSettingsItem(
                     title = "Изменить фон",
-                    onClick = onBackgroundChangeClick,
+                    onClick = { backgroundGalleryLauncher.launch("image/*") },
                 )
             }
         }

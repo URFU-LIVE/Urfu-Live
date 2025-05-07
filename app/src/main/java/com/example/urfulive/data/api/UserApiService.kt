@@ -229,7 +229,7 @@ class UserApiService {
         }
     }
 
-    suspend fun updatePhoto(image: Bitmap): Result<DefaultResponse> {
+    suspend fun updateAvatar(image: Bitmap): Result<DefaultResponse> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
             val file = withContext(Dispatchers.IO) {
@@ -240,6 +240,51 @@ class UserApiService {
             }
 
             val response = client.post("$baseUrl/users/me/avatar") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append(
+                                "file",
+                                file.readBytes(),
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, "image/jpeg")
+                                    append(HttpHeaders.ContentDisposition, "filename=${file.name}")
+                                }
+                            )
+                        }
+                    )
+                )
+            }
+
+            file.delete()
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                println(defaultResponse)
+                Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateBackground(image: Bitmap): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val file = withContext(Dispatchers.IO) {
+                File.createTempFile("avatar", ".jpg")
+            }
+            file.outputStream().use {
+                image.compress(Bitmap.CompressFormat.JPEG, 90, it)
+            }
+
+            val response = client.post("$baseUrl/users/me/background") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
                 }

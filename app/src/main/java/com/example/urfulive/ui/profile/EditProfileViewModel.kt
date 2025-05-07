@@ -10,29 +10,65 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.api.UserApiService
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class EditProfileViewModel(
-    private val userApiService: UserApiService = UserApiService()
-) : ViewModel() {
+class EditProfileViewModel: ViewModel() {
 
-    var selectedImageUri by mutableStateOf<Uri?>(null)
+     val userApiService: UserApiService = UserApiService()
+
+    var selectedAvatarUri by mutableStateOf<Uri?>(null)
         private set
 
-    fun onImageSelected(context: Context, uri: Uri?) {
-        selectedImageUri = uri
-        uri?.let { uploadImage(context, it) }
+    var selectedBackgroundUri by mutableStateOf<Uri?>(null)
+        private set
+
+    fun onAvatarImageSelected(context: Context, uri: Uri) {
+        selectedAvatarUri = uri
+        uploadAvatar(context, uri)
     }
 
-    private fun uploadImage(context: Context, uri: Uri) {
+    fun onBackgroundImageSelected(context: Context, uri: Uri) {
+        selectedBackgroundUri = uri
+        uploadBackground(context, uri)
+    }
+
+    private fun uploadAvatar(context: Context, uri: Uri) {
         viewModelScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.IO) {
                     uri.toBitmap(context)
                 }
-                bitmap?.let { userApiService.updatePhoto(it) }
+                bitmap?.let {
+                    val result = userApiService.updateAvatar(it)
+                    result.onSuccess {
+                        // Обработка успешной загрузки
+                    }.onFailure {
+                        // Обработка ошибки
+                    }
+                }
+            } catch (e: Exception) {
+                // Ошибки игнорируем
+            }
+        }
+    }
+
+    private fun uploadBackground(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    uri.toBitmap(context)
+                }
+                bitmap?.let {
+                    val result = userApiService.updateBackground(it)
+                    result.onSuccess {
+                        // Обработка успешной загрузки
+                    }.onFailure {
+                        // Обработка ошибки
+                    }
+                }
             } catch (e: Exception) {
                 // Ошибки игнорируем
             }

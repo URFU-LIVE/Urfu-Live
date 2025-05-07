@@ -33,8 +33,7 @@ import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.main.PostColorPatterns
 import coil.compose.AsyncImage
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -79,11 +78,17 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.5f)
-                    .background(Color.LightGray)
                     .padding(top = 31.dp)
                     .systemBarsPadding(),
                 contentAlignment = Alignment.Center
             ) {
+                AsyncImage(
+                    model = user?.backgroundUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentScale = ContentScale.FillBounds,
+                )
                 if (isOwnProfile) {
                     Image(
                         painter = painterResource(id = R.drawable.settings),
@@ -130,7 +135,7 @@ fun ProfileScreen(
                             .size(110.dp)
                             .clip(CircleShape)
                             .border(2.dp, Color.White, CircleShape),
-                        contentScale = ContentScale.Crop,
+                        contentScale = ContentScale.Fit,
                         placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
                         error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
                     )

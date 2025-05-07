@@ -38,7 +38,8 @@ class DtoManager {
                 },
                 followers = author.followers,
                 // todo Хардкод в проде надо поменять
-                avatarUrl = author.avatar_url?.replace("localhost", "10.0.2.2")
+                avatarUrl = author.avatar_url?.replace("localhost", "10.0.2.2"),
+                backgroundUrl = author.background_url?.replace("localhost", "10.0.2.2")
             ),
             tags = this.tags.map { Tag(it.id, it.name) },
             time = formattedTime,
@@ -84,7 +85,8 @@ class DtoManager {
             description = this.description,
             followers = this.followers,
             // todo Хардкод в проде надо поменять
-            avatarUrl = this.avatar_url?.replace("localhost", "10.0.2.2")
+            avatarUrl = this.avatar_url?.replace("localhost", "10.0.2.2"),
+            backgroundUrl = this.background_url?.replace("localhost", "10.0.2.2")
         )
     }
 
