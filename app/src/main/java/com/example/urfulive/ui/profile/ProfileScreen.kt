@@ -51,6 +51,7 @@ fun ProfileScreen(
     onCloseOverlay: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onSubscribeClick: () -> Unit = {},
+    onCommentsClick: () -> Unit = {}
 ) {
     val user = viewModel.user
     val posts = viewModel.posts
@@ -58,6 +59,22 @@ fun ProfileScreen(
     val backgroundColor = Color(0xFF131313)
     val accentColor = Color(0xFFF6ECC9)
     val cornerRadius = 31.dp
+
+    var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
+    expandedPostIndex?.let { index ->
+        if (index < posts.size) {
+            ExpandedPostOverlay(
+                post = posts[index],
+                onClose = { expandedPostIndex = null },
+                onCommentsClick = onCommentsClick
+            )
+        }
+    }
+
+    // Handle back press when post is expanded
+    BackHandler(enabled = expandedPostIndex != null) {
+        expandedPostIndex = null
+    }
 
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
@@ -240,7 +257,8 @@ fun ProfileScreen(
                                 .fillMaxWidth()
                                 .height(100.dp)
                                 .clip(RoundedCornerShape(cornerRadius))
-                                .background(color = PostColorPatterns[colorPatternIndex].background),
+                                .background(color = PostColorPatterns[colorPatternIndex].background)
+                                .clickable { expandedPostIndex = index },
                         ) {
                             Text(
                                 text = post.title,

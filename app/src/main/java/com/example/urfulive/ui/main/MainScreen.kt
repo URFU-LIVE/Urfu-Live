@@ -102,7 +102,8 @@ fun ArticlesScreenPreview() {
     val previewNavController = rememberNavController()
     CarouselScreen(
         onProfileClick = {},
-        navController = previewNavController
+        navController = previewNavController,
+        onCommentsClick = {}
     )
 }
 
@@ -136,7 +137,8 @@ fun PostCard(
     onClick: () -> Unit,
     expansionProgress: Float = .0f,
     onAuthorClick: (String) -> Unit,
-    viewModel: PostViewModel = viewModel()
+    viewModel: PostViewModel = viewModel(),
+    onCommentsClick: () -> Unit
 ) {
     val colorPatternIndex = remember(post.id) { post.id.rem(PostColorPatterns.size) }
     val pattern = remember(colorPatternIndex) { PostColorPatterns[colorPatternIndex.toInt()] }
@@ -329,7 +331,7 @@ fun PostCard(
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
                     contentDescription = "Comment",
                     modifier = Modifier
-                        .clickable { /* TODO: Handle comments */ }
+                        .clickable { onCommentsClick() }
                         .size(35.dp),
                 )
                 Text(
@@ -423,7 +425,8 @@ fun CarouselScreen(
     onProfileClick: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
     navController: NavController,
-    showNavBar: Boolean = true
+    showNavBar: Boolean = true,
+    onCommentsClick: () -> Unit
 ) {
     val postsState by viewModel.posts.collectAsState()
     val pagerState = rememberPagerState(pageCount = { postsState.size })
@@ -708,7 +711,8 @@ fun CarouselScreen(
                             // Навигация на профиль автора
                             onAuthorClick(postsState[page].author.id)
                         },
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        onCommentsClick = onCommentsClick
                     )
                 }
             }
@@ -845,7 +849,8 @@ fun CarouselScreen(
                             },
                             onHeaderSwipe = { toggleFullExpansion() },
                             onAuthorClick = onAuthorClick,
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            onCommentsClick = onCommentsClick
                         )
                     }
 
@@ -912,7 +917,8 @@ fun ExpandedPostContent(
     expandProgress: Float,
     onHeaderSwipe: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
-    viewModel: PostViewModel = viewModel()
+    viewModel: PostViewModel = viewModel(),
+    onCommentsClick: () -> Unit
 ) {
     val titleSizeAndHeight = lerp(24.sp, 26.sp, expandProgress)
     val postHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
@@ -1072,7 +1078,8 @@ fun ExpandedPostContent(
                 post = post,
                 pattern = pattern,
                 expandProgress = expandProgress,
-                viewModel = viewModel
+                viewModel = viewModel,
+                onCommentsClick = onCommentsClick
             )
 
             Spacer(modifier = Modifier.height(100.dp))
@@ -1085,7 +1092,8 @@ fun ReactionPanelBottomContent(
     post: Post,
     pattern: PostColorPattern,
     expandProgress: Float,
-    viewModel: PostViewModel
+    viewModel: PostViewModel,
+    onCommentsClick: () -> Unit
 ) {
     val reactionPanelOpacity = if (expandProgress < 0.3f) {
         0f
@@ -1152,7 +1160,7 @@ fun ReactionPanelBottomContent(
                 colorFilter = ColorFilter.tint(pattern.reactionColor),
                 contentDescription = "Comment Logo",
                 modifier = Modifier
-                    .clickable { /* TODO Оставить комментарий*/ }
+                    .clickable { onCommentsClick() }
                     .size(35.dp),
             )
             Text(
