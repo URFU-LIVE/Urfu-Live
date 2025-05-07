@@ -1,18 +1,33 @@
 package com.example.urfulive.data.api
 
+import TokenManagerInstance
+import android.graphics.Bitmap
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.RefreshResponse
 import com.example.urfulive.data.DTOs.UserDto
-import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.io.File
 
 class UserApiService {
     private val client = HttpClient(Android) {
@@ -211,5 +226,50 @@ class UserApiService {
             Result.failure(e)
         }
     }
-    
+
+    suspend fun updatePhoto(image: Bitmap): Result<DefaultResponse> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+
+            val file = withContext(Dispatchers.IO) {
+                File.createTempFile("avatar", ".jpg")
+            }
+            file.outputStream().use {
+                image.compress(Bitmap.CompressFormat.JPEG, 90, it)
+            }
+
+            val response = client.post("$baseUrl/users/me/avatar") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append(
+                                "file",
+                                file.readBytes(),
+                                Headers.build {
+                                    append(HttpHeaders.ContentType, "image/jpeg")
+                                    append(HttpHeaders.ContentDisposition, "filename=${file.name}")
+                                }
+                            )
+                        }
+                    )
+                )
+            }
+
+            file.delete()
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                println(defaultResponse)
+                Result.success(defaultResponse)
+            } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
 }
