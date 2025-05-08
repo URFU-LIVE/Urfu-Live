@@ -1,4 +1,4 @@
-package com.example.urfulive.ui.settings
+package com.example.urfulive.ui.settings.notification
 
 import NavbarCallbacks
 import android.annotation.SuppressLint
@@ -30,19 +30,24 @@ import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
+import com.example.urfulive.ui.settings.ToggleSettingsItem
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun PrivacySettings(
+fun NotificationsSettings(
     onClose: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
-    onChangePrivacyClick: () -> Unit = {}
 ) {
-    var closeAccountEnabled by remember { mutableStateOf(false) }
+    var systemNotificationsEnabled by remember { mutableStateOf(false) }
+    var newMessagesEnabled by remember { mutableStateOf(true) }
+    var postInteractionsEnabled by remember { mutableStateOf(true) }
+    var subscriptionsEnabled by remember { mutableStateOf(true) }
+    var commentRepliesEnabled by remember { mutableStateOf(true) }
+    var newCommentsEnabled by remember { mutableStateOf(true) }
 
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
@@ -59,7 +64,6 @@ fun PrivacySettings(
             )
         }
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -95,7 +99,7 @@ fun PrivacySettings(
 
 
                     Text(
-                        text = "Приватность",
+                        text = "Уведодмления",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier
@@ -109,16 +113,41 @@ fun PrivacySettings(
                     .padding(top = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Центрированные элементы настроек с ограниченной шириной
                 ToggleSettingsItem(
-                    title = "Закрытый аккаунт",
-                    isEnabled = closeAccountEnabled,
-                    onToggleChanged = { closeAccountEnabled = it }
+                    title = "Системные уведомления",
+                    isEnabled = systemNotificationsEnabled,
+                    onToggleChanged = { systemNotificationsEnabled = it }
                 )
 
-                ArrowSettingsItem(
-                    title = "Личные сообщения",
-                    currentValue = "Никто",
-                    onClick = onChangePrivacyClick,
+                ToggleSettingsItem(
+                    title = "Новые сообщения",
+                    isEnabled = newMessagesEnabled,
+                    onToggleChanged = { newMessagesEnabled = it }
+                )
+
+                ToggleSettingsItem(
+                    title = "Взаимодействия с постами",
+                    isEnabled = postInteractionsEnabled,
+                    onToggleChanged = { postInteractionsEnabled = it }
+                )
+
+                ToggleSettingsItem(
+                    title = "Подписки",
+                    isEnabled = subscriptionsEnabled,
+                    onToggleChanged = { subscriptionsEnabled = it }
+                )
+
+                ToggleSettingsItem(
+                    title = "Ответы на комментарии",
+                    isEnabled = commentRepliesEnabled,
+                    onToggleChanged = { commentRepliesEnabled = it }
+                )
+
+                ToggleSettingsItem(
+                    title = "Новые комментарии",
+                    isEnabled = newCommentsEnabled,
+                    onToggleChanged = { newCommentsEnabled = it }
                 )
             }
         }

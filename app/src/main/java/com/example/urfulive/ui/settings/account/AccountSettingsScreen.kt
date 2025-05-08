@@ -1,10 +1,6 @@
-package com.example.urfulive.ui.settings
+package com.example.urfulive.ui.settings.account
 
 import NavbarCallbacks
-import android.annotation.SuppressLint
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,55 +10,51 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
+import com.example.urfulive.ui.settings.ArrowSettingsItem
 
-@SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun NotificationsSettings(
+fun AccountSettings(
     onClose: () -> Unit = {},
+    onUsernameChangeClick: () -> Unit = {},
+    onDateChangeClick: () -> Unit = {},
+    onMailChangeClick: () -> Unit = {},
+    onPasswordChangeClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
+    viewModel: AccountViewModel = viewModel()
 ) {
-    var systemNotificationsEnabled by remember { mutableStateOf(false) }
-    var newMessagesEnabled by remember { mutableStateOf(true) }
-    var postInteractionsEnabled by remember { mutableStateOf(true) }
-    var subscriptionsEnabled by remember { mutableStateOf(true) }
-    var commentRepliesEnabled by remember { mutableStateOf(true) }
-    var newCommentsEnabled by remember { mutableStateOf(true) }
+
+    val userState by viewModel.user.collectAsState()
 
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(300f)
-        ) {  // Используем очень высокий zIndex
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .zIndex(300f)) {  // Используем очень высокий zIndex
             CreateArticle(
                 onClose = { showCreateArticle = false },
                 onPostSuccess = {},
@@ -71,6 +63,7 @@ fun NotificationsSettings(
             )
         }
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -106,7 +99,7 @@ fun NotificationsSettings(
 
 
                     Text(
-                        text = "Уведодмления",
+                        text = "Аккаунт",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier
@@ -120,41 +113,49 @@ fun NotificationsSettings(
                     .padding(top = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Центрированные элементы настроек с ограниченной шириной
-                ToggleSettingsItem(
-                    title = "Системные уведомления",
-                    isEnabled = systemNotificationsEnabled,
-                    onToggleChanged = { systemNotificationsEnabled = it }
-                )
+                if (userState != null) {
+                    // Центрированные элементы настроек с ограниченной шириной
+                    ArrowSettingsItem(
+                        title = "Имя пользователя",
+                        currentValue = "${"@"}" + userState!!.username,
+                        onClick = onUsernameChangeClick,
+                    )
 
-                ToggleSettingsItem(
-                    title = "Новые сообщения",
-                    isEnabled = newMessagesEnabled,
-                    onToggleChanged = { newMessagesEnabled = it }
-                )
+                    ArrowSettingsItem(
+                        title = "Дата рождения",
+                        currentValue = userState!!.birthDate,
+                        onClick = onDateChangeClick,
+                    )
 
-                ToggleSettingsItem(
-                    title = "Взаимодействия с постами",
-                    isEnabled = postInteractionsEnabled,
-                    onToggleChanged = { postInteractionsEnabled = it }
-                )
+                    ArrowSettingsItem(
+                        title = "E-mail",
+                        currentValue = userState!!.email,
+                        onClick = onMailChangeClick,
+                    )
 
-                ToggleSettingsItem(
-                    title = "Подписки",
-                    isEnabled = subscriptionsEnabled,
-                    onToggleChanged = { subscriptionsEnabled = it }
-                )
+                } else {
+                    ArrowSettingsItem(
+                        title = "Имя пользователя",
+                        currentValue = "${"@"}username",
+                        onClick = onUsernameChangeClick,
+                    )
 
-                ToggleSettingsItem(
-                    title = "Ответы на комментарии",
-                    isEnabled = commentRepliesEnabled,
-                    onToggleChanged = { commentRepliesEnabled = it }
-                )
+                    ArrowSettingsItem(
+                        title = "Дата рождения",
+                        currentValue = "01.01.2001",
+                        onClick = onDateChangeClick,
+                    )
 
-                ToggleSettingsItem(
-                    title = "Новые комментарии",
-                    isEnabled = newCommentsEnabled,
-                    onToggleChanged = { newCommentsEnabled = it }
+                    ArrowSettingsItem(
+                        title = "E-mail",
+                        currentValue = "your_mail@gmail.com",
+                        onClick = onMailChangeClick,
+                    )
+                }
+                ArrowSettingsItem(
+                    title = "Сменить пароль",
+                    currentValue = "********",
+                    onClick = onPasswordChangeClick,
                 )
             }
         }
@@ -169,3 +170,4 @@ fun NotificationsSettings(
         )
     }
 }
+

@@ -15,9 +15,9 @@ import com.example.urfulive.ui.comments.Comments
 import com.example.urfulive.ui.profile.EditProfile
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
-import com.example.urfulive.ui.settings.AccountSettings
-import com.example.urfulive.ui.settings.NotificationsSettings
-import com.example.urfulive.ui.settings.PrivacySettings
+import com.example.urfulive.ui.settings.account.AccountSettings
+import com.example.urfulive.ui.settings.notification.NotificationsSettings
+import com.example.urfulive.ui.settings.privacy.PrivacySettings
 import com.example.urfulive.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)

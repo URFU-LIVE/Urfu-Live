@@ -37,6 +37,9 @@ import com.example.urfulive.data.model.Post
 import com.example.urfulive.ui.main.PostColorPatterns
 import TagChip
 import TagSizes
+import androidx.compose.foundation.border
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @Composable
 fun ExpandedPostOverlay(
@@ -139,11 +142,18 @@ fun ExpandedPostOverlay(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.profile),
+                            AsyncImage(
+                                model = post.author.avatarUrl, // URL из объекта пользователя
+
                                 contentDescription = "Author Icon",
-                                modifier = Modifier.size(50.dp),
-                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(CircleShape)
+                                    .border(2.dp, Color.White, CircleShape)
+                                    .clickable { },
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
+                                error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
                             )
 
                             Spacer(modifier = Modifier.width(10.dp))

@@ -1,6 +1,7 @@
-package com.example.urfulive.ui.settings
+package com.example.urfulive.ui.settings.privacy
 
 import NavbarCallbacks
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,8 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -32,25 +30,29 @@ import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
+import com.example.urfulive.ui.settings.ArrowSettingsItem
+import com.example.urfulive.ui.settings.ToggleSettingsItem
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
-fun AccountSettings(
+fun PrivacySettings(
     onClose: () -> Unit = {},
-    onUsernameChangeClick: () -> Unit = {},
-    onDateChangeClick: () -> Unit = {},
-    onMailChangeClick: () -> Unit = {},
-    onPasswordChangeClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
+    onChangePrivacyClick: () -> Unit = {}
 ) {
+    var closeAccountEnabled by remember { mutableStateOf(false) }
+
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .zIndex(300f)) {  // Используем очень высокий zIndex
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(300f)
+        ) {  // Используем очень высокий zIndex
             CreateArticle(
                 onClose = { showCreateArticle = false },
                 onPostSuccess = {},
@@ -95,7 +97,7 @@ fun AccountSettings(
 
 
                     Text(
-                        text = "Аккаунт",
+                        text = "Приватность",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier
@@ -109,27 +111,16 @@ fun AccountSettings(
                     .padding(top = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Центрированные элементы настроек с ограниченной шириной
-                ArrowSettingsItem(
-                    title = "Имя пользователя",
-                    currentValue = "${"@"}username",
-                    onClick = onUsernameChangeClick,
+                ToggleSettingsItem(
+                    title = "Закрытый аккаунт",
+                    isEnabled = closeAccountEnabled,
+                    onToggleChanged = { closeAccountEnabled = it }
                 )
 
                 ArrowSettingsItem(
-                    title = "Дата рождения",
-                    currentValue = "01.01.2001",
-                    onClick = onDateChangeClick,
-                )
-
-                ArrowSettingsItem(
-                    title = "E-mail",
-                    onClick = onMailChangeClick,
-                )
-
-                ArrowSettingsItem(
-                    title = "Сменить пароль",
-                    onClick = onPasswordChangeClick,
+                    title = "Личные сообщения",
+                    currentValue = "Никто",
+                    onClick = onChangePrivacyClick,
                 )
             }
         }
@@ -144,4 +135,3 @@ fun AccountSettings(
         )
     }
 }
-
