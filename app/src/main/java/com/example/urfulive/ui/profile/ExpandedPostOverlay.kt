@@ -44,6 +44,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import coil.request.Disposable
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun ExpandedPostOverlay(
@@ -57,31 +59,26 @@ fun ExpandedPostOverlay(
     val view = androidx.compose.ui.platform.LocalView.current
     val context = view.context
     val tagScrollState = rememberScrollState()
-    // Основной контейнер с полупрозрачным черным фоном
+
+    val systemUiController = rememberSystemUiController()
+    DisposableEffect(Unit) {
+        systemUiController.setStatusBarColor(Color.Black)
+        onDispose { systemUiController.setStatusBarColor(Color.Transparent) }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .zIndex(299f)
+            .background(Color.Black)
+    ) {}
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0x88000000))
             .zIndex(300f)
+            .statusBarsPadding()
     ) {
-        // Черная полоска вверху для заполнения статус-бара
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(with(LocalDensity.current) {
-                    // Стандартная высота статус-бара обычно 24dp,
-                    // но может варьироваться в зависимости от устройства
-                    24.dp
-                })
-                .background(Color.Black)
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .align(Alignment.BottomCenter)
-                .background(Color.Black)
-        ) {}
         // Содержимое с закругленными углами
         Box(
             modifier = Modifier

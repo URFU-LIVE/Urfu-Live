@@ -107,7 +107,7 @@ dependencies {
 
     // Coroutines - используем одну версию
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
+    implementation (libs.accompanist.systemuicontroller)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
