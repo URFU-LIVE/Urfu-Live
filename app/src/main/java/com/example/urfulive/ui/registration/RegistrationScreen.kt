@@ -1,13 +1,13 @@
+import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,18 +18,23 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.AuthResponse
-import com.example.urfulive.data.model.User
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-//РАССТОЯНИЕ + 12
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RegistrationScreen(
     onLogoClick: () -> Unit,
@@ -38,20 +43,20 @@ fun RegistrationScreen(
     onRegisterError: (Exception) -> Unit,
     viewModel: RegistrationViewModel = viewModel()
 ) {
-    // Локальное состояние для показа/скрытия пароля
     var passwordVisible by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    // Подписываемся на стейт из ViewModel
     val loginValue by viewModel.login.collectAsState()
     val mailValue by viewModel.mail.collectAsState()
     val nameValue by viewModel.name.collectAsState()
     val birthDateValue by viewModel.birthDate.collectAsState()
     val passwordValue by viewModel.password.collectAsState()
+
     val registerCallback = remember {
         object : RegistrationViewModel.RegisterCallback {
             override fun onSuccess(user: AuthResponse) {
                 onRegisterSuccess(user)
-                onRegisterClick() // Навигация после успешной регистрации
+                onRegisterClick()
             }
 
             override fun onError(error: Exception) {
@@ -63,29 +68,23 @@ fun RegistrationScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0D0D0D))  // Фон экрана
+            .background(Color(0xFF0D0D0D))
     ) {
-        // Логотип в правом верхнем углу
         Image(
             painter = painterResource(id = R.drawable.heartlast),
             contentDescription = "Logo",
             modifier = Modifier
-                //.align(Alignment.TopStart)    // Прижимаем к верхнему правому краю
                 .padding(top = 42.dp, end = 0.dp, start = 35.dp)
-
                 .clickable { onLogoClick() }
         )
 
-        // Вся остальная верстка (поля ввода, кнопка)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = 41.dp, end = 42.dp)
         ) {
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Заголовок
             Text(
                 text = "Регистрация",
                 style = MaterialTheme.typography.titleMedium,
@@ -99,7 +98,7 @@ fun RegistrationScreen(
 
             Spacer(modifier = Modifier.height(80.dp))
 
-            // Поле "Логин (Имя пользователя)"
+            // Логин
             Text(
                 text = "Логин(Имя пользователя):",
                 color = Color.White,
@@ -126,7 +125,7 @@ fun RegistrationScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Поле "Имя и Фамилия:"
+            // Имя и Фамилия
             Text(
                 text = "Имя и Фамилия:",
                 style = MaterialTheme.typography.bodySmall,
@@ -153,7 +152,7 @@ fun RegistrationScreen(
             )
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Поле "Почта:"
+            // Почта
             Text(
                 text = "Почта:",
                 style = MaterialTheme.typography.bodySmall,
@@ -181,26 +180,28 @@ fun RegistrationScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Поле "Дата рождения:"
+            // Дата рождения с DatePicker
             Text(
                 text = "Дата рождения:",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White,
-                modifier = Modifier.padding(start = 11.5.dp)
+                modifier = Modifier.padding(start = 1.dp)
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
                 value = birthDateValue,
-                singleLine = true,
-                onValueChange = { viewModel.onBirthDateChange(it) },
+                onValueChange = { },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
+                readOnly = true,
                 trailingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.calendar),
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(30.dp).clickable {
+                            showDatePicker = true
+                        }
                     )
                 },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -216,7 +217,7 @@ fun RegistrationScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Поле "Пароль:"
+            // Пароль
             Text(
                 text = "Пароль:",
                 style = MaterialTheme.typography.bodySmall,
@@ -253,35 +254,129 @@ fun RegistrationScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Кнопка "Зарегистрироваться"
+            // Кнопка регистрации
             Button(
-                onClick = { viewModel.onRegisterClick(loginValue, mailValue, passwordValue, nameValue, birthDateValue, registerCallback)  },
-                modifier = Modifier.fillMaxWidth().padding(WindowInsets.navigationBars.asPaddingValues()),
+                onClick = {
+                    viewModel.onRegisterClick(
+                        loginValue,
+                        mailValue,
+                        passwordValue,
+                        nameValue,
+                        birthDateValue,
+                        registerCallback
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(red = 238, green = 126, blue = 86),
+                    containerColor = Color(238, 126, 86),
                     contentColor = Color.Black
                 )
             ) {
                 Text(
-                    text="Зарегистрироваться",
+                    text = "Зарегистрироваться",
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
     }
+
+    if (showDatePicker) {
+        CompositionLocalProvider(
+            LocalMinimumInteractiveComponentEnforcement provides false
+        ) {
+            DatePickerDialog(
+                onDateSelected = { selectedDate ->
+                    viewModel.onBirthDateChange(selectedDate)
+                },
+                onDismiss = { showDatePicker = false }
+            )
+        }
+    }
 }
 
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDialog(
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val datePickerState = rememberDatePickerState()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    datePickerState.selectedDateMillis?.let { dateMillis ->
+                        val selectedDate = LocalDate.ofEpochDay(dateMillis / (24 * 60 * 60 * 1000))
+                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'00:00:00")
+                        onDateSelected(selectedDate.format(formatter))
+                        onDismiss()
+                    }
+                }
+            ) {
+                Text("OK", color = Color.White)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена", color = Color.White)
+            }
+        },
+        title = {
+            Text(
+                "Выберите дату",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White
+            )
+        },
+        text = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 1.dp) // Добавляем отступы по краям
+            ) {
+                DatePicker(
+                    state = datePickerState,
+                    modifier = Modifier
+                        .scale(0.85f) // уменьшает всё внутри
+                        .fillMaxWidth(), // можно добавить при необходимости
+                    colors = DatePickerDefaults.colors(
+                        containerColor = Color(0xFF1D1D1D),
+                        titleContentColor = Color.White,
+                        headlineContentColor = Color.White,
+                        weekdayContentColor = Color.White,
+                        subheadContentColor = Color.White,
+                        navigationContentColor = Color.White,
+                        dayContentColor = Color.White,
+                        yearContentColor = Color.White,
+                        currentYearContentColor = Color(0xFFFF6D00),
+                        selectedYearContentColor = Color(0xFFFF6D00),
+                        selectedYearContainerColor = Color(0x33FF6D00)
+                    )
+                )
+
+            }
+        },
+        containerColor = Color(0xFF1D1D1D),
+        titleContentColor = Color.White,
+        textContentColor = Color.White,
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun RegistrationScreenPreview() {
     UrfuLiveTheme {
         RegistrationScreen(
-            onLogoClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
-            onRegisterClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
+            onLogoClick = { },
+            onRegisterClick = { },
             onRegisterSuccess = {},
             onRegisterError = {}
         )
