@@ -1,5 +1,7 @@
 package com.example.urfulive.ui.createarticle
 
+import FakeCreateArticleViewModel
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -8,35 +10,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,10 +21,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.DefaultResponse
+import com.example.urfulive.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -56,10 +35,14 @@ fun CreateArticle(
     viewModel: CreateArticleViewModel,
     onPostSuccess: (DefaultResponse) -> Unit,
     onPostError: (Exception) -> Unit,
+    animationsEnabled: Boolean = true
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     var isClosing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    val animatedAlpha = remember { Animatable(if (animationsEnabled) 0f else 1f) }
+    val animatedOffset = remember { Animatable(if (animationsEnabled) screenHeight.value else 0f) }
 
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
@@ -74,49 +57,36 @@ fun CreateArticle(
         }
     }
 
-    val animatedAlpha = remember { Animatable(0f) }
-    val animatedOffset = remember { Animatable(screenHeight.value) }
-
     fun handleClose() {
         if (!isClosing) {
             isClosing = true
-            scope.launch {
-                // Запускаем обе анимации параллельно
-                launch {
-                    animatedAlpha.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                    )
+            if (animationsEnabled) {
+                scope.launch {
+                    launch {
+                        animatedAlpha.animateTo(0f, tween(300, easing = FastOutSlowInEasing))
+                    }
+                    launch {
+                        animatedOffset.animateTo(screenHeight.value, tween(300, easing = FastOutSlowInEasing))
+                    }
+                    onClose()
                 }
-                launch {
-                    animatedOffset.animateTo(
-                        targetValue = screenHeight.value,
-                        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                    )
-                }
-                // Вызываем колбэк после завершения анимации
+            } else {
                 onClose()
             }
         }
     }
 
-    // Анимация появления при открытии
-    LaunchedEffect(Unit) {
-        launch {
-            animatedAlpha.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-            )
-        }
-        launch {
-            animatedOffset.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-            )
+    if (animationsEnabled) {
+        LaunchedEffect(Unit) {
+            launch {
+                animatedAlpha.animateTo(1f, tween(300, easing = FastOutSlowInEasing))
+            }
+            launch {
+                animatedOffset.animateTo(0f, tween(300, easing = FastOutSlowInEasing))
+            }
         }
     }
 
-    // Обработка кнопки "Назад"
     BackHandler(enabled = !isClosing) {
         handleClose()
     }
@@ -125,10 +95,12 @@ fun CreateArticle(
         modifier = Modifier
             .fillMaxSize()
             .zIndex(100f)
-            .graphicsLayer {
-                alpha = animatedAlpha.value
-                translationY = animatedOffset.value
-            }
+            .then(
+                if (animationsEnabled) Modifier.graphicsLayer {
+                    alpha = animatedAlpha.value
+                    translationY = animatedOffset.value
+                } else Modifier
+            )
             .background(Color(0xFF131313))
     ) {
         Column(
@@ -176,15 +148,8 @@ fun CreateArticle(
                 TextField(
                     value = titleText,
                     onValueChange = { titleText = it },
-                    placeholder = {
-                        Text(
-                            text = "Введите заголовок...",
-                            color = grayText
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 0.dp),
+                    placeholder = { Text("Введите заголовок...", color = grayText) },
+                    modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = darkSurface,
                         unfocusedContainerColor = darkSurface,
@@ -216,11 +181,7 @@ fun CreateArticle(
                         value = contentText,
                         onValueChange = { contentText = it },
                         placeholder = {
-                            Text(
-                                text = "Напишите что-нибудь...",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = grayText
-                            )
+                            Text("Напишите что-нибудь...", style = MaterialTheme.typography.bodyLarge, color = grayText)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -229,10 +190,7 @@ fun CreateArticle(
                                 width = 1.dp,
                                 color = Color(red = 131, green = 131, blue = 131),
                             )
-                            .background(
-                                color = Color(0xFF131313),
-                                shape = RoundedCornerShape(8.dp)
-                            ),
+                            .background(Color(0xFF131313), shape = RoundedCornerShape(8.dp)),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
@@ -243,21 +201,15 @@ fun CreateArticle(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent
                         ),
-                        textStyle = TextStyle(color = Color.White),
+                        textStyle = TextStyle(color = Color.White)
                     )
                 }
 
                 TextField(
                     value = tagsText,
                     onValueChange = { tagsText = it },
-                    placeholder = {
-                        Text(
-                            text = "Теги(через запятую)",
-                            color = grayText
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    placeholder = { Text("Теги(через запятую)", color = grayText) },
+                    modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = darkSurface,
                         unfocusedContainerColor = darkSurface,
@@ -271,6 +223,7 @@ fun CreateArticle(
                     textStyle = TextStyle(color = Color.White),
                     singleLine = true
                 )
+
                 Spacer(Modifier.weight(1f))
 
                 Row(
@@ -281,28 +234,64 @@ fun CreateArticle(
                 ) {
                     Button(
                         onClick = {
-                            viewModel.onPublishClick(
-                                titleText,
-                                contentText,
-                                tagsText,
-                                postCallBack
-                            )
+                            viewModel.onPublishClick(titleText, contentText, tagsText, postCallBack)
                         },
-                        modifier = Modifier
-                            .padding(WindowInsets.navigationBars.asPaddingValues()),
+                        modifier = Modifier.padding(WindowInsets.navigationBars.asPaddingValues()),
                         shape = RoundedCornerShape(42.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(red = 238, green = 126, blue = 86),
                             contentColor = Color.Black
                         )
                     ) {
-                        Text(
-                            text = "Опубликовать",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                        Text("Опубликовать", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
         }
+    }
+}
+
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(name = "Small screen (360x640)", device = "spec:width=360dp,height=640dp", backgroundColor = 10, showSystemUi = true)
+@Composable
+fun CreateArticlePreviewSmall() {
+    UrfuLiveTheme {
+        CreateArticle(
+            onClose = {},
+            onPostSuccess = {},
+            onPostError = {},
+            viewModel = FakeCreateArticleViewModel(),
+            animationsEnabled = false
+        )
+    }
+}
+
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(name = "Default screen", showBackground = true, showSystemUi = true, backgroundColor = 10)
+@Composable
+fun CreateArticlePreviewDefault() {
+    UrfuLiveTheme {
+        CreateArticle(
+            onClose = {},
+            onPostSuccess = {},
+            onPostError = {},
+            viewModel = FakeCreateArticleViewModel(),
+            animationsEnabled = false
+        )
+    }
+}
+
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(name = "Large screen (500x1000)", device = "spec:width=500dp,height=1000dp", showSystemUi = true)
+@Composable
+fun CreateArticlePreviewLarge() {
+    UrfuLiveTheme {
+        CreateArticle(
+            onClose = {},
+            onPostSuccess = {},
+            onPostError = {},
+            viewModel = FakeCreateArticleViewModel(),
+            animationsEnabled = false
+        )
     }
 }

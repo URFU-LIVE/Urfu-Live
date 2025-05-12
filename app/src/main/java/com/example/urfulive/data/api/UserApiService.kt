@@ -115,6 +115,7 @@ class UserApiService {
 
             if (response.status.isSuccess()) {
                 val user = Json.decodeFromString<UserDto>(response.bodyAsText())
+                println(user.toString())
                 Result.success(user)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -313,10 +314,14 @@ class UserApiService {
             file.delete()
 
             if (response.status.isSuccess()) {
+                print("Успешно")
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 println(defaultResponse)
                 Result.success(defaultResponse)
             } else {
+                print("Не успешно")
+                println(response.bodyAsText())
+                println(response.status)
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {

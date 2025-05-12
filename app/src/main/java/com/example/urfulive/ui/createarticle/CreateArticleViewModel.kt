@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class CreateArticleViewModel : ViewModel() {
+open class CreateArticleViewModel : ViewModel() {
 
     private val postApiService = PostApiService()
 
@@ -17,7 +17,7 @@ class CreateArticleViewModel : ViewModel() {
         fun onError(error: Exception)
     }
 
-    fun onPublishClick(titleText: String, contentText: String, tagsText: String, callback: PostCallBack) {
+    open fun onPublishClick(titleText: String, contentText: String, tagsText: String, callback: PostCallBack) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val result = postApiService.create(

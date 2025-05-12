@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class NotificationViewModel : ViewModel() {
+open class NotificationViewModel : ViewModel() {
 
     private val notificationApiService = NotificationApiService()
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
-    val notifications: StateFlow<List<Notification>> get() = _notifications
+    open val notifications: StateFlow<List<Notification>> get() = _notifications
 
     init {
         viewModelScope.launch {

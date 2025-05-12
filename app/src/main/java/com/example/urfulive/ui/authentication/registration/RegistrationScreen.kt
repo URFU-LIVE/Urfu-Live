@@ -369,16 +369,55 @@ fun DatePickerDialog(
     )
 }
 
+@SuppressLint("NewApi")
 @RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
+@Preview(
+    name = "Small screen (360x640)",
+    device = "spec:width=360dp,height=640dp",
+    showSystemUi = true,
+)
 @Composable
-fun RegistrationScreenPreview() {
+fun RegistrationPreviewSmall() {
     UrfuLiveTheme {
         RegistrationScreen(
-            onLogoClick = { },
-            onRegisterClick = { },
+            onRegisterClick = {},
             onRegisterSuccess = {},
-            onRegisterError = {}
+            onLogoClick = {},
+            onRegisterError = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Default screen",
+    showBackground = true,
+    showSystemUi = true
+)
+@Composable
+fun RegistrationPreviewDefault() {
+    UrfuLiveTheme {
+        RegistrationScreen(
+            onRegisterClick = {},
+            onRegisterSuccess = {},
+            onLogoClick = {},
+            onRegisterError = {},
+        )
+    }
+}
+
+@Preview(
+    name = "Large screen (500x1000)",
+    device = "spec:width=500dp,height=1000dp",
+    showSystemUi = true,
+)
+@Composable
+fun RegistrationPreviewLarge() {
+    UrfuLiveTheme {
+        RegistrationScreen(
+            onRegisterClick = {},
+            onRegisterSuccess = {},
+            onLogoClick = {},
+            onRegisterError = {},
         )
     }
 }

@@ -245,7 +245,7 @@ fun ProfileScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    Divider(color = accentColor, thickness = 2.dp)
+                    HorizontalDivider(thickness = 2.dp, color = accentColor)
 
                     Spacer(modifier = if (isOwnProfile) Modifier.height(16.dp) else Modifier.height(9.dp))
 

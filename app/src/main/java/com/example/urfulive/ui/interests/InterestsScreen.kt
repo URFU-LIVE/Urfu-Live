@@ -1,3 +1,4 @@
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.example.urfulive.R
+import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -146,14 +148,41 @@ fun InterestChip(
     }
 }
 
-@Preview
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(name = "Small screen (360x640)", device = "spec:width=360dp,height=640dp", backgroundColor = 10, showSystemUi = true)
 @Composable
-fun InterestsScreenPreview() {
+fun InterestsPreviewSmall() {
     UrfuLiveTheme {
-        InterestsScreen(
-            onLogoClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
-            onNextClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
-            onSkipClick = { /* Навигация на экран входа, например, navController.navigate("login") */ },
+        InterestsScreen (
+            onLogoClick = {},
+            onNextClick = {},
+            onSkipClick = {}
+        )
+    }
+}
+
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(name = "Default screen", showBackground = true, showSystemUi = true, backgroundColor = 10)
+@Composable
+fun InterestsPreviewDefault() {
+    UrfuLiveTheme {
+        InterestsScreen (
+            onLogoClick = {},
+            onNextClick = {},
+            onSkipClick = {}
+        )
+    }
+}
+
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(name = "Large screen (500x1000)", device = "spec:width=500dp,height=1000dp", showSystemUi = true)
+@Composable
+fun InterestsPreviewLarge() {
+    UrfuLiveTheme {
+        InterestsScreen (
+            onLogoClick = {},
+            onNextClick = {},
+            onSkipClick = {}
         )
     }
 }

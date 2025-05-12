@@ -53,8 +53,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
+    // Compose BOM (одна версия для всех)
+    val composeBom = platform("androidx.compose:compose-bom:2023.03.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation(libs.androidx.activity.compose)
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation(libs.androidx.ui)
@@ -64,19 +68,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
     implementation(libs.androidx.material3.android)
 
-    // build.gradle (Module)
     implementation(libs.coil.compose)
 
     debugImplementation("androidx.compose.ui:ui-tooling:1.7.8")
-
-    // Material
-
-    //implementation(libs.androidx.compose.material)
-//    implementation("androidx.compose.material:material:1.7.8")
-    try {//    implementation("androidx.compose.material:material-icons-extended")
-    } catch (e: Exception) {
-        TODO("Not yet implemented")
-    }
 
     // Navigation
     implementation(libs.androidx.navigation.runtime.android)
@@ -88,7 +82,7 @@ dependencies {
     // Firebase
     implementation(libs.firebase.crashlytics.buildtools)
 
-    // DataStore - явно указываем версии
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.datastore:datastore-preferences-core:1.0.0")
     implementation("androidx.datastore:datastore-core:1.0.0")
@@ -105,14 +99,16 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.json.v160)
 
-    // Coroutines - используем одну версию
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation (libs.accompanist.systemuicontroller)
+
+    // System UI
+    implementation(libs.accompanist.systemuicontroller)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

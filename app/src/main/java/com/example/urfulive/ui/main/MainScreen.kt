@@ -85,12 +85,15 @@ import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.data.model.Post
+import com.example.urfulive.data.model.Tag
+import com.example.urfulive.data.model.User
+import com.example.urfulive.data.model.UserRole
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.main.PostColorPattern
 import com.example.urfulive.ui.main.PostColorPatterns
 import com.example.urfulive.ui.main.PostViewModel
-import com.example.urfulive.ui.notifiaction.FullScreenNotifications
+import com.example.urfulive.ui.notifiaction.NotificationsScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -103,6 +106,36 @@ enum class TagSizes {
 @Composable
 fun ArticlesScreenPreview() {
     val previewNavController = rememberNavController()
+    PostCard(
+        post = Post(
+            id = 1,
+            title = "Title",
+            text = "Text",
+            author = User(
+                id = "1",
+                username = "Test user",
+                name = null,
+                surname = null,
+                birthDate = null,
+                role = UserRole.WRITER,
+                email = "testmail@gmail.com",
+                followersCount = 1,
+                followingCount = 1,
+                followers = listOf(1),
+                avatarUrl = null,
+                backgroundUrl = null
+            ),
+            likedBy = listOf(1),
+            tags = listOf(Tag(id=1, name="Тест")),
+            time = "Точно прямо сейчас",
+            comments = 1,
+            likes = 1,
+        ),
+        onClick = {},
+        onAuthorClick = {},
+        onCommentsClick = {},
+
+    )
     CarouselScreen(
         onProfileClick = {},
         navController = previewNavController,
@@ -787,7 +820,7 @@ fun CarouselScreen(
             }
 
             if (showNotificationsOverlay) {
-                FullScreenNotifications(onClose = { showNotificationsOverlay = false })
+                NotificationsScreen(onClose = { showNotificationsOverlay = false })
             }
         }
 
@@ -817,7 +850,9 @@ fun CarouselScreen(
                     .height(with(density) { currentHeight.toDp() })
                     .background(
                         color = if (expandedIndex >= 0 && expandedIndex < postsState.size) {
-                            val index = postsState[expandedIndex].id.toLong().rem(PostColorPatterns.size).toInt()
+                            val index =
+                                postsState[expandedIndex].id.toLong().rem(PostColorPatterns.size)
+                                    .toInt()
                             PostColorPatterns[index].background
                         } else {
                             Color.Transparent
