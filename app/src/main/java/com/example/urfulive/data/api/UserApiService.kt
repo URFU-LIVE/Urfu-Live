@@ -2,7 +2,6 @@ package com.example.urfulive.data.api
 
 import TokenManagerInstance
 import android.graphics.Bitmap
-import android.util.EventLogTags.Description
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostDto

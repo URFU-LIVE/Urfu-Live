@@ -1,8 +1,6 @@
 package com.example.urfulive.data.api
 
 import com.example.urfulive.data.DTOs.DefaultResponse
-import com.example.urfulive.data.DTOs.PostCreateRequest
-import com.example.urfulive.data.DTOs.TagListResponse
 import com.example.urfulive.data.model.Tag
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android

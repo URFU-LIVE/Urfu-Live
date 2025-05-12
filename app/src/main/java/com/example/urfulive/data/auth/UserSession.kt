@@ -3,8 +3,6 @@ package com.example.urfulive.data.auth
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.urfulive.data.model.UserRole
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * Класс для управления сессией пользователя и правами доступа
