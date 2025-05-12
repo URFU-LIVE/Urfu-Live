@@ -28,7 +28,7 @@ class TagApiService {
     }
 
     // todo надо вынести в одну переменную
-    private val baseUrl = "http://10.0.2.2:7070"
+    private val baseUrl = "http://45.144.53.244:7070"
 
     suspend fun create(name: String): Result<DefaultResponse> {
         return try {

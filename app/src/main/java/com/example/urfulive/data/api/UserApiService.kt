@@ -43,7 +43,7 @@ class UserApiService {
     }
 
     // todo надо вынести в одну переменную
-    private val baseUrl = "http://10.0.2.2:7070"
+    private val baseUrl = "http://45.144.53.244:7070"
 
     suspend fun login(username: String, password: String): Result<AuthResponse> {
         return try {
@@ -85,15 +85,19 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
+                println("Успешно")
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
                 Result.success(authResponse)
             } else {
+                println(response.status)
+                println(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
+            print("Сработал Catch")
             println(e.message)
             Result.failure(e)
         }

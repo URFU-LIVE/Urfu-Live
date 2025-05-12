@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
@@ -54,7 +55,8 @@ fun ProfileScreen(
     onCloseOverlay: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onSubscribeClick: () -> Unit = {},
-    onCommentsClick: () -> Unit = {}
+    onCommentsClick: () -> Unit = {},
+    postViewModel: PostViewModel = viewModel(),
 ) {
     val user = viewModel.user
     val posts = viewModel.posts
@@ -70,7 +72,7 @@ fun ProfileScreen(
                 post = posts[index],
                 onClose = { expandedPostIndex = null },
                 onCommentsClick = onCommentsClick,
-                viewModel = PostViewModel()
+                viewModel = postViewModel
             )
         }
     }
@@ -90,224 +92,241 @@ fun ProfileScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Верхняя часть профиля
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.5f)
-                    .padding(top = 31.dp)
-                    .systemBarsPadding(),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = user?.backgroundUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentScale = ContentScale.FillBounds,
+    // Используем Scaffold для правильного размещения контента и навигационной панели
+    Scaffold(
+        bottomBar = {
+            // Добавляем нижнюю панель навигации только для своего профиля
+            if (isOwnProfile) {
+                BottomNavBar(
+                    onProfileClick = navbarCallbacks?.onProfileClick ?: onProfileClick,
+                    onCreateArticleClick = { showCreateArticle = true },
+                    onHomeClick = navbarCallbacks?.onHomeClick ?: onHomeClick,
+                    onSavedClick = onSavedClick,
+                    onMessagesClick = onMessagesClick,
+                    currentScreen = currentScreen
                 )
-                if (isOwnProfile) {
-                    Image(
-                        painter = painterResource(id = R.drawable.settings),
-                        contentDescription = "Настройки пользователя",
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = (-16).dp, y = (-8).dp)
-                            .size(35.dp)
-                            .clickable { onSettingsClick() }
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.flag),
-                        contentDescription = "Пожаловаться на пользователя",
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .offset(x = (-16).dp, y = (-8).dp)
-                            .size(30.dp)
-                            .clickable { onReportClick() },
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                    BackHandler {
-                        onCloseOverlay()
-                    }
-                    Image(
-                        painter = painterResource(id = R.drawable.chevron_left),
-                        contentDescription = "Назад",
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(x = (8).dp, y = (-8).dp)
-                            .size(30.dp)
-                            .clickable { onCloseOverlay() },
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Блок аватарки
-                    AsyncImage(
-                        model = user?.avatarUrl, // URL из объекта пользователя
-
-                        contentDescription = "Аватар пользователя",
-                        modifier = Modifier
-                            .size(110.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape),
-                        contentScale = ContentScale.Fit,
-                        placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
-                        error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
-                    )
-
-                    if (user != null) {
-                        Text(
-                            text = user.username,
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                lineHeight = 26.sp
-                            ),
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-
-                        Text(
-                            text = "${user.followersCount} подписчиков",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = Color.DarkGray,
-                        )
-
-                        Button(
-                            onClick = { if (isOwnProfile) onEditProfileClick() else onSubscribeClick() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isOwnProfile) Color(0xFF191818) else Color(0xFF3D7BF4),
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier.padding(top = 6.dp, start = 60.dp, end = 60.dp)
-                        ) {
-                            Text(
-                                text = if (isOwnProfile) "Редактировать профиль" else "Подписаться",
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
-                            )
-                        }
-
-                        Text(
-                            text = user.description ?: "Описание отсутствует",
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
-                            color = Color.Gray,
-                            modifier = Modifier
-                                .padding(top = 6.dp, start = 58.dp, end = 58.dp)
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                        )
-                    } else {
-                        CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
-                    }
-                }
-            }
-
-            // Нижняя часть: Посты
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.6f)
-                    .background(backgroundColor)
-                    .padding(top = 7.dp, bottom = 5.dp, start = 16.dp, end = 16.dp)
-            ) {
-                Text(
-                    text = "Посты",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = accentColor,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 5.dp),
-                    textAlign = TextAlign.Center
-                )
-
-                Divider(color = accentColor, thickness = 2.dp)
-
-                Spacer(modifier = if (isOwnProfile) Modifier.height(16.dp) else Modifier.height(9.dp))
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    if (isOwnProfile) {
-                        item {
-                            Button(
-                                onClick = { showCreateArticle = true },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF292929),
-                                    contentColor = Color.White
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(46.dp)
-                                    .clip(RoundedCornerShape(cornerRadius))
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.plus_circle),
-                                        contentDescription = "plus",
-                                        modifier = Modifier.padding(end = 8.dp)
-                                    )
-                                    Text(
-                                        text = "Добавить пост",
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    items(posts.size) { index ->
-                        val post = posts[index]
-                        val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .clip(RoundedCornerShape(cornerRadius))
-                                .background(color = PostColorPatterns[colorPatternIndex].background)
-                                .clickable { expandedPostIndex = index },
-                        ) {
-                            Text(
-                                text = post.title,
-                                modifier = Modifier.padding(top = 16.dp, start = 25.dp, end = 25.dp),
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.padding(top = 58.dp, start = 25.dp, end = 25.dp),
-                            ) {
-                                post.tags?.take(2)?.forEach { tag ->
-                                    TagChip(
-                                        tag = tag.name,
-                                        color = PostColorPatterns[colorPatternIndex].buttonColor,
-                                        size = TagSizes.Small
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
+    ) { paddingValues ->
+        // Основное содержимое с учетом отступов для навигационной панели
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Верхняя часть профиля - не изменяется
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.5f)
+                        .padding(top = 31.dp)
+                        .systemBarsPadding(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = user?.backgroundUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                    if (isOwnProfile) {
+                        Image(
+                            painter = painterResource(id = R.drawable.settings),
+                            contentDescription = "Настройки пользователя",
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-16).dp, y = (-8).dp)
+                                .size(35.dp)
+                                .clickable { onSettingsClick() }
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.flag),
+                            contentDescription = "Пожаловаться на пользователя",
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-16).dp, y = (-8).dp)
+                                .size(30.dp)
+                                .clickable { onReportClick() },
+                            colorFilter = ColorFilter.tint(Color.White)
+                        )
+                        BackHandler {
+                            onCloseOverlay()
+                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.chevron_left),
+                            contentDescription = "Назад",
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset(x = (8).dp, y = (-8).dp)
+                                .size(30.dp)
+                                .clickable { onCloseOverlay() },
+                            colorFilter = ColorFilter.tint(Color.White)
+                        )
+                    }
 
-        if (isOwnProfile) {
-            BottomNavBar(
-                onProfileClick = navbarCallbacks?.onProfileClick ?: onProfileClick,
-                onCreateArticleClick = { showCreateArticle = true },
-                onHomeClick = navbarCallbacks?.onHomeClick ?: onHomeClick,
-                onSavedClick = onSavedClick,
-                onMessagesClick = onMessagesClick,
-                currentScreen = currentScreen,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // Блок аватарки
+                        AsyncImage(
+                            model = user?.avatarUrl,
+                            contentDescription = "Аватар пользователя",
+                            modifier = Modifier
+                                .size(110.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentScale = ContentScale.Fit,
+                            placeholder = painterResource(R.drawable.ava),
+                            error = painterResource(R.drawable.ava)
+                        )
+
+                        if (user != null) {
+                            Text(
+                                text = user.username,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 26.sp
+                                ),
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+
+                            Text(
+                                text = "${user.followersCount} подписчиков",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = Color.DarkGray,
+                            )
+
+                            Button(
+                                onClick = { if (isOwnProfile) onEditProfileClick() else onSubscribeClick() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isOwnProfile) Color(0xFF191818) else Color(0xFF3D7BF4),
+                                    contentColor = Color.White
+                                ),
+                                modifier = Modifier.padding(top = 6.dp, start = 60.dp, end = 60.dp)
+                            ) {
+                                Text(
+                                    text = if (isOwnProfile) "Редактировать профиль" else "Подписаться",
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                            }
+
+                            Text(
+                                text = user.description ?: "Описание отсутствует",
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = Color.Gray,
+                                modifier = Modifier
+                                    .padding(top = 6.dp, start = 58.dp, end = 58.dp)
+                                    .fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                            )
+                        } else {
+                            CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                        }
+                    }
+                }
+
+                // Нижняя часть: Посты - здесь учитываем отступы от Scaffold
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.6f)
+                        .background(backgroundColor)
+                        .padding(
+                            top = 7.dp,
+                            bottom = 5.dp,
+                            start = 16.dp,
+                            end = 16.dp
+                        )
+                ) {
+                    Text(
+                        text = "Посты",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = accentColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 5.dp),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Divider(color = accentColor, thickness = 2.dp)
+
+                    Spacer(modifier = if (isOwnProfile) Modifier.height(16.dp) else Modifier.height(9.dp))
+
+                    // Используем paddingValues от Scaffold для правильных отступов
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = paddingValues.calculateBottomPadding())
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (isOwnProfile) {
+                                item {
+                                    Button(
+                                        onClick = { showCreateArticle = true },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFF292929),
+                                            contentColor = Color.White
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(46.dp)
+                                            .clip(RoundedCornerShape(cornerRadius))
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.plus_circle),
+                                                contentDescription = "plus",
+                                                modifier = Modifier.padding(end = 8.dp)
+                                            )
+                                            Text(
+                                                text = "Добавить пост",
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            items(posts.size) { index ->
+                                val post = posts[index]
+                                val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp)
+                                        .clip(RoundedCornerShape(cornerRadius))
+                                        .background(color = PostColorPatterns[colorPatternIndex].background)
+                                        .clickable { expandedPostIndex = index },
+                                ) {
+                                    Text(
+                                        text = post.title,
+                                        modifier = Modifier.padding(top = 16.dp, start = 25.dp, end = 25.dp),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier.padding(top = 58.dp, start = 25.dp, end = 25.dp),
+                                    ) {
+                                        post.tags?.take(2)?.forEach { tag ->
+                                            TagChip(
+                                                tag = tag.name,
+                                                color = PostColorPatterns[colorPatternIndex].buttonColor,
+                                                size = TagSizes.Small
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

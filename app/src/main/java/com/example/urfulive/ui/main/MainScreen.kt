@@ -589,7 +589,7 @@ fun CarouselScreen(
     }
 
     val initialTopY = selectedCardCenter.y - with(density) { initialCardHeight.toPx() / 2 }
-    val partialExpandTopY = with(density) { (screenHeight - partialExpandHeight).toPx() }
+    val partialExpandTopY = initialTopY
     val fullExpandTopY = -1f
 
     val targetTopY = if (expanded || isClosing) {
