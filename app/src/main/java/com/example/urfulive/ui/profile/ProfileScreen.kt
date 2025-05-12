@@ -33,6 +33,7 @@ import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.main.PostColorPatterns
 import coil.compose.AsyncImage
+import com.example.urfulive.ui.main.PostViewModel
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -68,7 +69,8 @@ fun ProfileScreen(
             ExpandedPostOverlay(
                 post = posts[index],
                 onClose = { expandedPostIndex = null },
-                onCommentsClick = onCommentsClick
+                onCommentsClick = onCommentsClick,
+                viewModel = PostViewModel()
             )
         }
     }

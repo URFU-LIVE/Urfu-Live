@@ -40,18 +40,23 @@ import TagChip
 import TagSizes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import coil.request.Disposable
+import com.example.urfulive.ui.main.PostViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExpandedPostOverlay(
     post: Post,
     onClose: () -> Unit,
-    onCommentsClick: () -> Unit = {}
+    onCommentsClick: () -> Unit = {},
+    viewModel: PostViewModel,
 ) {
     val scrollState = rememberScrollState()
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
@@ -59,6 +64,16 @@ fun ExpandedPostOverlay(
     val view = androidx.compose.ui.platform.LocalView.current
     val context = view.context
     val tagScrollState = rememberScrollState()
+
+    val posts by viewModel.posts.collectAsState()
+    val currentPost = posts.find { it.id == post.id } ?: post
+    val likedPosts by viewModel.likedPostIds.collectAsState()
+    val isLiked = likedPosts.contains(post.id)
+
+    val subscriptions by viewModel.subscriptions.collectAsState()
+    val isSubscribed = subscriptions.contains(post.author.id)
+    var isLoading by remember(post.author.id) { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     val systemUiController = rememberSystemUiController()
     DisposableEffect(Unit) {
@@ -149,7 +164,7 @@ fun ExpandedPostOverlay(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Автор:",
                             style = MaterialTheme.typography.titleLarge,
@@ -162,6 +177,32 @@ fun ExpandedPostOverlay(
                             color = pattern.textColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = pattern.textColor,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                            modifier = Modifier
+                                .clickable {
+                                    coroutineScope.launch {
+                                        isLoading = true
+                                        viewModel.subscribeAndUnsubscribe(post)
+                                        isLoading = false
+                                    }
+                                }
+                                .background(
+                                    pattern.buttonColor,
+                                    shape = RoundedCornerShape(52.dp)
+                                )
+                                .padding(horizontal = 15.dp, vertical = 10.dp),
+                            color = pattern.textColor,
+                            style = MaterialTheme.typography.displaySmall
                         )
                     }
                 }
@@ -186,15 +227,33 @@ fun ExpandedPostOverlay(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Like
-                    Image(
-                        painter = painterResource(id = R.drawable.likebottom),
-                        colorFilter = ColorFilter.tint(pattern.reactionColor),
-                        contentDescription = "Like",
-                        modifier = Modifier.size(33.dp)
-                    )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .clickable {
+                                viewModel.likeAndDislike(post.id)
+                            }
+                            .size(33.dp)
+                    ) {
+                        if (isLiked) {
+                            Image(
+                                painter = painterResource(id = R.drawable.like_filling),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(pattern.reactionColorFilling),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        Image(
+                            painter = painterResource(id = R.drawable.likebottom),
+                            colorFilter = ColorFilter.tint(pattern.reactionColor),
+                            contentDescription = "Like",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
                     Text(
-                        text = post.likes.toString(),
+                        text = currentPost.likes.toString(),
                         style = MaterialTheme.typography.displayLarge,
                         color = pattern.textColor
                     )

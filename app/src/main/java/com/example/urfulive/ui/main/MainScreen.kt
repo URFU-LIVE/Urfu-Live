@@ -150,11 +150,6 @@ fun PostCard(
     val likedPosts by viewModel.likedPostIds.collectAsState()
     val isLiked = likedPosts.contains(rememberedPost.id)
 
-    val likeColor by animateColorAsState(
-        targetValue = if (isLiked) Color.Red else pattern.reactionColor,
-        animationSpec = tween(durationMillis = 200)
-    )
-
     var likeScale by remember { mutableStateOf(1f) }
     val animatedLikeScale by animateFloatAsState(
         targetValue = likeScale,
@@ -304,7 +299,6 @@ fun PostCard(
                     modifier = Modifier
                         .clickable {
                             viewModel.likeAndDislike(rememberedPost.id)
-                            likeScale = if (isLiked) 0.8f else 1.2f
                         }
                         .size(33.dp)
                         .scale(animatedLikeScale)
@@ -329,8 +323,7 @@ fun PostCard(
                 Text(
                     text = rememberedPost.likes.toString(),
                     color = pattern.textColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.displayLarge,
                 )
 
                 // Comment button
@@ -345,8 +338,7 @@ fun PostCard(
                 Text(
                     text = rememberedPost.comments.toString(),
                     color = pattern.textColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.displayLarge,
                 )
 
                 // Bookmark button
