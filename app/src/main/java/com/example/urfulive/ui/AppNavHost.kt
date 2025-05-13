@@ -11,7 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.urfulive.data.api.UserApiService
-import com.example.urfulive.ui.comments.Comments
+import com.example.urfulive.ui.comments.CommentsScreen
 import com.example.urfulive.ui.profile.EditProfile
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
@@ -157,9 +157,15 @@ fun AppNavHost() {
             )
         }
 
-        composable("comments") {
-            Comments(
-                onClose = { navController.navigate("main") }
+        composable(
+            route = "comments/{postId}",
+            arguments = listOf(navArgument("postId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            print(backStackEntry.arguments.toString())
+            val postId = backStackEntry.arguments?.getLong("postId") ?: 0
+            CommentsScreen(
+                postId = postId,
+                onClose = { navController.popBackStack() }
             )
         }
 
@@ -214,7 +220,9 @@ fun MainScreenWithOverlays(
             onAuthorClick = { authorId -> navController.navigate("author/$authorId") },
             navController = navController,
             showNavBar = true,
-            onCommentsClick = { navController.navigate("comments") }
+            onCommentsClick = { postId ->
+                navController.navigate("comments/$postId")
+            }
         )
     }
 }

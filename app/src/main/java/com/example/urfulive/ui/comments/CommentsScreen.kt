@@ -1,20 +1,9 @@
 package com.example.urfulive.ui.comments
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -30,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,45 +27,38 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.urfulive.data.DTOs.CommentDto
-import com.example.urfulive.ui.createarticle.CreateArticle
-import com.example.urfulive.ui.theme.UrfuLiveTheme
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.urfulive.data.model.Comment
 
 @Composable
-fun Comments(
-    viewModel: CommentsViewModel = viewModel(),
+fun CommentsScreen(
+    postId: Long,
     onClose: () -> Unit = {},
+    viewModel: CommentsViewModel = viewModel(factory = CommentsViewModelFactory(postId))
 ) {
     val comments by viewModel.comments.collectAsState()
+    val commentText = remember { mutableStateOf("") }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .zIndex(100f)
             .background(Color(0xFF131313))
-    )
-    {
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .systemBarsPadding(),
-
-            ) {
+        ) {
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 23.dp, bottom = 15.dp),
-            )
-            {
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
-
                     Image(
                         painter = painterResource(id = R.drawable.chevron_left),
                         contentDescription = "Arrow",
@@ -84,143 +67,122 @@ fun Comments(
                             .padding(start = 15.dp)
                     )
 
-
                     Text(
                         text = "Комментарии",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineLarge,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
+                        modifier = Modifier.padding(start = 10.dp)
                     )
                 }
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 11.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+
+            // Comments List
+            LazyColumn(
+                modifier = Modifier.weight(1f)
             ) {
-                LazyColumn {
-                    items(comments) { comment ->
+                items(comments) { comment ->
+                    //if (comment.parentCommentId == null) {
                         CommentsItem(
                             comment = comment,
-                            onReplyClick = { /* обработка ответа */ },
-                            onLikeClick = { /* обработка лайка */ },
-                            onProfileClick = { /* переход на профиль */ }
+                            onReplyClick = {/* TODO: Navigate to profile */ },
+                            onLikeClick = { /* TODO: Navigate to profile */ },
+                            onProfileClick = { /* TODO: Navigate to profile */ }
                         )
-                    }
+//                    } else {
+//                        CommentReplyItem(
+//                            comment = comment,
+//                            onReplyClick = {/* TODO: Navigate to profile */},
+//                            onLikeClick = { /* TODO: Navigate to profile */ },
+//                            onProfileClick = { /* TODO: Navigate to profile */ }
+//                        )
+//                    }
                 }
             }
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .align(Alignment.BottomCenter)
-                .systemBarsPadding(),
-        ) {
+
+            // Input Field
             CommentInputField(
-                value = replyText,
-                onValueChange = { replyText = it },
+                text = commentText.value,
+                onTextChange = { commentText.value = it },
                 onSend = {
-                    if (replyText.isNotEmpty()) {
-                        if (replyingTo != null) {
-                            // viewModel.addReply(replyingTo!!, replyText)
-                            replyingTo = null
-                        } else {
-                            // viewModel.addComment(postId, replyText)
-                        }
-                        replyText = ""
-                    }
-                }
+                    // todo
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
         }
     }
 }
 
-
 @Composable
 fun CommentsItem(
-    comment: CommentDto,
+    comment: Comment,
     onReplyClick: (Comment) -> Unit,
     onLikeClick: (Comment) -> Unit,
-    onProfileClick: (String) -> Unit, // authorId
+    onProfileClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 29.dp)
-            .padding(vertical = 5.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .background(Color(0xFF292929), shape = RoundedCornerShape(20.dp))
-            .padding(vertical = 16.dp, horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart
+            .padding(16.dp)
     ) {
         Column {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Image(
-                    painter = painterResource(id = comment.authorProfileImage),
-                    contentDescription = "Элемент внутри",
+                    painter = painterResource(id = R.drawable.ava),
+                    contentDescription = "Автор",
                     modifier = Modifier
-                        .size(50.dp),
+                        .size(50.dp)
+                        .clickable { onProfileClick(comment.author.id) }
                 )
-                Column(
-                    modifier = Modifier.weight(1f),
-                ) {
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = comment.author_id,
-                        style = MaterialTheme.typography.titleLarge,
+                        text = comment.author.username,
                         color = Color.White,
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Text(
                         text = comment.text,
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
                         color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-                Box(
+
+                Image(
+                    painter = painterResource(id = R.drawable.flag),
+                    contentDescription = "Report",
+                    colorFilter = ColorFilter.tint(Color.White),
                     modifier = Modifier
                         .size(18.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.flag),
-                        contentDescription = "Пожаловаться",
-                        colorFilter = ColorFilter.tint(Color.White),
-                        modifier = Modifier
-                            .clickable { /*TODO отправить жалобу*/ },
-                    )
-                }
+                        .clickable { /* Report comment */ }
+                )
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Ответить",
                     color = Color.White,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = 12.sp,
-                        lineHeight = 15.6.sp
-                    ),
-                    modifier = Modifier
-                        .clickable { onReplyClick(comment) }
-                        .padding(vertical = 4.dp)
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.clickable { onReplyClick(comment) }
                 )
-                Spacer(Modifier.width(12.dp))
-                // Форматированное время
+
+                Spacer(modifier = Modifier.width(12.dp))
+
                 Text(
                     text = comment.createdAt.toString(),
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = 12.sp,
-                        lineHeight = 15.6.sp
-                    ),
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
         }
@@ -229,95 +191,79 @@ fun CommentsItem(
 
 @Composable
 fun CommentReplyItem(
-    comment: CommentDto,
-    onReplyClick: (CommentDto) -> Unit,
-    onLikeClick: (CommentDto) -> Unit,
+    comment: Comment,
+    onReplyClick: (Comment) -> Unit,
+    onLikeClick: (Comment) -> Unit,
     onProfileClick: (String) -> Unit
 ) {
-    // Стилизация ответа - с отступом и визуальным индикатором
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 45.dp, end = 29.dp, top = 5.dp, bottom = 5.dp)
+            .padding(start = 32.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 25.dp) // Дополнительный отступ справа
                 .background(Color(0xFF292929), shape = RoundedCornerShape(20.dp))
-                .padding(vertical = 16.dp, horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+            // Similar to CommentsItem but with smaller font sizes
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Image(
-                        painter = painterResource(id = comment.authorProfileImage),
-                        contentDescription = "Аватар пользователя",
+                        painter = painterResource(id = R.drawable.ava),
+                        contentDescription = "Автор",
                         modifier = Modifier
-                            .size(50.dp)
-                            .clickable { onProfileClick(comment.authorId) },
+                            .size(40.dp)
+                            .clickable { onProfileClick(comment.author.id) }
                     )
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = comment.authorName,
-                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 13.sp, lineHeight = 16.9.sp),
+                            text = comment.author.username,
                             color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             text = comment.text,
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp,
-                                lineHeight = 18.2.sp
-                            ),
                             color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
-                    Box(
+
+                    Image(
+                        painter = painterResource(id = R.drawable.flag),
+                        contentDescription = "Report",
+                        colorFilter = ColorFilter.tint(Color.White),
                         modifier = Modifier
-                            .size(18.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.flag),
-                            contentDescription = "Пожаловаться",
-                            colorFilter = ColorFilter.tint(Color.White),
-                            modifier = Modifier
-                                .clickable { /*TODO отправить жалобу*/ },
-                        )
-                    }
+                            .size(16.dp)
+                            .clickable { /* Report comment */ }
+                    )
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Ответить",
                         color = Color.White,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 11.sp,
-                            lineHeight = 14.3.sp
-                        ),
-                        modifier = Modifier
-                            .clickable { onReplyClick(comment) }
-                            .padding(vertical = 4.dp)
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.clickable { onReplyClick(comment) }
                     )
-                    Spacer(Modifier.width(12.dp))
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
                     Text(
-                        text = comment.date,
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 11.sp,
-                            lineHeight = 14.3.sp
-                        ),
+                        text = comment.createdAt.toString(),
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
-
             }
         }
     }
@@ -325,21 +271,22 @@ fun CommentReplyItem(
 
 @Composable
 fun CommentInputField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onSend: () -> Unit
+    text: String,
+    onTextChange: (String) -> Unit,
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(Color(0xFF292929), RoundedCornerShape(52.dp))
-            .padding(horizontal = 21.dp, vertical = 5.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         androidx.compose.material3.TextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text("Оставить комментарий...", color = Color.Gray) },
+            value = text,
+            onValueChange = onTextChange,
+            placeholder = { Text("Написать комментарий...", color = Color.Gray) },
             modifier = Modifier.weight(1f),
             colors = androidx.compose.material3.TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -355,31 +302,15 @@ fun CommentInputField(
             modifier = Modifier
                 .size(36.dp)
                 .background(Color(0xFF5B9DFC), CircleShape)
-                .clickable(enabled = value.isNotEmpty()) { onSend() },
+                .clickable(enabled = text.isNotEmpty()) { onSend() },
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.chevron_left),
+                painter = painterResource(id = R.drawable.arrow),
                 contentDescription = "Отправить",
                 colorFilter = ColorFilter.tint(Color.White),
-                modifier = Modifier.size(20.dp).graphicsLayer(scaleX = -1f)
+                modifier = Modifier.size(20.dp)
             )
         }
-    }
-}
-
-@Preview(name = "Comments Preview", showBackground = true, showSystemUi = true)
-@Composable
-fun CommentsPreview() {
-    UrfuLiveTheme {
-        val comments = sampleComments()
-        val fakeViewModel = object : CommentsViewModel() {
-            override val comments = MutableStateFlow(comments)
-        }
-
-        Comments(
-            viewModel = fakeViewModel,
-            onClose = {}
-        )
     }
 }

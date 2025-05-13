@@ -1,8 +1,10 @@
 package com.example.urfulive.data.manager
 
+import com.example.urfulive.data.DTOs.CommentDto
 import com.example.urfulive.data.DTOs.NotificationDto
 import com.example.urfulive.data.DTOs.PostDto
 import com.example.urfulive.data.DTOs.UserDto
+import com.example.urfulive.data.model.Comment
 import com.example.urfulive.data.model.Notification
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.data.model.Tag
@@ -48,7 +50,6 @@ class DtoManager {
             likedBy = this.likedBy
         )
     }
-
 
     fun UserDto.toUser(): User {
         // Convert birthDate List<Int> to a formatted string (DD.MM.YYYY format)
@@ -109,6 +110,42 @@ class DtoManager {
             message = this.message,
             time = formattedTime,
             isRead = this.read
+        )
+    }
+
+    // Новый метод для преобразования CommentDto в Comment
+    fun CommentDto.toComment(): Comment {
+        val formattedTime = try {
+            val year = createdAt.getOrNull(0) ?: 0
+            val month = createdAt.getOrNull(1) ?: 0
+            val day = createdAt.getOrNull(2) ?: 0
+            val hour = createdAt.getOrNull(3) ?: 0
+            val minute = createdAt.getOrNull(4) ?: 0
+            val second = createdAt.getOrNull(5) ?: 0
+            "%02d.%02d.%04d %02d:%02d:%02d".format(day, month, year, hour, minute, second)
+        } catch (e: Exception) {
+            "N/A"
+        }
+
+        return Comment(
+            id = this.id,
+            text = this.text,
+            createdAt = formattedTime,
+            postId = this.post_id,
+            author = User(
+                id = this.userDto.id.toString(),
+                username = this.userDto.username,
+                email = this.userDto.email,
+                role = when (this.userDto.role) {
+                    "WRITER" -> UserRole.WRITER
+                    "ADMIN" -> UserRole.ADMIN
+                    else -> UserRole.USER
+                },
+                followers = this.userDto.followers,
+                // todo Хардкод в проде надо поменять
+                avatarUrl = this.userDto.avatar_url?.replace("localhost", "45.144.53.244"),
+                backgroundUrl = this.userDto.background_url?.replace("localhost", "45.144.53.244")
+            )
         )
     }
 }

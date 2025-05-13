@@ -132,13 +132,16 @@ fun ArticlesScreenPreview() {
         ),
         onClick = {},
         onAuthorClick = {},
-        onCommentsClick = {},
-
+        onCommentsClick = { postId ->
+            println("Clicked comments for post $postId")
+        },
     )
     CarouselScreen(
         onProfileClick = {},
         navController = previewNavController,
-        onCommentsClick = {}
+        onCommentsClick = { postId ->
+            println("Clicked comments for post $postId")
+        }
     )
 }
 
@@ -173,7 +176,7 @@ fun PostCard(
     expansionProgress: Float = .0f,
     onAuthorClick: (String) -> Unit,
     viewModel: PostViewModel = viewModel(),
-    onCommentsClick: () -> Unit
+    onCommentsClick: (Long) -> Unit
 ) {
     val colorPatternIndex = remember(post.id) { post.id.rem(PostColorPatterns.size) }
     val pattern = remember(colorPatternIndex) { PostColorPatterns[colorPatternIndex.toInt()] }
@@ -191,7 +194,6 @@ fun PostCard(
         )
     )
 
-    // Состояния для подписки
     val subscriptions by viewModel.subscriptions.collectAsState()
     val isSubscribed = subscriptions.contains(rememberedPost.author.id)
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
@@ -210,7 +212,6 @@ fun PostCard(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                // Tags row
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     rememberedPost.tags.take(2).forEach { tag ->
                         TagChip(tag = tag.name, color = pattern.buttonColor)
@@ -219,7 +220,6 @@ fun PostCard(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Post title
                 Text(
                     text = rememberedPost.title ?: "",
                     style = MaterialTheme.typography.labelLarge,
@@ -229,7 +229,6 @@ fun PostCard(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Author and publish info
                 Column {
                     Text(
                         text = "Опубликовано: ${rememberedPost.time?.substring(0, 10) ?: ""}",
@@ -243,8 +242,7 @@ fun PostCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         AsyncImage(
-                            model = post.author.avatarUrl, // URL из объекта пользователя
-
+                            model = post.author.avatarUrl,
                             contentDescription = "Author Icon",
                             modifier = Modifier
                                 .size(50.dp)
@@ -252,10 +250,10 @@ fun PostCard(
                                 .border(2.dp, Color.White, CircleShape)
                                 .clickable { onAuthorClick(rememberedPost.author.id) },
                             contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
-                            error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
+                            placeholder = painterResource(R.drawable.ava),
+                            error = painterResource(R.drawable.ava)
                         )
-                        Spacer(modifier = Modifier.width(10.dp)) //уменьшить до 8, если не влезает
+                        Spacer(modifier = Modifier.width(10.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
@@ -277,7 +275,6 @@ fun PostCard(
                             )
                         }
 
-                        // Кнопка подписки
                         if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
@@ -308,7 +305,6 @@ fun PostCard(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Post content
                 Text(
                     text = rememberedPost.text ?: "",
                     style = MaterialTheme.typography.displayMedium,
@@ -318,7 +314,6 @@ fun PostCard(
                 )
             }
 
-            // Footer with actions
             val animatedAlpha = (1f - (expansionProgress * 1f)).coerceIn(0f, 1f)
 
             Row(
@@ -358,13 +353,12 @@ fun PostCard(
                     style = MaterialTheme.typography.displayLarge,
                 )
 
-                // Comment button
                 Image(
                     painter = painterResource(id = R.drawable.commentbottom),
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
                     contentDescription = "Comment",
                     modifier = Modifier
-                        .clickable { onCommentsClick() }
+                        .clickable { onCommentsClick(post.id) }
                         .size(35.dp),
                 )
                 Text(
@@ -373,7 +367,6 @@ fun PostCard(
                     style = MaterialTheme.typography.displayLarge,
                 )
 
-                // Bookmark button
                 Image(
                     painter = painterResource(id = R.drawable.bookmarkbottom1),
                     contentDescription = "Bookmark",
@@ -459,7 +452,7 @@ fun CarouselScreen(
     onAuthorClick: (String) -> Unit = {},
     navController: NavController,
     showNavBar: Boolean = true,
-    onCommentsClick: () -> Unit
+    onCommentsClick: (Long) -> Unit
 ) {
     val postsState by viewModel.posts.collectAsState()
     val pagerState = rememberPagerState(pageCount = { postsState.size })
@@ -741,11 +734,12 @@ fun CarouselScreen(
                             expansionProgress
                         },
                         onAuthorClick = {
-                            // Навигация на профиль автора
                             onAuthorClick(postsState[page].author.id)
                         },
                         viewModel = viewModel,
-                        onCommentsClick = onCommentsClick
+                        onCommentsClick = { postId ->
+                            onCommentsClick(postId)
+                        }
                     )
                 }
             }
@@ -792,14 +786,12 @@ fun CarouselScreen(
             shouldHideBottomNav = expandedIndex != -1
         }
 
-        // Update when opening or closing animation starts
         LaunchedEffect(isClosing) {
             if (isClosing) {
                 shouldHideBottomNav = false
             }
         }
 
-        // Update on full expansion toggle
         LaunchedEffect(isFullyExpanded) {
             shouldHideBottomNav = isFullyExpanded || expandedIndex != -1
         }
@@ -885,7 +877,9 @@ fun CarouselScreen(
                             onHeaderSwipe = { toggleFullExpansion() },
                             onAuthorClick = onAuthorClick,
                             viewModel = viewModel,
-                            onCommentsClick = onCommentsClick
+                            onCommentsClick = { postId ->
+                                onCommentsClick(postId)
+                            }
                         )
                     }
 
@@ -945,7 +939,6 @@ fun CarouselScreen(
     }
 }
 
-
 @Composable
 fun ExpandedPostContent(
     post: Post,
@@ -953,7 +946,7 @@ fun ExpandedPostContent(
     onHeaderSwipe: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
     viewModel: PostViewModel = viewModel(),
-    onCommentsClick: () -> Unit
+    onCommentsClick: (Long) -> Unit
 ) {
     val titleSizeAndHeight = lerp(24.sp, 26.sp, expandProgress)
     val postHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
@@ -1002,7 +995,6 @@ fun ExpandedPostContent(
                     )
                 }
         ) {
-            // Convert tag objects to string list for the horizontal tag row
             val tagNames = post.tags?.map { it.name } ?: emptyList()
 
             HorizontalTagRow(
@@ -1038,8 +1030,7 @@ fun ExpandedPostContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     AsyncImage(
-                        model = post.author.avatarUrl, // URL из объекта пользователя
-
+                        model = post.author.avatarUrl,
                         contentDescription = "Author Icon",
                         modifier = Modifier
                             .size(50.dp)
@@ -1047,8 +1038,8 @@ fun ExpandedPostContent(
                             .border(2.dp, Color.White, CircleShape)
                             .clickable { onAuthorClick(post.author.id) },
                         contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.ava), // Плейсхолдер если загрузка или нет URL
-                        error = painterResource(R.drawable.ava)       // Плейсхолдер если ошибка загрузки
+                        placeholder = painterResource(R.drawable.ava),
+                        error = painterResource(R.drawable.ava)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
 
@@ -1066,7 +1057,7 @@ fun ExpandedPostContent(
                             color = Color.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.clickable { onAuthorClick(post.author.id)  }
+                            modifier = Modifier.clickable { onAuthorClick(post.author.id) }
                         )
                     }
 
@@ -1119,7 +1110,9 @@ fun ExpandedPostContent(
                 pattern = pattern,
                 expandProgress = expandProgress,
                 viewModel = viewModel,
-                onCommentsClick = onCommentsClick
+                onCommentsClick = { postId ->
+                    onCommentsClick(postId)
+                }
             )
 
             Spacer(modifier = Modifier.height(100.dp))
@@ -1133,7 +1126,7 @@ fun ReactionPanelBottomContent(
     pattern: PostColorPattern,
     expandProgress: Float,
     viewModel: PostViewModel,
-    onCommentsClick: () -> Unit
+    onCommentsClick: (Long) -> Unit
 ) {
     val reactionPanelOpacity = if (expandProgress < 0.3f) {
         0f
@@ -1200,7 +1193,7 @@ fun ReactionPanelBottomContent(
                 colorFilter = ColorFilter.tint(pattern.reactionColor),
                 contentDescription = "Comment Logo",
                 modifier = Modifier
-                    .clickable { onCommentsClick() }
+                    .clickable { onCommentsClick(post.id) }
                     .size(35.dp),
             )
             Text(
@@ -1218,7 +1211,7 @@ fun ReactionPanelBottomContent(
             )
 
             Text(
-                text = "0", // Можно добавить сохранения в модель Post
+                text = "0",
                 color = Color.Black,
                 style = MaterialTheme.typography.displayLarge,
             )
