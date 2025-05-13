@@ -849,7 +849,7 @@ fun CarouselScreen(
                     .background(
                         color = if (expandedIndex >= 0 && expandedIndex < postsState.size) {
                             val index =
-                                postsState[expandedIndex].id.toLong().rem(PostColorPatterns.size)
+                                postsState[expandedIndex].id.rem(PostColorPatterns.size)
                                     .toInt()
                             PostColorPatterns[index].background
                         } else {

@@ -96,7 +96,6 @@ class UserApiService {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
-            print("Сработал Catch")
             println(e.message)
             Result.failure(e)
         }
@@ -129,16 +128,19 @@ class UserApiService {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
             val tokenValue = tokenManager.getRefreshTokenBlocking()
-            val response = client.get("$baseUrl/auth/me") {
+            val response = client.post("$baseUrl/auth/refresh") {
                 headers {
                     append("X-Refresh-token", "$tokenValue")
                 }
             }
 
             if (response.status.isSuccess()) {
+                println("Success")
                 val refreshResponse = Json.decodeFromString<RefreshResponse>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {
+                println("Error")
+                println(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
@@ -313,13 +315,10 @@ class UserApiService {
             file.delete()
 
             if (response.status.isSuccess()) {
-                print("Успешно")
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 println(defaultResponse)
                 Result.success(defaultResponse)
             } else {
-                print("Не успешно")
-                println(response.bodyAsText())
                 println(response.status)
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }

@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
@@ -47,6 +48,8 @@ fun EditProfile(
     var showCreateArticle by remember { mutableStateOf(false) }
     var showUsernameDialog by remember { mutableStateOf(false) }
     var showDescriptionDialog by remember { mutableStateOf(false) }
+
+    val userState by viewModel.user.collectAsState()
 
     // Лаунчер для выбора аватарки
     val avatarGalleryLauncher = rememberLauncherForActivityResult(
@@ -154,26 +157,53 @@ fun EditProfile(
                             avatarGalleryLauncher.launch("image/*")
                         }
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ava),
-                        contentDescription = "Аватар по умолчанию",
-                        modifier = Modifier
-                            .size(110.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.8f))
-                            .size(110.dp),
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.camera),
-                        contentDescription = "Значок камеры",
-                        modifier = Modifier.size(48.dp)
-                    )
+                    if (userState != null) {
+                        AsyncImage(
+                            model = userState!!.avatarUrl,
+                            contentDescription = "Аватар пользователя",
+                            modifier = Modifier
+                                .size(84.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape)
+                                .clickable { },
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.ava),
+                            error = painterResource(R.drawable.ava)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.8f))
+                                .size(110.dp),
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.camera),
+                            contentDescription = "Значок камеры",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.ava),
+                            contentDescription = "Аватар по умолчанию",
+                            modifier = Modifier
+                                .size(110.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.8f))
+                                .size(110.dp),
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.camera),
+                            contentDescription = "Значок камеры",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 }
 
                 Text(
@@ -184,7 +214,7 @@ fun EditProfile(
 
                 ArrowSettingsItem(
                     title = "Имя пользователя",
-                    currentValue = "@username",
+                    currentValue = if (userState != null) "@" + userState!!.username else "@username",
                     onClick = { showUsernameDialog = true },
                 )
 

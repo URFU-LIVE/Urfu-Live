@@ -10,13 +10,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.api.UserApiService
+import com.example.urfulive.data.manager.DtoManager
+import com.example.urfulive.data.model.User
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class EditProfileViewModel: ViewModel() {
 
-     val userApiService: UserApiService = UserApiService()
+    val userApiService: UserApiService = UserApiService()
 
     var selectedAvatarUri by mutableStateOf<Uri?>(null)
         private set
@@ -32,6 +36,26 @@ class EditProfileViewModel: ViewModel() {
     fun onBackgroundImageSelected(context: Context, uri: Uri) {
         selectedBackgroundUri = uri
         uploadBackground(context, uri)
+    }
+
+    private val _user = MutableStateFlow<User?>(null)
+    val user: StateFlow<User?> = _user
+
+    init {
+        fetchUser()
+    }
+
+    fun fetchUser() {
+        viewModelScope.launch {
+            val result = userApiService.getUserProfile()
+            result.onSuccess { userDto ->
+                val dtoManager = DtoManager()
+                _user.value = dtoManager.run { userDto.toUser() }
+            }
+            result.onFailure {
+
+            }
+        }
     }
 
     private fun uploadAvatar(context: Context, uri: Uri) {
