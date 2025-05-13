@@ -306,7 +306,8 @@ fun ProfileScreen(
                                     Text(
                                         text = post.title,
                                         modifier = Modifier.padding(top = 16.dp, start = 25.dp, end = 25.dp),
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = Color.Black
                                     )
 
                                     Row(
