@@ -1,5 +1,6 @@
 package com.example.urfulive.ui.comments
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +39,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.urfulive.ui.createarticle.CreateArticle
+import com.example.urfulive.ui.theme.UrfuLiveTheme
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun Comments(
@@ -387,3 +392,19 @@ data class Comment(
     val parentId: String? = null, // ID родительского комментария (null для корневых комментариев)
     val replies: List<Comment> = emptyList() // Вложенные ответы
 )
+
+@Preview(name = "Comments Preview", showBackground = true, showSystemUi = true)
+@Composable
+fun CommentsPreview() {
+    UrfuLiveTheme {
+        val comments = sampleComments()
+        val fakeViewModel = object : CommentsViewModel() {
+            override val comments = MutableStateFlow(comments)
+        }
+
+        Comments(
+            viewModel = fakeViewModel,
+            onClose = {}
+        )
+    }
+}

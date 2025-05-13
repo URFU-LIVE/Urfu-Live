@@ -7,8 +7,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class CommentsViewModel : ViewModel() {
-    private val _comments = MutableStateFlow<List<Comment>>(
+open class CommentsViewModel : ViewModel() {
+
+
+
+    private val _comments = MutableStateFlow(
         listOf(
             Comment(
                 id = "1", authorId = "1",
@@ -20,7 +23,7 @@ class CommentsViewModel : ViewModel() {
             )
         )
     )
-    val comments = _comments.asStateFlow()
+    open val comments = _comments.asStateFlow()
 
     fun loadComments(postId: String) {
         viewModelScope.launch {
