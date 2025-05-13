@@ -1,3 +1,4 @@
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -450,6 +451,7 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun CarouselScreen(
     viewModel: PostViewModel = viewModel(),

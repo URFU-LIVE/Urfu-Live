@@ -40,6 +40,7 @@ import com.example.urfulive.R
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.urfulive.data.DTOs.CommentDto
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,15 +48,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun Comments(
     viewModel: CommentsViewModel = viewModel(),
-//    postId: String,
     onClose: () -> Unit = {},
 ) {
     val comments by viewModel.comments.collectAsState()
-//    LaunchedEffect(postId) { /*TODO*/
-//        viewModel.loadComments(postId)
-//    }
-    var replyText by remember { mutableStateOf("") }
-    var replyingTo by remember { mutableStateOf<Comment?>(null) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -113,14 +108,6 @@ fun Comments(
                             onLikeClick = { /* обработка лайка */ },
                             onProfileClick = { /* переход на профиль */ }
                         )
-                        comment.replies.forEach { reply ->
-                            CommentReplyItem(
-                                comment = reply,
-                                onReplyClick = { replyingTo = it },
-                                onLikeClick = { /* обработка лайка */ },
-                                onProfileClick = { /* переход на профиль */ }
-                            )
-                        }
                     }
                 }
             }
@@ -154,7 +141,7 @@ fun Comments(
 
 @Composable
 fun CommentsItem(
-    comment: Comment,
+    comment: CommentDto,
     onReplyClick: (Comment) -> Unit,
     onLikeClick: (Comment) -> Unit,
     onProfileClick: (String) -> Unit, // authorId
@@ -183,7 +170,7 @@ fun CommentsItem(
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(
-                        text = comment.authorName,
+                        text = comment.author_id,
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                     )
@@ -228,7 +215,7 @@ fun CommentsItem(
                 Spacer(Modifier.width(12.dp))
                 // Форматированное время
                 Text(
-                    text = comment.date,
+                    text = comment.createdAt.toString(),
                     color = Color.White,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 12.sp,
@@ -242,9 +229,9 @@ fun CommentsItem(
 
 @Composable
 fun CommentReplyItem(
-    comment: Comment,
-    onReplyClick: (Comment) -> Unit,
-    onLikeClick: (Comment) -> Unit,
+    comment: CommentDto,
+    onReplyClick: (CommentDto) -> Unit,
+    onLikeClick: (CommentDto) -> Unit,
     onProfileClick: (String) -> Unit
 ) {
     // Стилизация ответа - с отступом и визуальным индикатором
@@ -380,18 +367,6 @@ fun CommentInputField(
         }
     }
 }
-
-data class Comment(
-    val id: String,
-    val authorId: String,
-    val authorName: String,
-    val authorProfileImage: Int,
-    val text: String,
-    val date: String,
-    val postId: String,
-    val parentId: String? = null, // ID родительского комментария (null для корневых комментариев)
-    val replies: List<Comment> = emptyList() // Вложенные ответы
-)
 
 @Preview(name = "Comments Preview", showBackground = true, showSystemUi = true)
 @Composable

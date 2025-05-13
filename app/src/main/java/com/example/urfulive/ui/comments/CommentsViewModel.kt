@@ -3,36 +3,37 @@ package com.example.urfulive.ui.comments
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urfulive.R
+import com.example.urfulive.data.DTOs.CommentDto
+import com.example.urfulive.data.api.CommentApiService
+import com.example.urfulive.data.manager.DtoManager
+import com.example.urfulive.data.model.Notification
+import com.example.urfulive.data.model.Post
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-open class CommentsViewModel : ViewModel() {
+open class CommentsViewModel(
+    private val post: Post
+) : ViewModel() {
 
+    private val commentApiService = CommentApiService()
 
+    private var _comments = MutableStateFlow<List<CommentDto>>(emptyList())
+    open val comments: StateFlow<List<CommentDto>> get() = _comments
 
-    private val _comments = MutableStateFlow(
-        listOf(
-            Comment(
-                id = "1", authorId = "1",
-                authorName = "1",
-                authorProfileImage = R.drawable.profile,
-                text = "Тестер",
-                date = "5123123123123",
-                postId = "1",
-            )
-        )
-    )
-    open val comments = _comments.asStateFlow()
-
-    fun loadComments(postId: String) {
-        viewModelScope.launch {
-            // Загрузка комментариев с бэкенда
-            // _comments.value = результат
-        }
+    init {
+        fetchPost()
     }
 
-    fun addComment(postId: String, text: String) {
-        // Отправка комментария на бэкенд
+    private fun fetchPost() {
+        viewModelScope.launch {
+            val result = commentApiService.getAll(post.id)
+            result.onSuccess { commentsList ->
+                _comments.emit(commentsList)
+            }.onFailure {
+                it.printStackTrace()
+            }
+        }
     }
 }
