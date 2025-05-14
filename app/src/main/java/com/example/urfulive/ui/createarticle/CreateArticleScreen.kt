@@ -29,9 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.DefaultResponse
+import com.example.urfulive.data.model.UserRole
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.launch
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateArticle(
@@ -64,6 +66,42 @@ fun CreateArticle(
     // Анимация
     val animatedAlpha = remember { Animatable(if (animationsEnabled) 0f else 1f) }
     val animatedOffset = remember { Animatable(if (animationsEnabled) screenHeight.value else 0f) }
+
+    val userState by viewModel.user.collectAsState()
+
+    if (userState != null && userState!!.role == UserRole.USER) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.95f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .background(Color.DarkGray, shape = RoundedCornerShape(12.dp))
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Недостаточно прав",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Вы не можете создавать статьи. Подайте заявку на получение прав модератора.",
+                    color = Color.LightGray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = { onClose() }) {
+                    Text("Ок")
+                }
+            }
+        }
+        return
+    }
 
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
