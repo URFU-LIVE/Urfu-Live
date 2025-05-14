@@ -173,7 +173,7 @@ fun LoginScreen(
             onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp),
+                .systemBarsPadding(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFEE7E56),
