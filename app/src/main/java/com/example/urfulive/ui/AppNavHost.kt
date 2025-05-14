@@ -161,7 +161,6 @@ fun AppNavHost() {
             route = "comments/{postId}",
             arguments = listOf(navArgument("postId") { type = NavType.LongType })
         ) { backStackEntry ->
-            print(backStackEntry.arguments.toString())
             val postId = backStackEntry.arguments?.getLong("postId") ?: 0
             CommentsScreen(
                 postId = postId,

@@ -38,7 +38,6 @@ class CommentsViewModel(
     }
 
     fun sendComment(text: String) {
-        println("Попытка создания комментария: " + text)
         viewModelScope.launch {
             commentApiService.create(postId, text).onSuccess {
                 loadComments()

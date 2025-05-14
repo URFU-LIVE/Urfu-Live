@@ -84,15 +84,12 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println("Успешно")
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
                 Result.success(authResponse)
             } else {
-                println(response.status)
-                println(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
@@ -113,7 +110,6 @@ class UserApiService {
 
             if (response.status.isSuccess()) {
                 val user = Json.decodeFromString<UserDto>(response.bodyAsText())
-                println(user.toString())
                 Result.success(user)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
@@ -135,12 +131,9 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
-                println("Success")
                 val refreshResponse = Json.decodeFromString<RefreshResponse>(response.bodyAsText());
                 Result.success(refreshResponse);
             } else {
-                println("Error")
-                println(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
@@ -176,7 +169,6 @@ class UserApiService {
         return try {
             val tokenManager = TokenManagerInstance.getInstance()
             val tokenValue = tokenManager.getAccessTokenBlocking()
-            println(id)
             val response = client.get("$baseUrl/users/$id/posts") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")

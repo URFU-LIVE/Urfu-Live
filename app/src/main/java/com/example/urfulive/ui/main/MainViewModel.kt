@@ -145,9 +145,6 @@ class PostViewModel : ViewModel() {
     }
 
     fun isPostLikedByCurrentUser(post: Post): Boolean {
-        println("Post ID: " + post.id)
-        println("Is sub: " + isUserSubscribe(post))
-        println("Post author: " + post.author.username)
         return _likedPostIds.value.contains(post.id)
     }
 

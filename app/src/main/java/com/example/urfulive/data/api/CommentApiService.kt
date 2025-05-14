@@ -49,11 +49,9 @@ class CommentApiService {
             }
 
             if (response.status.isSuccess()) {
-                println("Успешно")
                 val notificationList = Json.decodeFromString<CommentDto>(response.bodyAsText())
                 Result.success(notificationList)
             } else {
-                println("Ошибка")
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {

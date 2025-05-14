@@ -132,16 +132,12 @@ fun ArticlesScreenPreview() {
         ),
         onClick = {},
         onAuthorClick = {},
-        onCommentsClick = { postId ->
-            println("Clicked comments for post $postId")
-        },
+        onCommentsClick = {},
     )
     CarouselScreen(
         onProfileClick = {},
         navController = previewNavController,
-        onCommentsClick = { postId ->
-            println("Clicked comments for post $postId")
-        }
+        onCommentsClick = {}
     )
 }
 

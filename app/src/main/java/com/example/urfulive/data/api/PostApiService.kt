@@ -70,7 +70,6 @@ class PostApiService {
 
             if (response.status.isSuccess()) {
                 // todo Хардкод надо сделать нормальную иницилазацию
-                println(response.bodyAsText())
                 val json = Json {
                     ignoreUnknownKeys = true
                     isLenient = true
