@@ -8,6 +8,7 @@ import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
@@ -31,11 +32,11 @@ class CommentApiService {
     // todo надо вынести в одну переменную
     private val baseUrl = "http://45.144.53.244:7070"
 
-    suspend fun create(id: Long, text: String): Result<DefaultResponse> {
+    suspend fun create(id: Long, text: String): Result<CommentDto> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
 
-            val response = client.get("$baseUrl/posts/$id/comments") {
+            val response = client.post("$baseUrl/posts/$id/comments") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer $tokenValue")
                 }
@@ -48,9 +49,11 @@ class CommentApiService {
             }
 
             if (response.status.isSuccess()) {
-                val notificationList = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                println("Успешно")
+                val notificationList = Json.decodeFromString<CommentDto>(response.bodyAsText())
                 Result.success(notificationList)
             } else {
+                println("Ошибка")
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
@@ -80,6 +83,4 @@ class CommentApiService {
             Result.failure(e)
         }
     }
-
-
 }

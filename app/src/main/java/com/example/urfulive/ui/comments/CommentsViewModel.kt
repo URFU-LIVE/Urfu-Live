@@ -23,9 +23,6 @@ class CommentsViewModel(
     private val _comments = MutableStateFlow<List<Comment>>(emptyList())
     val comments: StateFlow<List<Comment>> = _comments.asStateFlow()
 
-    private val _replyingTo = MutableStateFlow<Comment?>(null)
-    val replyingTo: StateFlow<Comment?> = _replyingTo.asStateFlow()
-
     init {
         loadComments()
     }
@@ -40,37 +37,13 @@ class CommentsViewModel(
         }
     }
 
-//    fun addComment(text: String) {
-//        viewModelScope.launch {
-//            val commentDto = CommentDto(
-//                text = text,
-//                postId = postId,
-//                parentCommentId = _replyingTo.value?.id
-//            )
-//
-//            commentApiService.createComment(commentDto).onSuccess { newCommentDto ->
-//                _comments.update { currentComments ->
-//                    currentComments + dtoManager.run { newCommentDto.toComment() }
-//                }
-//                _replyingTo.value = null
-//            }.onFailure {
-//                // Handle error
-//            }
-//        }
-//    }
-//
-//    fun toggleLike(comment: Comment) {
-//        viewModelScope.launch {
-//            commentApiService.toggleLike(comment.id).onSuccess {
-//                loadComments() // Refresh comments after like
-//            }.onFailure {
-//                // Handle error
-//            }
-//        }
-//    }
-
-    fun setReplyingTo(comment: Comment?) {
-        _replyingTo.value = comment
+    fun sendComment(text: String) {
+        println("Попытка создания комментария: " + text)
+        viewModelScope.launch {
+            commentApiService.create(postId, text).onSuccess {
+                loadComments()
+            }
+        }
     }
 }
 

@@ -6,28 +6,34 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.data.model.Comment
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun CommentsScreen(
@@ -37,6 +43,19 @@ fun CommentsScreen(
 ) {
     val comments by viewModel.comments.collectAsState()
     val commentText = remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    val previousSize = remember { mutableStateOf(0) }
+
+    // Скролл вниз при добавлении нового комментария
+    LaunchedEffect(comments.size) {
+        if (comments.size > previousSize.value) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(comments.size - 1)
+            }
+            previousSize.value = comments.size
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -78,24 +97,16 @@ fun CommentsScreen(
 
             // Comments List
             LazyColumn(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                state = listState
             ) {
                 items(comments) { comment ->
-                    //if (comment.parentCommentId == null) {
-                        CommentsItem(
-                            comment = comment,
-                            onReplyClick = {/* TODO: Navigate to profile */ },
-                            onLikeClick = { /* TODO: Navigate to profile */ },
-                            onProfileClick = { /* TODO: Navigate to profile */ }
-                        )
-//                    } else {
-//                        CommentReplyItem(
-//                            comment = comment,
-//                            onReplyClick = {/* TODO: Navigate to profile */},
-//                            onLikeClick = { /* TODO: Navigate to profile */ },
-//                            onProfileClick = { /* TODO: Navigate to profile */ }
-//                        )
-//                    }
+                    CommentsItem(
+                        comment = comment,
+                        onReplyClick = { /* TODO */ },
+                        onLikeClick = { /* TODO */ },
+                        onProfileClick = { /* TODO */ }
+                    )
                 }
             }
 
@@ -104,7 +115,11 @@ fun CommentsScreen(
                 text = commentText.value,
                 onTextChange = { commentText.value = it },
                 onSend = {
-                    // todo
+                    val trimmed = commentText.value.trim()
+                    if (trimmed.isNotEmpty()) {
+                        viewModel.sendComment(trimmed)
+                        commentText.value = ""
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -114,13 +129,15 @@ fun CommentsScreen(
     }
 }
 
+
+
 @Composable
 fun CommentsItem(
     comment: Comment,
     onReplyClick: (Comment) -> Unit,
     onLikeClick: (Comment) -> Unit,
     onProfileClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
@@ -131,12 +148,13 @@ fun CommentsItem(
     ) {
         Column {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Image(
-                    painter = painterResource(id = R.drawable.ava),
-                    contentDescription = "Автор",
+                AsyncImage(
+                    model = comment.author.avatarUrl,
+                    contentDescription = null,
                     modifier = Modifier
                         .size(50.dp)
-                        .clickable { onProfileClick(comment.author.id) }
+                        .clip(CircleShape),
+                    contentScale = ContentScale.FillBounds,
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -180,7 +198,7 @@ fun CommentsItem(
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = comment.createdAt.toString(),
+                    text = comment.createdAt,
                     color = Color.White.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.labelSmall
                 )
@@ -274,7 +292,7 @@ fun CommentInputField(
     text: String,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -309,7 +327,11 @@ fun CommentInputField(
                 painter = painterResource(id = R.drawable.arrow),
                 contentDescription = "Отправить",
                 colorFilter = ColorFilter.tint(Color.White),
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .size(20.dp)
+                    .graphicsLayer {
+                        rotationZ = 180f
+                    }
             )
         }
     }
