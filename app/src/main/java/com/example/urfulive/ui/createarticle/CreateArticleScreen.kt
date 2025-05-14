@@ -69,6 +69,7 @@ fun CreateArticle(
 
     val userState by viewModel.user.collectAsState()
 
+    if (userState != null) println(userState!!.role)
     if (userState != null && userState!!.role == UserRole.USER) {
         Box(
             modifier = Modifier

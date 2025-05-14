@@ -3,6 +3,7 @@ package com.example.urfulive.ui.profile
 import NavbarCallbacks
 import TagChip
 import TagSizes
+import TokenManager
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -64,6 +65,8 @@ fun ProfileScreen(
     val backgroundColor = Color(0xFF131313)
     val accentColor = Color(0xFFF6ECC9)
     val cornerRadius = 31.dp
+
+    val userId = viewModel.currentUserId
 
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
     expandedPostIndex?.let { index ->
@@ -202,7 +205,13 @@ fun ProfileScreen(
                                 modifier = Modifier.padding(top = 6.dp, start = 60.dp, end = 60.dp)
                             ) {
                                 Text(
-                                    text = if (isOwnProfile) "Редактировать профиль" else "Подписаться",
+                                    text = when {
+                                        isOwnProfile -> "Редактировать профиль"
+                                        userId == null -> "Загрузка"
+                                        else -> {
+                                            if (user.followers.contains(userId)) "Подписан" else "Подписаться"
+                                        }
+                                    },
                                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
                                 )
                             }

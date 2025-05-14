@@ -20,8 +20,20 @@ class ProfileViewModel : ViewModel() {
     var posts by mutableStateOf<List<Post>>(emptyList())
         private set
 
+    var currentUserId by mutableStateOf<Int?>(null)
+        private set
+
     init {
+        fetchCurrentUserId()
         fetchProfile()
+    }
+
+    private fun fetchCurrentUserId() {
+        viewModelScope.launch {
+            TokenManagerInstance.getInstance().userId.collect { userIdString ->
+                currentUserId = userIdString?.toIntOrNull()
+            }
+        }
     }
 
     fun fetchProfile() {
