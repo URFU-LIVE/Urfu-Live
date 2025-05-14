@@ -30,6 +30,9 @@ import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.AuthResponse
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import androidx.compose.material3.DisplayMode
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.CompositionLocalProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -303,7 +306,45 @@ fun DatePickerDialog(
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
+    val datePickerState = rememberDatePickerState(
+        initialDisplayMode = DisplayMode.Picker  // Отображаем календарь
+    )
+
+    // Все цвета делаем черными с оранжевыми акцентами
+    val customColorScheme = darkColorScheme(
+        // Основные цвета
+        primary = Color(0xFFFF6D00),          // Оранжевый для выделения
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFFF6D00),
+        onPrimaryContainer = Color.White,
+
+        // Цвета фона - все делаем черными
+        background = Color(0xFF0D0D0D),       // Чисто черный фон
+        onBackground = Color.White,
+        surface = Color(0xFF0D0D0D),          // Чисто черный для поверхностей
+        onSurface = Color.White,
+        surfaceVariant = Color(0xFF0D0D0D),   // Полностью черный для вариантов
+        onSurfaceVariant = Color.White,
+
+        // Дополнительные поверхности тоже черные
+        surfaceBright = Color(0xFF0D0D0D),
+        surfaceContainer = Color(0xFF0D0D0D),
+        surfaceContainerHigh = Color(0xFF0D0D0D),
+        surfaceContainerHighest = Color(0xFF0D0D0D),
+        surfaceContainerLow = Color(0xFF0D0D0D),
+        surfaceContainerLowest = Color(0xFF0D0D0D),
+
+        // Выделения оранжевым
+        secondary = Color(0xFFFF6D00),
+        onSecondary = Color.White,
+        tertiary = Color(0xFFFF6D00),
+        onTertiary = Color.White,
+
+        // Обводки и прочие элементы
+        outline = Color(0xFFFF6D00),
+        outlineVariant = Color(0xFF3D3D3D), // Чуть светлее черного для мелких элементов
+        scrim = Color.Black.copy(alpha = 0.8f)
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -337,31 +378,45 @@ fun DatePickerDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 1.dp) // Добавляем отступы по краям
+                    .background(Color(0xFF0D0D0D))
+                    .padding(horizontal = 1.dp)
             ) {
-                DatePicker(
-                    state = datePickerState,
-                    modifier = Modifier
-                        .scale(0.85f) // уменьшает всё внутри
-                        .fillMaxWidth(), // можно добавить при необходимости
-                    colors = DatePickerDefaults.colors(
-                        containerColor = Color(0xFF1D1D1D),
-                        titleContentColor = Color.White,
-                        headlineContentColor = Color.White,
-                        weekdayContentColor = Color.White,
-                        subheadContentColor = Color.White,
-                        navigationContentColor = Color.White,
-                        dayContentColor = Color.White,
-                        yearContentColor = Color.White,
-                        currentYearContentColor = Color(0xFFFF6D00),
-                        selectedYearContentColor = Color(0xFFFF6D00),
-                        selectedYearContainerColor = Color(0x33FF6D00)
-                    )
-                )
-
+                Surface(
+                    color = Color(0xFF0D0D0D),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    MaterialTheme(
+                        colorScheme = customColorScheme
+                    ) {
+                        DatePicker(
+                            state = datePickerState,
+                            modifier = Modifier
+                                .scale(0.85f)
+                                .fillMaxWidth()
+                                .background(Color(0xFF0D0D0D)),
+                            title = null,  // Уберем стандартный заголовок
+                            colors = DatePickerDefaults.colors(
+                                containerColor = Color(0xFF0D0D0D),
+                                titleContentColor = Color.White,
+                                headlineContentColor = Color.White,
+                                weekdayContentColor = Color.White,
+                                subheadContentColor = Color.White,
+                                yearContentColor = Color.White,
+                                currentYearContentColor = Color(0xFFFF6D00),
+                                selectedYearContentColor = Color.White,
+                                selectedYearContainerColor = Color(0xFFFF6D00),
+                                dayContentColor = Color.White,
+                                selectedDayContentColor = Color.Black,
+                                selectedDayContainerColor = Color(0xFFFF6D00),
+                                todayContentColor = Color(0xFFFF6D00),
+                                todayDateBorderColor = Color(0xFFFF6D00)
+                            )
+                        )
+                    }
+                }
             }
         },
-        containerColor = Color(0xFF1D1D1D),
+        containerColor = Color(0xFF0D0D0D),
         titleContentColor = Color.White,
         textContentColor = Color.White,
     )

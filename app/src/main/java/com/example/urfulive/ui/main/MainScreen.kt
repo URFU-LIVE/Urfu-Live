@@ -22,16 +22,24 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -143,6 +151,14 @@ fun ArticlesScreenPreview() {
 
 @Composable
 fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standard) {
+    // Make padding responsive based on screen density and size
+    val horizontalPadding by remember {
+        mutableStateOf(if (size == TagSizes.Standard) 15.dp else 13.dp)
+    }
+    val verticalPadding by remember {
+        mutableStateOf(if (size == TagSizes.Standard) 13.dp else 7.dp)
+    }
+
     Box(
         modifier = Modifier
             .graphicsLayer {
@@ -153,14 +169,23 @@ fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standard) {
                 shape = RoundedCornerShape(52.dp)
             )
             .padding(
-                horizontal = if (size == TagSizes.Standard) 15.dp else 13.dp,
-                vertical = if (size == TagSizes.Standard) 13.dp else 7.dp
+                horizontal = horizontalPadding,
+                vertical = verticalPadding
             )
     ) {
+        val textStyle = if (size == TagSizes.Standard) {
+            MaterialTheme.typography.labelMedium
+        } else {
+            MaterialTheme.typography.labelMedium.copy(
+                fontSize = 12.sp,
+                lineHeight = 12.sp
+            )
+        }
+
         Text(
             text = tag,
             color = Color.Black,
-            style = if (size == TagSizes.Standard) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp, lineHeight = 12.sp),
+            style = textStyle,
         )
     }
 }
@@ -195,14 +220,31 @@ fun PostCard(
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(
+    // Use BoxWithConstraints to get available space
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(580.dp)
+            // Adjust height based on screen size
+            .heightIn(
+                min = 300.dp,
+                max = if (LocalConfiguration.current.screenHeightDp < 700) {
+                    LocalConfiguration.current.screenHeightDp.dp * 0.55f
+                } else {
+                    580.dp
+                }
+            )
             .clickable { onClick() }
             .background(pattern.background, shape = RoundedCornerShape(52.dp))
-            .padding(start = 25.dp, top = 40.dp, end = 25.dp, bottom = 37.dp)
+            .padding(
+                start = 25.dp,
+                top = 40.dp,
+                end = 25.dp,
+                bottom = 37.dp
+            )
     ) {
+        // Calculate responsive spacing based on available height
+        val spacing = maxHeight * 0.025f // Reduce spacing on smaller screens
+
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
@@ -218,12 +260,19 @@ fun PostCard(
 
                 Text(
                     text = rememberedPost.title ?: "",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = pattern.textColor,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = pattern.textColor,
+                        fontWeight = FontWeight.Bold,
+                        // Calculate responsive font size
+                        fontSize = with(LocalDensity.current) {
+                            val defaultSize = MaterialTheme.typography.labelLarge.fontSize.toPx()
+                            val scaleFactor = kotlin.math.min(1f, this@BoxWithConstraints.maxWidth.toPx() / 400f)
+                            (defaultSize * scaleFactor).toSp()
+                        }
+                    )
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(if (LocalConfiguration.current.screenHeightDp < 700) 10.dp else 20.dp))
 
                 Column {
                     Text(
@@ -241,7 +290,7 @@ fun PostCard(
                             model = post.author.avatarUrl,
                             contentDescription = "Author Icon",
                             modifier = Modifier
-                                .size(50.dp)
+                                .size(if (LocalConfiguration.current.screenHeightDp < 700) 40.dp else 50.dp)
                                 .clip(CircleShape)
                                 .border(2.dp, Color.White, CircleShape)
                                 .clickable { onAuthorClick(rememberedPost.author.id) },
@@ -278,6 +327,10 @@ fun PostCard(
                                 strokeWidth = 2.dp
                             )
                         } else {
+                            // Adjust button size for smaller screens
+                            val horizontalPadding = if (LocalConfiguration.current.screenHeightDp < 700) 10.dp else 15.dp
+                            val verticalPadding = if (LocalConfiguration.current.screenHeightDp < 700) 6.dp else 10.dp
+
                             Text(
                                 text = if (isSubscribed) "Вы подписаны" else "Подписаться",
                                 modifier = Modifier
@@ -292,20 +345,30 @@ fun PostCard(
                                         pattern.buttonColor,
                                         shape = RoundedCornerShape(52.dp)
                                     )
-                                    .padding(horizontal = 15.dp, vertical = 10.dp),
+                                    .padding(horizontal = horizontalPadding, vertical = verticalPadding),
                                 color = pattern.textColor,
                                 style = MaterialTheme.typography.displaySmall
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Adaptive text size for content
+                val adaptedStyle = MaterialTheme.typography.displayMedium.copy(
+                    fontSize = with(LocalDensity.current) {
+                        val defaultSize = MaterialTheme.typography.displayMedium.fontSize.toPx()
+                        val scaleFactor = kotlin.math.min(1f, this@BoxWithConstraints.maxWidth.toPx() / 400f)
+                        (defaultSize * scaleFactor).toSp()
+                    }
+                )
 
                 Text(
                     text = rememberedPost.text ?: "",
                     style = MaterialTheme.typography.displayMedium,
                     color = pattern.textColor,
-                    maxLines = 10,
+                    // Adjust maxLines based on screen size
+                    maxLines = if (LocalConfiguration.current.screenHeightDp < 700) 2 else 10,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -380,12 +443,24 @@ fun PostCard(
 fun TopBar(
     onNotificationsClick: () -> Unit
 ) {
+    // Get status bar height safely
+    val statusBarHeight = WindowInsets.systemBars
+        .only(WindowInsetsSides.Top)
+        .asPaddingValues()
+        .calculateTopPadding()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 70.dp, end = 42.dp)
+            .padding(
+                top = statusBarHeight + 45.dp,
+                end = 42.dp
+            )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.navbarnew),
                 contentDescription = "Heart Logo",
@@ -454,22 +529,39 @@ fun CarouselScreen(
     val pagerState = rememberPagerState(pageCount = { postsState.size })
     var expandedIndex by remember { mutableStateOf(-1) }
 
+
+    val cardTopPositions = remember { mutableStateOf(mutableMapOf<Int, Float>()) }
+    val cardHeights = remember { mutableStateOf(mutableMapOf<Int, Float>()) }
+
+
+
     val scope = rememberCoroutineScope()
     var selectedCardCenter by remember { mutableStateOf(Offset.Zero) }
     var selectedCardSize by remember { mutableStateOf(IntSize(0, 0)) }
     var isAnimationInProgress by remember { mutableStateOf(false) }
     var lastActionTime by remember { mutableStateOf(0L) }
-    val minActionInterval = 0L
+    val minActionInterval = 300L
     var lastCloseTime by remember { mutableStateOf(0L) }
 
     val density = LocalDensity.current
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp + 100.dp
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp + WindowInsets.systemBars
+        .only(WindowInsetsSides.Top)
+        .asPaddingValues()
+        .calculateTopPadding()
 
-    val initialCardWidth = 350.dp
-    val initialCardHeight = 580.dp
+    // Responsive card sizes based on screen dimensions
+    val screenHeightDp = configuration.screenHeightDp
+    val initialCardWidth = (screenWidth * 0.9f).coerceAtMost(350.dp)
+    val initialCardHeight = if (screenHeightDp < 700) {
+        (screenHeight * 0.55f).coerceAtMost(450.dp)
+    } else {
+        (screenHeight * 0.7f).coerceAtMost(580.dp)
+    }
     val partialExpandHeight = screenHeight * 0.82f
-    val fullExpandHeight = screenHeight * 1.5f
+    val fullExpandHeight = screenHeight * 0.92f
+
     var isFullyExpanded by remember { mutableStateOf(false) }
     var shouldHideBottomNav by remember { mutableStateOf(false) }
     var isClosing by remember { mutableStateOf(false) }
@@ -531,7 +623,7 @@ fun CarouselScreen(
         }
     }
 
-    val fixedOpenDuration = 600
+    val fixedOpenDuration = 750
     val fixedSwipeDuration = 300
 
     val animSpec = tween<Float>(
@@ -552,11 +644,27 @@ fun CarouselScreen(
         if (isExpanded) 1f else 0f
     }
 
+    val fullExpandDuration = 400
     val fullExpansionProgress by fullExpansionTransition.animateFloat(
-        transitionSpec = { swipeAnimSpec },
+        // Явно указываем спецификацию анимации для обоих направлений
+        transitionSpec = {
+            if (targetState) {
+                // Анимация расширения (частично -> полностью)
+                tween(
+                    durationMillis = fullExpandDuration,
+                    easing = FastOutSlowInEasing // плавное замедление к концу
+                )
+            } else {
+                // Анимация сворачивания (полностью -> частично)
+                tween(
+                    durationMillis = fullExpandDuration,
+                    easing = FastOutSlowInEasing // плавное замедление к концу
+                )
+            }
+        },
         label = "fullExpansionProgress"
-    ) { isFullyExpanded ->
-        if (isFullyExpanded) 1f else 0f
+    ) { state ->
+        if (state) 1f else 0f
     }
 
     val closingProgressTransformed = if (isClosing) {
@@ -583,20 +691,47 @@ fun CarouselScreen(
     val currentHeight = with(density) {
         when {
             isClosing -> {
+                // Получаем исходную высоту карточки из сохраненного состояния
+                val originalCardHeight = if (expandedIndex != -1 && cardHeights.value.containsKey(expandedIndex)) {
+                    cardHeights.value[expandedIndex] ?: initialCardHeight.toPx()
+                } else {
+                    initialCardHeight.toPx()
+                }
+
+                // Текущая высота при закрытии
                 val startHeight = if (isFullyExpanded) {
                     fullExpandHeight.toPx()
                 } else {
                     partialExpandHeight.toPx()
                 }
-                lerp(startHeight, initialCardHeight.toPx(), closingProgressTransformed)
+
+                // Интерполируем от текущей к исходной высоте
+                androidx.compose.ui.util.lerp(
+                    startHeight,
+                    originalCardHeight,
+                    closingProgressTransformed
+                )
             }
-            isFullyExpanded -> fullExpandHeight.toPx()
-            expanded -> lerp(
-                initialCardHeight.toPx(),
-                partialExpandHeight.toPx() + (fullExpandHeight.toPx() - partialExpandHeight.toPx()) * fullExpansionProgress,
-                expansionProgress
-            )
-            else -> initialCardHeight.toPx()
+            isFullyExpanded -> {
+                // В полностью раскрытом состоянии используем фиксированную высоту
+                // Исключаем любые размеры, зависящие от размера экрана
+                val expandedHeight = (screenHeight.toPx()) // 85% от высоты экрана
+                expandedHeight
+            }
+            expanded -> {
+                // При обычном расширении
+                val partialHeight = initialCardHeight.toPx() * 1.5f  // 150% от исходной высоты
+                val fullHeight = screenHeight.toPx()     // 85% высоты экрана для полного расширения
+                androidx.compose.ui.util.lerp(
+                    initialCardHeight.toPx(),
+                    partialHeight + (fullHeight - partialHeight) * fullExpansionProgress,
+                    expansionProgress
+                )
+            }
+            else -> {
+                // В закрытом состоянии используем начальную высоту
+                initialCardHeight.toPx()
+            }
         }
     }
 
@@ -612,7 +747,13 @@ fun CarouselScreen(
 
     val initialTopY = selectedCardCenter.y - with(density) { initialCardHeight.toPx() / 2 }
     val partialExpandTopY = initialTopY
-    val fullExpandTopY = -1f
+    // Adjust the expanded position to avoid status bar on smaller screens
+    val statusBarHeight = WindowInsets.systemBars
+        .only(WindowInsetsSides.Top)
+        .asPaddingValues()
+        .calculateTopPadding()
+        .value * density.density
+    val fullExpandTopY = statusBarHeight
 
     val targetTopY = if (expanded || isClosing) {
         if (isClosing) {
@@ -624,12 +765,32 @@ fun CarouselScreen(
         initialTopY
     }
 
-    val currentTopY = if (isClosing) {
-        lerp(targetTopY, initialTopY, closingProgressTransformed)
-    } else if (isFullyExpanded && dragOffset > 0) {
-        lerp(initialTopY, targetTopY, expansionProgress)
-    } else {
-        lerp(initialTopY, targetTopY, expansionProgress) + dragOffset
+    val currentTopY = when {
+        // При закрытии используем сохраненную верхнюю позицию
+        isClosing -> {
+            cardTopPositions.value[expandedIndex] ?: initialTopY
+        }
+        // В полностью развернутом режиме (или анимации к нему)
+        expandedIndex != -1 -> {
+            // Начальная позиция (сохраненная верхняя граница карточки)
+            val startPos = cardTopPositions.value[expandedIndex] ?: initialTopY
+            // Если полностью раскрыто или в процессе анимации, позиционируем выше
+            if (isFullyExpanded || fullExpansionProgress > 0f) {
+                // Конечная позиция - верх экрана
+                val endPos = with(density) {
+                    statusBarHeight + if (screenHeightDp < 700) (10.dp.value * density.density) else 0f
+                }
+                // Интерполируем между позициями в зависимости от прогресса анимации
+                androidx.compose.ui.util.lerp(startPos, endPos, fullExpansionProgress) + dragOffset
+            } else {
+                // Обычная частично раскрытая позиция
+                startPos + dragOffset
+            }
+        }
+        // Запасной вариант
+        else -> {
+            initialTopY
+        }
     }
 
     val closeExpandedArticle = {
@@ -646,10 +807,24 @@ fun CarouselScreen(
     val toggleFullExpansion = {
         val currentTime = System.currentTimeMillis()
         if (!isClosing && !isAnimationInProgress && (currentTime - lastActionTime > minActionInterval)) {
+            // Переключаем состояние
             isFullyExpanded = !isFullyExpanded
+
+            // Устанавливаем флаги и сбрасываем смещение
             lastActionTime = currentTime
             shouldHideBottomNav = isFullyExpanded
             dragOffset = 0f
+
+            // Блокируем взаимодействие на время анимации
+            scope.launch {
+                isAnimationInProgress = true
+
+                // Длительность блокировки чуть больше, чем анимация
+                delay(fullExpandDuration.toLong() + 50)
+
+                // Разблокируем
+                isAnimationInProgress = false
+            }
         }
     }
 
@@ -664,7 +839,7 @@ fun CarouselScreen(
             pageSpacing = 0.dp,
             modifier = Modifier
                 .fillMaxSize()
-                .height(580.dp),
+                .height(initialCardHeight),
             userScrollEnabled = expandedIndex == -1 && !isClosing
         ) { page ->
             Box(
@@ -675,6 +850,17 @@ fun CarouselScreen(
                             (expandedIndex == page)
                         ) {
                             val position = coordinates.positionInRoot()
+
+                            val updatedPosMap = cardTopPositions.value.toMutableMap()
+                            updatedPosMap[page] = position.y
+                            cardTopPositions.value = updatedPosMap
+
+                            // НОВЫЙ КОД: Сохраняем точный размер карточки
+                            val cardHeight = coordinates.size.height.toFloat()
+                            val updatedHeightMap = cardHeights.value.toMutableMap()
+                            updatedHeightMap[page] = cardHeight
+                            cardHeights.value = updatedHeightMap
+
                             val size = coordinates.size
                             selectedCardCenter = Offset(
                                 position.x + size.width / 2f,
@@ -813,6 +999,7 @@ fun CarouselScreen(
         }
 
         if (expandedIndex != -1 || isClosing) {
+            // Overlay to capture clicks outside the expanded card
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -827,6 +1014,7 @@ fun CarouselScreen(
                     }
             )
 
+            // Expanded card content
             Box(
                 modifier = Modifier
                     .graphicsLayer {
@@ -935,6 +1123,8 @@ fun CarouselScreen(
     }
 }
 
+// Исправление отображения контента с учетом закругленных углов
+
 @Composable
 fun ExpandedPostContent(
     post: Post,
@@ -944,9 +1134,8 @@ fun ExpandedPostContent(
     viewModel: PostViewModel = viewModel(),
     onCommentsClick: (Long) -> Unit
 ) {
-    val titleSizeAndHeight = lerp(24.sp, 26.sp, expandProgress)
-    val postHeight = lerp(17.6.sp, 19.2.sp, expandProgress)
-    val paddingAfterDate = lerp(6.dp, 15.dp, expandProgress)
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
 
     val scrollState = rememberScrollState()
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
@@ -960,158 +1149,185 @@ fun ExpandedPostContent(
     val likedPosts by viewModel.likedPostIds.collectAsState()
     val isLiked = likedPosts.contains(post.id)
 
-    Column(
+    var isHeaderVisible by remember { mutableStateOf(true) }
+    LaunchedEffect(scrollState.value) {
+        isHeaderVisible = scrollState.value < 100
+    }
+
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .then(
-                if (expandProgress > 0.9f) {
-                    Modifier.verticalScroll(scrollState)
-                } else {
-                    Modifier
-                }
-            )
+            .fillMaxSize()
+            .clip(RoundedCornerShape(52.dp))
     ) {
         Column(
             modifier = Modifier
-                .padding(start = 25.dp, end = 25.dp, top = 40.dp)
-                .pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragStart = { },
-                        onDragEnd = { },
-                        onDragCancel = { },
-                        onVerticalDrag = { change, dragAmount ->
-                            change.consume()
-                            if (dragAmount < 0) {
-                                onHeaderSwipe()
-                            } else if (dragAmount > 0) {
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectVerticalDragGestures { change, dragAmount ->
+                            if (isHeaderVisible && scrollState.value == 0) {
+                                change.consume()
                                 onHeaderSwipe()
                             }
                         }
-                    )
-                }
-        ) {
-            val tagNames = post.tags?.map { it.name } ?: emptyList()
-
-            HorizontalTagRow(
-                tags = tagNames,
-                color = pattern.buttonColor,
-                expandProgress = expandProgress
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = post.title,
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontSize = titleSizeAndHeight,
-                    lineHeight = titleSizeAndHeight
-                ),
-                color = Color.Black
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Опубликовано: ${post.time.substring(0, 10)}",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.Black
-            )
-
-            Spacer(modifier = Modifier.height(paddingAfterDate))
-
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AsyncImage(
-                        model = post.author.avatarUrl,
-                        contentDescription = "Author Icon",
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape)
-                            .clickable { onAuthorClick(post.author.id) },
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.ava),
-                        error = painterResource(R.drawable.ava)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "Автор:",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.Black
-                        )
-                        Text(
-                            text = post.author.username,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.Black,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.clickable { onAuthorClick(post.author.id) }
-                        )
                     }
-
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = pattern.textColor,
-                            strokeWidth = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(
+                            start = 25.dp,
+                            end = 25.dp,
+                            top = 22.dp
                         )
-                    } else {
-                        Text(
-                            text = if (isSubscribed) "Вы подписаны" else "Подписаться",
-                            modifier = Modifier
-                                .clickable {
-                                    coroutineScope.launch {
-                                        isLoading = true
-                                        viewModel.subscribeAndUnsubscribe(post)
-                                        isLoading = false
+                        .pointerInput(Unit) {
+                            detectVerticalDragGestures(
+                                onDragStart = { },
+                                onDragEnd = { },
+                                onDragCancel = { },
+                                onVerticalDrag = { change, dragAmount ->
+                                    change.consume()
+                                    if (dragAmount < 0) {
+                                        onHeaderSwipe()
+                                    } else if (dragAmount > 0) {
+                                        onHeaderSwipe()
                                     }
                                 }
-                                .background(
-                                    pattern.buttonColor,
-                                    shape = RoundedCornerShape(52.dp)
+                            )
+                        }
+                ) {
+                    val tagNames = post.tags?.map { it.name } ?: emptyList()
+
+                    HorizontalTagRow(
+                        tags = tagNames,
+                        color = pattern.buttonColor,
+                        expandProgress = expandProgress
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = post.title,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(if (LocalConfiguration.current.screenHeightDp < 700) 10.dp else 20.dp))
+
+                    Text(
+                        text = "Опубликовано: ${post.time.substring(0, 10)}",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.Black
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            AsyncImage(
+                                model = post.author.avatarUrl,
+                                contentDescription = "Author Icon",
+                                modifier = Modifier
+                                    .size(if (LocalConfiguration.current.screenHeightDp < 700) 40.dp else 50.dp)
+                                    .clip(CircleShape)
+                                    .border(2.dp, Color.White, CircleShape)
+                                    .clickable { onAuthorClick(post.author.id) },
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.ava),
+                                error = painterResource(R.drawable.ava)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = "Автор:",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = Color.Black
                                 )
-                                .padding(horizontal = 15.dp, vertical = 10.dp),
-                            color = pattern.textColor,
-                            style = MaterialTheme.typography.displaySmall
-                        )
+                                Text(
+                                    text = post.author.username,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = Color.Black,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.clickable { onAuthorClick(post.author.id) }
+                                )
+                            }
+                            val horizontalPadding =
+                                if (LocalConfiguration.current.screenHeightDp < 700) 10.dp else 15.dp
+                            val verticalPadding =
+                                if (LocalConfiguration.current.screenHeightDp < 700) 6.dp else 10.dp
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = pattern.textColor,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                                    modifier = Modifier
+                                        .clickable {
+                                            coroutineScope.launch {
+                                                isLoading = true
+                                                viewModel.subscribeAndUnsubscribe(post)
+                                                isLoading = false
+                                            }
+                                        }
+                                        .background(
+                                            pattern.buttonColor,
+                                            shape = RoundedCornerShape(52.dp)
+                                        )
+                                        .padding(
+                                            horizontal = horizontalPadding,
+                                            vertical = verticalPadding
+                                        ),
+                                    color = pattern.textColor,
+                                    style = MaterialTheme.typography.displaySmall
+                                )
+                            }
+                        }
                     }
                 }
             }
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 25.dp,
+                        vertical = 20.dp
+                    )
+            ) {
+                Text(
+                    text = post.text ?: "",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = Color.Black
+                )
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 25.dp)
-                .padding(top = 20.dp)
-        ) {
-            Text(
-                text = post.text ?: "",
-                style = MaterialTheme.typography.displayMedium.copy(lineHeight = postHeight),
-                color = Color.Black
-            )
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Spacer(modifier = Modifier.height(20.dp))
+                ReactionPanelBottomContent(
+                    post = post,
+                    pattern = pattern,
+                    expandProgress = expandProgress,
+                    viewModel = viewModel,
+                    onCommentsClick = { postId ->
+                        onCommentsClick(postId)
+                    }
+                )
 
-            ReactionPanelBottomContent(
-                post = post,
-                pattern = pattern,
-                expandProgress = expandProgress,
-                viewModel = viewModel,
-                onCommentsClick = { postId ->
-                    onCommentsClick(postId)
-                }
-            )
-
-            Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(150.dp))
+            }
         }
     }
 }

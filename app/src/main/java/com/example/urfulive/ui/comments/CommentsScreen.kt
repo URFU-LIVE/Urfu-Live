@@ -62,6 +62,7 @@ fun CommentsScreen(
             .fillMaxSize()
             .zIndex(100f)
             .background(Color(0xFF131313))
+            .systemBarsPadding()
     ) {
         Column(
             modifier = Modifier
