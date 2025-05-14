@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -30,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
+import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import kotlinx.coroutines.launch
@@ -45,7 +47,8 @@ fun SettingsScreen(
     onMessagesClick: () -> Unit = {},
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
-    viewModel: MainSettingViewModel = viewModel()
+    viewModel: MainSettingViewModel = viewModel(),
+    onLeave: () -> Unit
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val animatedAlpha = remember { Animatable(0f) }
@@ -56,9 +59,11 @@ fun SettingsScreen(
     var showCreateArticle by remember { mutableStateOf(false) }
 
     if (showCreateArticle) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .zIndex(300f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(300f)
+        ) {
             CreateArticle(
                 onClose = { showCreateArticle = false },
                 onPostSuccess = {},
@@ -100,7 +105,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .systemBarsPadding()
         ) {
-            TopBar(onBack = onCloseOverlay)
+            TopBar(onBack = onCloseOverlay, onLeave = onLeave)
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -165,7 +170,12 @@ fun SettingsScreen(
 }
 
 @Composable
-fun TopBar(onBack: () -> Unit) {
+fun TopBar(
+    onBack: () -> Unit,
+    onLeave: () -> Unit
+) {
+    val userApiService = UserApiService()
+    val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -188,6 +198,21 @@ fun TopBar(onBack: () -> Unit) {
                 color = Color.White,
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(start = 10.dp)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Image(
+                painter = painterResource(id = R.drawable.resource_new),
+                contentDescription = "Leave",
+                modifier = Modifier
+                    .clickable {
+                        scope.launch {
+                            onLeave()
+                            userApiService.logout()
+                        }
+                    }
+                    .padding(end = 15.dp)
+                    .size(42.dp)
+                    .rotate(45f)
             )
         }
     }

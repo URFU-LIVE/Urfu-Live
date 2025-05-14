@@ -369,4 +369,34 @@ class UserApiService {
             Result.failure(e)
         }
     }
+
+    suspend fun logout(): Result<DefaultResponse> {
+        return try {
+            val tokenManager = TokenManagerInstance.getInstance()
+            val tokenValue = tokenManager.getAccessTokenBlocking()
+
+            // Делаем запрос на сервер для инвалидации токена
+            val response = client.post("$baseUrl/auth/logout") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+            }
+
+            // Очищаем локальные токены
+            tokenManager.clearTokens()
+
+            if (response.status.isSuccess()) {
+                val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
+                Result.success(defaultResponse)
+            } else {
+                // Даже при ошибке считаем выход успешным, так как токены очищены
+                Result.success(DefaultResponse("Logged out successfully"))
+            }
+        } catch (e: Exception) {
+            // При ошибке соединения тоже очищаем токены
+            TokenManagerInstance.getInstance().clearTokens()
+            println("Logout error: ${e.message}")
+            Result.success(DefaultResponse("Logged out successfully"))
+        }
+    }
 }

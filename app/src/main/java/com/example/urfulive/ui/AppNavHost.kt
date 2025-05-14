@@ -121,7 +121,8 @@ fun AppNavHost() {
                 onNotificationsClick = { navController.navigate("notificationsSettings") },
                 onPrivacyClick = { navController.navigate("privacySettings") },
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
-                navbarCallbacks = commonNavbarCallbacks(navController)
+                navbarCallbacks = commonNavbarCallbacks(navController),
+                onLeave =  {navController.navigate("login") { popUpTo(0) { inclusive = true } }}
             )
         }
 
