@@ -128,7 +128,7 @@ fun ProfileScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentScale = ContentScale.FillBounds,
+                        contentScale = ContentScale.FillHeight,
                     )
                     if (isOwnProfile) {
                         Image(

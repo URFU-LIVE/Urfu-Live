@@ -165,7 +165,7 @@ fun EditProfile(
                                 .size(84.dp)
                                 .clip(CircleShape)
                                 .border(2.dp, Color.White, CircleShape)
-                                .clickable { },
+                                .clickable { avatarGalleryLauncher.launch("image/*") },
                             contentScale = ContentScale.Crop,
                             placeholder = painterResource(R.drawable.ava),
                             error = painterResource(R.drawable.ava)
