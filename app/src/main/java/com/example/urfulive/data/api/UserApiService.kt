@@ -90,6 +90,7 @@ class UserApiService {
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
                 Result.success(authResponse)
             } else {
+                println(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {

@@ -1,3 +1,5 @@
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.api.UserApiService
@@ -7,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 class RegistrationViewModel : ViewModel() {
     interface RegisterCallback {
@@ -51,8 +54,10 @@ class RegistrationViewModel : ViewModel() {
         _password.value = newValue
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun onRegisterClick(username: String, email: String, password: String, fio: String, birthDate: String, callback: RegisterCallback) {
         val fioSplit = fio.split(" ")
+        val formattedBirthDate = formatBirthDateForApi(birthDate)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -62,7 +67,7 @@ class RegistrationViewModel : ViewModel() {
                     password,
                     fioSplit[0],
                     fioSplit[1],
-                    birthDate
+                    formattedBirthDate.toString()
                 )
 
                 withContext(Dispatchers.Main) {
@@ -80,7 +85,20 @@ class RegistrationViewModel : ViewModel() {
         }
     }
 
-    fun onLogoClick(newValue: String) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun formatBirthDateForApi(raw: String): String? {
+        return try {
+            if (raw.length != 8) return null // Некорректная длина
 
+            val day = raw.substring(0, 2)
+            val month = raw.substring(2, 4)
+            val year = raw.substring(4, 8)
+
+            val localDate = LocalDate.of(year.toInt(), month.toInt(), day.toInt())
+            localDate.atStartOfDay().toString() // Вернет в формате "2000-01-01T00:00:00"
+        } catch (e: Exception) {
+            null
+        }
     }
+
 }
