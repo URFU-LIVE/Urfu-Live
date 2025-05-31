@@ -34,10 +34,10 @@ class PostApiService {
     // todo надо вынести в одну переменную
     private val baseUrl = "http://45.144.53.244:7070"
 
-    suspend fun create(title: String, text: String): Result<DefaultResponse> {
+    suspend fun create(title: String, text: String, tags: List<String>): Result<DefaultResponse> {
         return try {
             val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-            val requestJson = PostCreateRequest(title, text, listOf(1))
+            val requestJson = PostCreateRequest(title, text, tags)
 
             val response = client.post("$baseUrl/posts") {
                 headers {
@@ -48,6 +48,7 @@ class PostApiService {
             }
 
             if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 Result.success(defaultResponse)
             } else {
@@ -76,6 +77,7 @@ class PostApiService {
                     prettyPrint = false
                 }
                 val postListResponse = json.decodeFromString<List<PostDto>>(response.bodyAsText())
+                println(response.bodyAsText())
                 Result.success(postListResponse)
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))

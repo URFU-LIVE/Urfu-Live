@@ -56,7 +56,7 @@ class ProfileViewModel : ViewModel() {
                 val dtoManager = DtoManager()
                 posts = postList.map { dtoManager.run { it.toPost() } }
             }.onFailure {
-                it.printStackTrace()
+                posts = emptyList();
             }
         }
     }

@@ -23,5 +23,6 @@ data class User(
 enum class UserRole {
     USER,
     WRITER,
+    MODER,
     ADMIN
 }

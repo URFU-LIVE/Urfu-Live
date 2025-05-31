@@ -68,8 +68,7 @@ fun CreateArticle(
     val animatedOffset = remember { Animatable(if (animationsEnabled) screenHeight.value else 0f) }
 
     val userState by viewModel.user.collectAsState()
-
-    if (userState != null) println(userState!!.role)
+    
     if (userState != null && userState!!.role == UserRole.USER) {
         Box(
             modifier = Modifier

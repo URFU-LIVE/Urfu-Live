@@ -42,11 +42,13 @@ open class CreateArticleViewModel : ViewModel() {
     }
 
     open fun onPublishClick(titleText: String, contentText: String, tagsText: String, callback: PostCallBack) {
+        val tags = tagsText.split(",").map { it.trim() }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val result = postApiService.create(
                     titleText,
                     contentText,
+                    tags
                 )
 
                 withContext(Dispatchers.Main) {

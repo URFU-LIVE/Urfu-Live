@@ -58,6 +58,7 @@ class UserApiService {
                 val authResponse = Json.decodeFromString<AuthResponse>(response.bodyAsText())
                 val tokenManager = TokenManagerInstance.getInstance()
                 // Todo ХУЙНЯ ИСПРАВТЬ!!!!!
+                println(response.bodyAsText())
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
                 Result.success(authResponse)
             } else {
@@ -88,6 +89,7 @@ class UserApiService {
                 val tokenManager = TokenManagerInstance.getInstance()
                 tokenManager.clearTokens()
                 tokenManager.saveTokens(authResponse.accessToken, authResponse.refreshToken)
+                println(response.bodyAsText())
                 Result.success(authResponse)
             } else {
                 println(response.bodyAsText())
@@ -110,6 +112,7 @@ class UserApiService {
             }
 
             if (response.status.isSuccess()) {
+                println(response.bodyAsText())
                 val user = Json.decodeFromString<UserDto>(response.bodyAsText())
                 Result.success(user)
             } else {
@@ -182,6 +185,7 @@ class UserApiService {
                 Result.success(refreshResponse);
             } else {
                 Result.failure(Exception("HTTP Error: ${response.status}"))
+
             }
         } catch (e: Exception) {
             println(e.message)

@@ -64,6 +64,7 @@ class DtoManager {
 
         // Convert role string to UserRole enum
         val userRole = when (role) {
+            "MODERATOR" -> UserRole.ADMIN
             "WRITER" -> UserRole.WRITER
             "ADMIN" -> UserRole.ADMIN
             else -> UserRole.USER

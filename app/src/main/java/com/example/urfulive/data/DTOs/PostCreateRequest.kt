@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class PostCreateRequest(
     var title: String,
     val text: String,
-    val tagIds: List<Int>
+    val tags: List<String>
 )
