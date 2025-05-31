@@ -4,6 +4,8 @@ import TokenManagerInstance
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import com.example.urfulive.data.DTOs.PostDto
+import com.example.urfulive.data.manager.InterestManager
+import com.example.urfulive.data.manager.InterestManagerInstance
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -15,6 +17,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -122,6 +125,43 @@ class PostApiService {
                 val defaultResponse = Json.decodeFromString<DefaultResponse>(response.bodyAsText())
                 Result.success(defaultResponse)
             } else {
+                Result.failure(Exception("HTTP Error: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            println(e.message)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getRecommendation(page: Int): Result<List<PostDto>> {
+        return try {
+            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
+            val interests = InterestManagerInstance.getInstance().getSelectedInterestsBlocking()
+            val interestsParam = interests.joinToString(",")
+            println(interestsParam)
+
+            val response = client.get("$baseUrl/posts/recommended") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
+                }
+
+                url {
+                    parameters.append("categories", interestsParam)
+                    parameters.append("size", "10")
+                    parameters.append("page", page.toString())
+                }
+            }
+
+            if (response.status.isSuccess()) {
+                val json = Json {
+                    ignoreUnknownKeys = true
+                    isLenient = true
+                    prettyPrint = false
+                }
+                val posts = json.decodeFromString<List<PostDto>>(response.bodyAsText())
+                Result.success(posts)
+            } else {
+                println(response.bodyAsText())
                 Result.failure(Exception("HTTP Error: ${response.status}"))
             }
         } catch (e: Exception) {
