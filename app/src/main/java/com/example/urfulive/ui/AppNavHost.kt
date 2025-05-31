@@ -99,11 +99,6 @@ fun AppNavHost() {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onSkipClick = {
-                    navController.navigate("main") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                }
             )
         }
 

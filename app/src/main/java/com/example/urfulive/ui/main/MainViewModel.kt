@@ -77,7 +77,7 @@ class PostViewModel : ViewModel() {
 
     private fun fetchPosts() {
         viewModelScope.launch {
-            val result = postApiService.getAll()
+            val result = postApiService.getRecommendation(0)
             result.onSuccess { postList ->
                 val dtoManager = DtoManager()
                 val posts = postList.map { dtoManager.run { it.toPost() } }
