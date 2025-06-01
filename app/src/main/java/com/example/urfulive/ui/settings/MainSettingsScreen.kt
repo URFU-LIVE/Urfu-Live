@@ -1,6 +1,7 @@
 package com.example.urfulive.ui.settings
 
 import NavbarCallbacks
+import TokenManagerInstance
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -174,7 +175,6 @@ fun TopBar(
     onBack: () -> Unit,
     onLeave: () -> Unit
 ) {
-    val userApiService = UserApiService()
     val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier
@@ -207,7 +207,7 @@ fun TopBar(
                     .clickable {
                         scope.launch {
                             onLeave()
-                            userApiService.logout()
+                            TokenManagerInstance.getInstance().clearTokens()
                         }
                     }
                     .padding(end = 15.dp)

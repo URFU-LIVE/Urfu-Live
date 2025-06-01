@@ -12,41 +12,14 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class NotificationApiService {
-    private val client = HttpClient(Android) {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-                prettyPrint = false
-            })
-        }
-    }
-
-    // todo надо вынести в одну переменную
-    private val baseUrl = "http://45.144.53.244:7070"
+class NotificationApiService : BaseApiService() {
 
     suspend fun getAll(): Result<List<NotificationDto>> {
-        return try {
-            val tokenValue = TokenManagerInstance.getInstance().getAccessTokenBlocking()
-
-            val response = client.get("$baseUrl/notifications") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $tokenValue")
-                }
+        val token = getToken()
+        return authorizedRequest {
+            client.get("$baseUrl/notifications") {
+                headers { append(HttpHeaders.Authorization, "Bearer $token")}
             }
-
-            if (response.status.isSuccess()) {
-                val notificationList = Json.decodeFromString<List<NotificationDto>>(response.bodyAsText())
-                Result.success(notificationList)
-            } else {
-                Result.failure(Exception("HTTP Error: ${response.status}"))
-            }
-        } catch (e: Exception) {
-            println(e.message)
-            Result.failure(e)
         }
     }
-
-
 }

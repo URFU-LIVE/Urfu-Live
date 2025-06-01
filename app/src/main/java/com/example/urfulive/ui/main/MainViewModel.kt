@@ -86,7 +86,20 @@ class PostViewModel : ViewModel() {
                 initLikedPosts(posts)
                 initSubscriptions(posts)
             }.onFailure {
-                it.printStackTrace()
+                viewModelScope.launch {
+                    val newResult = postApiService.getAll()
+
+                    newResult.onSuccess { dtoPosts ->
+                        val dtoManager = DtoManager()
+                        val posts = dtoPosts.map { dtoManager.run { it.toPost() } }
+                        _posts.value = posts;
+
+                        initLikedPosts(posts)
+                        initSubscriptions(posts)
+                    }.onFailure {
+                        it.printStackTrace()
+                    }
+                }
             }
         }
     }
