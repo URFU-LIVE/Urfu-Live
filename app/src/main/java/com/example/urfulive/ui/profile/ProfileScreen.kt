@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +66,14 @@ fun ProfileScreen(
     val backgroundColor = Color(0xFF131313)
     val accentColor = Color(0xFFF6ECC9)
     val cornerRadius = 31.dp
+
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val isSmallScreen = screenWidth < 400
+    val editProfileFontSize = when {
+        isSmallScreen -> 14.sp
+        else -> 16.sp
+    }
 
     val userId = viewModel.currentUserId
 
@@ -212,7 +221,7 @@ fun ProfileScreen(
                                             if (user.followers.contains(userId)) "Подписан" else "Подписаться"
                                         }
                                     },
-                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = editProfileFontSize, lineHeight = editProfileFontSize*1.3)
                                 )
                             }
 
