@@ -57,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -206,7 +207,9 @@ fun PostCard(
     val likedPosts by viewModel.likedPostIds.collectAsState()
     val isLiked = likedPosts.contains(rememberedPost.id)
 
-    var likeScale by remember { mutableStateOf(1f) }
+    val userId by viewModel.currentUserId.collectAsState()
+
+    val likeScale by remember { mutableFloatStateOf(1f) }
     val animatedLikeScale by animateFloatAsState(
         targetValue = likeScale,
         animationSpec = spring(
@@ -332,9 +335,15 @@ fun PostCard(
                             val verticalPadding = if (LocalConfiguration.current.screenHeightDp < 700) 6.dp else 10.dp
 
                             Text(
-                                text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                                text = when {
+                                    userId == post.author.id -> "Это вы!"
+                                    isSubscribed -> "Вы подписаны"
+                                    else -> "Подписаться"
+                                },
                                 modifier = Modifier
-                                    .clickable {
+                                    .clickable(
+                                        enabled = userId != post.author.id,
+                                    ) {
                                         coroutineScope.launch {
                                             isLoading = true
                                             viewModel.subscribeAndUnsubscribe(rememberedPost)
