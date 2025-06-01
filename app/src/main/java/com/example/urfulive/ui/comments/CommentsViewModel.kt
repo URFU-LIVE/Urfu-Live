@@ -27,7 +27,7 @@ class CommentsViewModel(
         loadComments()
     }
 
-    fun loadComments() {
+    private fun loadComments() {
         viewModelScope.launch {
             commentApiService.getAll(postId).onSuccess { commentsDto ->
                 _comments.value = commentsDto.map { dtoManager.run { it.toComment() } }

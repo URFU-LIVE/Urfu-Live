@@ -32,7 +32,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
-import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import kotlinx.coroutines.launch

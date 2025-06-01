@@ -156,7 +156,9 @@ fun CommentsItem(
                         .size(50.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.FillBounds,
-                )
+                    placeholder = painterResource(R.drawable.ava),
+                    error = painterResource(R.drawable.ava)
+                ).run { println(comment.author.avatarUrl) }
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -226,7 +228,6 @@ fun CommentReplyItem(
                 .background(Color(0xFF292929), shape = RoundedCornerShape(20.dp))
                 .padding(16.dp)
         ) {
-            // Similar to CommentsItem but with smaller font sizes
             Column {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Image(
@@ -278,7 +279,7 @@ fun CommentReplyItem(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Text(
-                        text = comment.createdAt.toString(),
+                        text = comment.createdAt,
                         color = Color.White.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.labelSmall
                     )

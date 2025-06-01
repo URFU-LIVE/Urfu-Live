@@ -1,16 +1,13 @@
 package com.example.urfulive.data.api
 
-import android.util.Log
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.DTOs.PostCreateRequest
 import com.example.urfulive.data.DTOs.PostDto
-import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
