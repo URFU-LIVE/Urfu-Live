@@ -51,6 +51,7 @@ fun AppNavHost() {
         is AuthState.Loading -> "loading"
         is AuthState.Authenticated -> "main"
         is AuthState.Unauthenticated -> "login"
+        else -> "loading"
     }
 
 
