@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import com.example.urfulive.data.DTOs.AuthResponse
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.platform.LocalConfiguration
 
 
 @Composable
@@ -57,6 +58,15 @@ fun LoginScreen(
         }
     }
 
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val screenHeight = configuration.screenHeightDp
+    val isSmallScreen = screenWidth < 400
+    val paddingBeforeGreeting = when {
+        isSmallScreen -> 1.dp
+        else -> 30.dp
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -73,7 +83,7 @@ fun LoginScreen(
                 .size(120.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(paddingBeforeGreeting))
 
         Text(
             text = "Добро пожаловать в\nUrfu Live",
@@ -173,7 +183,8 @@ fun LoginScreen(
             onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback) },
             modifier = Modifier
                 .fillMaxWidth()
-                .systemBarsPadding(),
+                .systemBarsPadding()
+                .padding(bottom = 15.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFFEE7E56),

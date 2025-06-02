@@ -44,6 +44,10 @@ fun RegistrationScreen(
     val birthDateValue by viewModel.birthDate.collectAsState()
     val passwordValue by viewModel.password.collectAsState()
 
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val isSmallScreen = screenWidth < 400
+
     val registerCallback = remember {
         object : RegistrationViewModel.RegisterCallback {
             override fun onSuccess(user: AuthResponse) {
@@ -81,7 +85,7 @@ fun RegistrationScreen(
                 .padding(horizontal = 41.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(150.dp))
+            Spacer(modifier = Modifier.height(100.dp))
 
             when (currentStep) {
                 1 -> UsernameStep(
@@ -90,7 +94,8 @@ fun RegistrationScreen(
                     onNextClick = {
                         if (loginValue.isNotBlank()) currentStep = 2
                     },
-                    onBackClick = null // Первый шаг - нет кнопки назад
+                    onBackClick = null, // Первый шаг - нет кнопки назад
+                    isSmallScreen = isSmallScreen
                 )
                 2 -> NameStep(
                     value = nameValue,
@@ -98,7 +103,9 @@ fun RegistrationScreen(
                     onNextClick = {
                         if (nameValue.isNotBlank()) currentStep = 3
                     },
-                    onBackClick = { currentStep = 1 }
+                    onBackClick = { currentStep = 1 },
+                    isSmallScreen = isSmallScreen
+
                 )
                 3 -> EmailStep(
                     value = mailValue,
@@ -106,7 +113,8 @@ fun RegistrationScreen(
                     onNextClick = {
                         if (mailValue.isNotBlank()) currentStep = 4
                     },
-                    onBackClick = { currentStep = 2 }
+                    onBackClick = { currentStep = 2 },
+                    isSmallScreen = isSmallScreen
                 )
                 4 -> BirthDateStep(
                     value = birthDateValue,
@@ -114,7 +122,8 @@ fun RegistrationScreen(
                     onNextClick = {
                         if (birthDateValue.isNotBlank()) currentStep = 5
                     },
-                    onBackClick = { currentStep = 3 }
+                    onBackClick = { currentStep = 3 },
+                    isSmallScreen = isSmallScreen
                 )
                 5 -> PasswordStep(
                     value = passwordValue,
@@ -135,7 +144,8 @@ fun RegistrationScreen(
                             )
                         }
                     },
-                    onBackClick = { currentStep = 4 }
+                    onBackClick = { currentStep = 4 },
+                    isSmallScreen = isSmallScreen
                 )
             }
         }
@@ -171,7 +181,8 @@ fun RegistrationScreen(
             buttonText = if (currentStep == 5) "Зарегистрироваться" else "Далее",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 50.dp)
+                .padding(bottom = 15.dp),
+            isSmallScreen = isSmallScreen
         )
     }
 }
@@ -181,7 +192,8 @@ private fun UsernameStep(
     value: String,
     onValueChange: (String) -> Unit,
     onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?
+    onBackClick: (() -> Unit)?,
+    isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
         title = "Введите имя пользователя",
@@ -209,7 +221,8 @@ private fun UsernameStep(
         buttonText = "Далее",
         onButtonClick = onNextClick,
         onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank()
+        isButtonEnabled = value.isNotBlank(),
+        isSmallScreen = isSmallScreen
     )
 }
 
@@ -218,7 +231,8 @@ private fun NameStep(
     value: String,
     onValueChange: (String) -> Unit,
     onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?
+    onBackClick: (() -> Unit)?,
+    isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
         title = "Введите ваше имя и фамилию",
@@ -247,7 +261,8 @@ private fun NameStep(
         buttonText = "Далее",
         onButtonClick = onNextClick,
         onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank()
+        isButtonEnabled = value.isNotBlank(),
+        isSmallScreen = isSmallScreen
     )
 }
 
@@ -256,7 +271,8 @@ private fun EmailStep(
     value: String,
     onValueChange: (String) -> Unit,
     onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?
+    onBackClick: (() -> Unit)?,
+    isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
         title = "Введите адрес вашей электронной почты",
@@ -285,7 +301,8 @@ private fun EmailStep(
         buttonText = "Далее",
         onButtonClick = onNextClick,
         onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank()
+        isButtonEnabled = value.isNotBlank(),
+        isSmallScreen = isSmallScreen
     )
 }
 
@@ -294,7 +311,8 @@ private fun BirthDateStep(
     value: String,
     onValueChange: (String) -> Unit,
     onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?
+    onBackClick: (() -> Unit)?,
+    isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
         title = "Введите вашу дату рождения",
@@ -328,7 +346,8 @@ private fun BirthDateStep(
         buttonText = "Далее",
         onButtonClick = onNextClick,
         onBackClick = onBackClick,
-        isButtonEnabled = value.length >= 8
+        isButtonEnabled = value.length >= 8,
+        isSmallScreen = isSmallScreen
     )
 }
 
@@ -341,7 +360,8 @@ private fun PasswordStep(
     passwordVisible: Boolean,
     onPasswordVisibilityToggle: () -> Unit,
     onRegisterClick: () -> Unit,
-    onBackClick: (() -> Unit)?
+    onBackClick: (() -> Unit)?,
+    isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
         title = "Введите и подтвердите ваш пароль",
@@ -418,7 +438,8 @@ private fun PasswordStep(
         buttonText = "Зарегистрироваться",
         onButtonClick = onRegisterClick,
         onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank() && confirmValue.isNotBlank() && value == confirmValue
+        isButtonEnabled = value.isNotBlank() && confirmValue.isNotBlank() && value == confirmValue,
+        isSmallScreen = isSmallScreen
     )
 }
 
@@ -430,8 +451,14 @@ private fun RegistrationStepTemplate(
     buttonText: String,
     onButtonClick: () -> Unit,
     onBackClick: (() -> Unit)? = null,
-    isButtonEnabled: Boolean = true
+    isButtonEnabled: Boolean = true,
+    isSmallScreen: Boolean
 ) {
+    val paddingBeforeContent = when {
+        isSmallScreen -> 48.dp
+        else -> 60.dp
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
@@ -454,7 +481,7 @@ private fun RegistrationStepTemplate(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(paddingBeforeContent))
 
         content()
     }
@@ -467,12 +494,19 @@ private fun RegistrationButtons(
     onNextClick: () -> Unit,
     isEnabled: Boolean,
     buttonText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSmallScreen: Boolean
 ) {
+    val fontSize = when {
+        isSmallScreen -> 14.sp
+        else -> 16.sp
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp), // Можем задать любой padding независимо от основного контента
+            .padding(horizontal = 20.dp)
+            .systemBarsPadding(),
         horizontalArrangement = if (onBackClick != null) Arrangement.spacedBy(12.dp) else Arrangement.End
     ) {
         if (onBackClick != null) {
@@ -485,7 +519,7 @@ private fun RegistrationButtons(
                     contentColor = Color.White
                 )
             ) {
-                Text("Назад", style = MaterialTheme.typography.headlineMedium)
+                Text("Назад", style = MaterialTheme.typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize))
             }
         }
 
@@ -504,11 +538,11 @@ private fun RegistrationButtons(
         ) {
             Text(
                 buttonText,
-                style = MaterialTheme.typography.headlineMedium,
-                maxLines = 1
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize)
             )
         }
     }
+
 }
 
 
