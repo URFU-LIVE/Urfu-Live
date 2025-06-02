@@ -27,7 +27,7 @@ object TokenManagerInstance {
     }
 }
 
-class TokenManager(private val context: Context) {
+class TokenManager(context: Context) {
     private val dataStore = context.dataStore
 
     companion object {

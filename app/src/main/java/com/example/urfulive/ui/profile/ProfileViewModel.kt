@@ -1,5 +1,7 @@
 package com.example.urfulive.ui.profile
 
+import TokenManager
+import TokenManagerInstance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,13 +27,15 @@ class ProfileViewModel : ViewModel() {
 
     init {
         fetchCurrentUserId()
-        fetchProfile()
     }
 
     private fun fetchCurrentUserId() {
         viewModelScope.launch {
-            TokenManagerInstance.getInstance().userId.collect { userIdString ->
-                currentUserId = userIdString?.toIntOrNull()
+            val userId = TokenManagerInstance.getInstance().getUserIdBlocking()
+            if (userId != null) {
+                currentUserId = userId.toInt();
+            } else {
+                println("Хуй")
             }
         }
     }

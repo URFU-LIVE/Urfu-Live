@@ -43,7 +43,7 @@ import com.example.urfulive.ui.main.PostViewModel
 @Composable
 @Preview
 fun ProfileScreen(
-    viewModel: ProfileViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    viewModel: ProfileViewModel = viewModel(),
     isOwnProfile: Boolean = true,
     onProfileClick: () -> Unit = {},
     onCreateArticleClick: () -> Unit = {},
@@ -75,7 +75,7 @@ fun ProfileScreen(
         else -> 16.sp
     }
 
-    val userId = viewModel.currentUserId
+    val userId = viewModel.currentUserId;
 
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
     expandedPostIndex?.let { index ->
@@ -218,10 +218,14 @@ fun ProfileScreen(
                                         isOwnProfile -> "Редактировать профиль"
                                         userId == null -> "Загрузка"
                                         else -> {
-                                            if (user.followers.contains(userId)) "Подписан" else "Подписаться"
+                                            if (user.followers.contains(userId.toInt())) "Подписан" else "Подписаться"
                                         }
                                     },
-                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = editProfileFontSize, lineHeight = editProfileFontSize*1.3)
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = editProfileFontSize,
+                                        lineHeight = editProfileFontSize * 1.3
+                                    )
                                 )
                             }
 
@@ -332,7 +336,7 @@ fun ProfileScreen(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                         modifier = Modifier.padding(top = 58.dp, start = 25.dp, end = 25.dp),
                                     ) {
-                                        post.tags?.take(2)?.forEach { tag ->
+                                        post.tags.take(2).forEach { tag ->
                                             TagChip(
                                                 tag = tag.name,
                                                 color = PostColorPatterns[colorPatternIndex].buttonColor,

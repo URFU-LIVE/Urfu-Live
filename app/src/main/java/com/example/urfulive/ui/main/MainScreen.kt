@@ -30,12 +30,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -58,6 +56,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -80,14 +80,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.urfulive.R
@@ -145,14 +144,12 @@ fun ArticlesScreenPreview() {
     )
     CarouselScreen(
         onProfileClick = {},
-        navController = previewNavController,
         onCommentsClick = {}
     )
 }
 
 @Composable
 fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standard) {
-    // Make padding responsive based on screen density and size
     val horizontalPadding by remember {
         mutableStateOf(if (size == TagSizes.Standard) 15.dp else 13.dp)
     }
@@ -191,6 +188,7 @@ fun TagChip(tag: String, color: Color, size: TagSizes = TagSizes.Standard) {
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun PostCard(
     post: Post,
@@ -223,11 +221,9 @@ fun PostCard(
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Use BoxWithConstraints to get available space
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            // Adjust height based on screen size
             .heightIn(
                 min = 300.dp,
                 max = if (LocalConfiguration.current.screenHeightDp < 700) {
@@ -245,9 +241,6 @@ fun PostCard(
                 bottom = 37.dp
             )
     ) {
-        // Calculate responsive spacing based on available height
-        val spacing = maxHeight * 0.025f // Reduce spacing on smaller screens
-
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
@@ -262,11 +255,10 @@ fun PostCard(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = rememberedPost.title ?: "",
+                    text = rememberedPost.title,
                     style = MaterialTheme.typography.labelLarge.copy(
                         color = pattern.textColor,
                         fontWeight = FontWeight.Bold,
-                        // Calculate responsive font size
                         fontSize = with(LocalDensity.current) {
                             val defaultSize = MaterialTheme.typography.labelLarge.fontSize.toPx()
                             val scaleFactor = kotlin.math.min(1f, this@BoxWithConstraints.maxWidth.toPx() / 400f)
@@ -279,7 +271,7 @@ fun PostCard(
 
                 Column {
                     Text(
-                        text = "Опубликовано: ${rememberedPost.time?.substring(0, 10) ?: ""}",
+                        text = "Опубликовано: ${rememberedPost.time.substring(0, 10)}",
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.Black
                     )
@@ -310,9 +302,7 @@ fun PostCard(
                                 color = Color.Black
                             )
                             Text(
-                                text = rememberedPost.author.username
-                                    ?: rememberedPost.author.name
-                                    ?: "Неизвестный автор",
+                                text = rememberedPost.author.username,
                                 style = MaterialTheme.typography.titleLarge,
                                 color = pattern.textColor,
                                 maxLines = 1,
@@ -330,7 +320,6 @@ fun PostCard(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            // Adjust button size for smaller screens
                             val horizontalPadding = if (LocalConfiguration.current.screenHeightDp < 700) 10.dp else 15.dp
                             val verticalPadding = if (LocalConfiguration.current.screenHeightDp < 700) 6.dp else 10.dp
 
@@ -363,20 +352,10 @@ fun PostCard(
                 }
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Adaptive text size for content
-                val adaptedStyle = MaterialTheme.typography.displayMedium.copy(
-                    fontSize = with(LocalDensity.current) {
-                        val defaultSize = MaterialTheme.typography.displayMedium.fontSize.toPx()
-                        val scaleFactor = kotlin.math.min(1f, this@BoxWithConstraints.maxWidth.toPx() / 400f)
-                        (defaultSize * scaleFactor).toSp()
-                    }
-                )
-
                 Text(
-                    text = rememberedPost.text ?: "",
+                    text = rememberedPost.text,
                     style = MaterialTheme.typography.displayMedium,
                     color = pattern.textColor,
-                    // Adjust maxLines based on screen size
                     maxLines = if (LocalConfiguration.current.screenHeightDp < 700) 2 else 10,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -524,19 +503,20 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
+@SuppressLint("ViewModelConstructorInComposable", "MutableCollectionMutableState",
+    "ConfigurationScreenWidthHeight"
+)
 @Composable
 fun CarouselScreen(
     viewModel: PostViewModel = viewModel(),
     onProfileClick: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
-    navController: NavController,
     showNavBar: Boolean = true,
     onCommentsClick: (Long) -> Unit
 ) {
     val postsState by viewModel.posts.collectAsState()
     val pagerState = rememberPagerState(pageCount = { postsState.size })
-    var expandedIndex by remember { mutableStateOf(-1) }
+    var expandedIndex by remember { mutableIntStateOf(-1) }
 
 
     val cardTopPositions = remember { mutableStateOf(mutableMapOf<Int, Float>()) }
@@ -548,9 +528,9 @@ fun CarouselScreen(
     var selectedCardCenter by remember { mutableStateOf(Offset.Zero) }
     var selectedCardSize by remember { mutableStateOf(IntSize(0, 0)) }
     var isAnimationInProgress by remember { mutableStateOf(false) }
-    var lastActionTime by remember { mutableStateOf(0L) }
+    var lastActionTime by remember { mutableLongStateOf(0L) }
     val minActionInterval = 300L
-    var lastCloseTime by remember { mutableStateOf(0L) }
+    var lastCloseTime by remember { mutableLongStateOf(0L) }
 
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
@@ -575,7 +555,7 @@ fun CarouselScreen(
     var shouldHideBottomNav by remember { mutableStateOf(false) }
     var isClosing by remember { mutableStateOf(false) }
     var previousCardCenter by remember { mutableStateOf(Offset.Zero) }
-    var dragOffset by remember { mutableStateOf(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
 
     val expanded = expandedIndex != -1
     val transition = updateTransition(targetState = expanded, label = "expandTransition")
@@ -639,11 +619,6 @@ fun CarouselScreen(
         durationMillis = fixedOpenDuration,
         easing = SmoothEasing,
         delayMillis = 30
-    )
-
-    val swipeAnimSpec = tween<Float>(
-        durationMillis = fixedSwipeDuration,
-        easing = SmoothEasing
     )
 
     val expansionProgress by transition.animateFloat(
@@ -786,9 +761,7 @@ fun CarouselScreen(
             // Если полностью раскрыто или в процессе анимации, позиционируем выше
             if (isFullyExpanded || fullExpansionProgress > 0f) {
                 // Конечная позиция - верх экрана
-                val endPos = with(density) {
-                    statusBarHeight + if (screenHeightDp < 700) (10.dp.value * density.density) else 0f
-                }
+                val endPos = statusBarHeight + if (screenHeightDp < 700) (10.dp.value * density.density) else 0f
                 // Интерполируем между позициями в зависимости от прогресса анимации
                 androidx.compose.ui.util.lerp(startPos, endPos, fullExpansionProgress) + dragOffset
             } else {

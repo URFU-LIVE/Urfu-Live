@@ -72,6 +72,9 @@ class RegistrationViewModel : ViewModel() {
 
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
+                        TokenManagerInstance.getInstance().saveID(
+                            userApiService.getUserProfile().getOrNull()?.id.toString()
+                        )
                         callback.onSuccess(result.getOrThrow())
                     } else {
                         callback.onError(Exception("Неизвестная ошибка"))

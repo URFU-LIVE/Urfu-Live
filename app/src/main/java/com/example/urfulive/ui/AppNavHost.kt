@@ -2,7 +2,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -214,7 +213,6 @@ fun MainScreenWithOverlays(
         CarouselScreen(
             onProfileClick = { navController.navigate("profile") },
             onAuthorClick = { authorId -> navController.navigate("author/$authorId") },
-            navController = navController,
             showNavBar = true,
             onCommentsClick = { postId ->
                 navController.navigate("comments/$postId")
