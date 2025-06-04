@@ -37,6 +37,7 @@ fun ToggleSettingsItem(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White,
+                modifier = Modifier.weight(0.75f)
             )
 
             CustomSwitch(

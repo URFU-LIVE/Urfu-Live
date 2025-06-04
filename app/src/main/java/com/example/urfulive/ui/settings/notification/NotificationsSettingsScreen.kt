@@ -23,8 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
@@ -48,6 +50,13 @@ fun NotificationsSettings(
     var subscriptionsEnabled by remember { mutableStateOf(true) }
     var commentRepliesEnabled by remember { mutableStateOf(true) }
     var newCommentsEnabled by remember { mutableStateOf(true) }
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val isSmallScreen = screenWidth < 400
+    val spaceAfterHeader = when {
+        isSmallScreen -> 0.dp
+        else -> 20.dp
+    }
 
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
@@ -110,7 +119,7 @@ fun NotificationsSettings(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp),
+                    .padding(top = spaceAfterHeader),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Центрированные элементы настроек с ограниченной шириной
