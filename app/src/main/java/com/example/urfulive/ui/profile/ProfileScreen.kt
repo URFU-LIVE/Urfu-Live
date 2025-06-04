@@ -3,7 +3,6 @@ package com.example.urfulive.ui.profile
 import NavbarCallbacks
 import TagChip
 import TagSizes
-import TokenManager
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -127,9 +126,7 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.5f)
-                        .padding(top = 31.dp)
-                        .systemBarsPadding(),
+                        .weight(0.5f),
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
@@ -137,7 +134,7 @@ fun ProfileScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentScale = ContentScale.FillHeight,
+                        contentScale = ContentScale.None
                     )
                     if (isOwnProfile) {
                         Image(
