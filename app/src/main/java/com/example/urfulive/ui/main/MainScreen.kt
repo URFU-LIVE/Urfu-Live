@@ -207,7 +207,7 @@ fun PostCard(
     val likedPosts by viewModel.likedPostIds.collectAsState()
     val isLiked = likedPosts.contains(rememberedPost.id)
 
-    var likeScale by remember { mutableStateOf(1f) }
+    val likeScale by remember { mutableStateOf(1f) }
     val animatedLikeScale by animateFloatAsState(
         targetValue = likeScale,
         animationSpec = spring(
@@ -224,6 +224,8 @@ fun PostCard(
     val cardPadding = AdaptiveSizes.cardPadding(screenInfo)
     val avatarSize = AdaptiveSizes.authorAvatarSize(screenInfo)
     val buttonPadding = AdaptiveSizes.buttonPadding(screenInfo)
+
+    val userId = viewModel.currentUserId;
 
     BoxWithConstraints(
         modifier = Modifier
@@ -318,7 +320,12 @@ fun PostCard(
                             )
                         } else {
                             Text(
-                                text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                                text = when {
+                                    post.author.id.equals(userId) -> "Это вы!"
+                                    isSubscribed -> "Вы подписаны"
+                                    else -> "Подписаться"
+                                },
+
                                 modifier = Modifier
                                     .clickable {
                                         coroutineScope.launch {

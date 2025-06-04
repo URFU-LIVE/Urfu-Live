@@ -129,6 +129,7 @@ fun ProfileScreen(
                         .weight(0.5f),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Ensure AsyncImage is first (background)
                     AsyncImage(
                         model = user?.backgroundUrl,
                         contentDescription = null,
@@ -141,8 +142,9 @@ fun ProfileScreen(
                             painter = painterResource(id = R.drawable.settings),
                             contentDescription = "Настройки пользователя",
                             modifier = Modifier
+                                .navigationBarsPadding()
                                 .align(Alignment.TopEnd)
-                                .offset(x = (-16).dp, y = (-8).dp)
+                                .padding(top = 31.dp, end = 16.dp)
                                 .size(35.dp)
                                 .clickable { onSettingsClick() }
                         )
@@ -151,9 +153,10 @@ fun ProfileScreen(
                             painter = painterResource(id = R.drawable.flag),
                             contentDescription = "Пожаловаться на пользователя",
                             modifier = Modifier
+                                .navigationBarsPadding()
                                 .align(Alignment.TopEnd)
-                                .offset(x = (-16).dp, y = (-8).dp)
-                                .size(30.dp)
+                                .padding(top = 31.dp, end = 16.dp)
+                                .size(35.dp)
                                 .clickable { onReportClick() },
                             colorFilter = ColorFilter.tint(Color.White)
                         )
@@ -164,9 +167,10 @@ fun ProfileScreen(
                             painter = painterResource(id = R.drawable.chevron_left),
                             contentDescription = "Назад",
                             modifier = Modifier
+                                .navigationBarsPadding()
                                 .align(Alignment.TopStart)
-                                .offset(x = (8).dp, y = (-8).dp)
-                                .size(30.dp)
+                                .padding(top = 31.dp, end = 16.dp)
+                                .size(35.dp)
                                 .clickable { onCloseOverlay() },
                             colorFilter = ColorFilter.tint(Color.White)
                         )

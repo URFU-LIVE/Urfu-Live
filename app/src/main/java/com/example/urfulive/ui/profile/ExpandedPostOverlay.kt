@@ -49,7 +49,6 @@ fun ExpandedPostOverlay(
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val pattern = PostColorPatterns[colorPatternIndex]
     val view = androidx.compose.ui.platform.LocalView.current
-    val context = view.context
     val tagScrollState = rememberScrollState()
 
     val posts by viewModel.posts.collectAsState()
@@ -99,7 +98,7 @@ fun ExpandedPostOverlay(
             ) {
                 // Post tags
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.horizontalScroll(tagScrollState),) {
-                    post.tags?.forEach { tag ->
+                    post.tags.forEach { tag ->
                         TagChip(
                             tag = tag.name,
                             color = pattern.buttonColor,

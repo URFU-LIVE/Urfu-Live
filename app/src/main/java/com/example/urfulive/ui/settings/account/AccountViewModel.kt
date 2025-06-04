@@ -20,7 +20,7 @@ class AccountViewModel : ViewModel() {
         fetchUser()
     }
 
-    fun fetchUser() {
+    private fun fetchUser() {
         viewModelScope.launch {
             val result = userApiService.getUserProfile()
             result.onSuccess { userDto ->
@@ -28,7 +28,6 @@ class AccountViewModel : ViewModel() {
                 _user.value = dtoManager.run { userDto.toUser() }
             }
             result.onFailure {
-
             }
         }
     }
