@@ -211,11 +211,7 @@ fun calculateAdaptiveExpandSizes(
         else -> 0.82f
     }
 
-    val fullExpandMultiplier = when {
-        screenInfo.isCompact -> 0.88f
-        screenInfo.isMedium -> 0.92f
-        else -> 0.92f
-    }
+    val fullExpandMultiplier = 0.969f
 
     with(density) {
         val initialWidth = initialCardSize.width.toDp()

@@ -533,19 +533,6 @@ fun CarouselScreen(
     val initialCardWidth = AdaptiveSizes.cardWidth(screenInfo)
     val initialCardHeight = AdaptiveSizes.cardHeight(screenInfo)
 
-    // Адаптивные высоты для разных состояний
-    val partialExpandHeight = when {
-        screenInfo.isCompact -> screenHeight * 0.75f
-        screenInfo.isMedium -> screenHeight * 0.82f
-        else -> screenHeight * 0.82f
-    }
-
-    val fullExpandHeight = when {
-        screenInfo.isCompact -> screenHeight * 0.88f
-        screenInfo.isMedium -> screenHeight * 0.92f
-        else -> screenHeight * 0.92f
-    }
-
     var isFullyExpanded by remember { mutableStateOf(false) }
     var shouldHideBottomNav by remember { mutableStateOf(false) }
     var isClosing by remember { mutableStateOf(false) }
