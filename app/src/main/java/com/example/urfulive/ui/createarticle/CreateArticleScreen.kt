@@ -24,8 +24,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.DefaultResponse
@@ -41,7 +44,7 @@ fun CreateArticle(
     viewModel: CreateArticleViewModel,
     onPostSuccess: (DefaultResponse) -> Unit,
     onPostError: (Exception) -> Unit,
-    animationsEnabled: Boolean = true
+    animationsEnabled: Boolean = true,
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
@@ -59,6 +62,14 @@ fun CreateArticle(
         screenHeight.times(percentHeight)
     }
 
+    val configuration = LocalConfiguration.current
+    val screenWidthOther = configuration.screenWidthDp
+    val isSmallScreen = screenWidthOther < 400
+    val buttonFontSize = when {
+        isSmallScreen -> 12.sp
+        else -> 14.sp
+    }
+
     var isClosing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -68,35 +79,54 @@ fun CreateArticle(
     val animatedOffset = remember { Animatable(if (animationsEnabled) screenHeight.value else 0f) }
 
     val userState by viewModel.user.collectAsState()
-    
+
     if (userState != null && userState!!.role == UserRole.USER) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.95f)),
+                .background(Color.Black.copy(alpha = 0.95f))
+                .zIndex(300f),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier
-                    .padding(24.dp)
-                    .background(Color.DarkGray, shape = RoundedCornerShape(12.dp))
+                    .padding(16.dp)
+                    .background(Color(0xFF292929), shape = RoundedCornerShape(52.dp))
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(28.5.dp))
                 Text(
-                    text = "Недостаточно прав",
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Вы не можете создавать статьи. Подайте заявку на получение прав модератора.",
+                    text = "Для того, чтобы публиковать посты, подайте заявку на получение прав автора",
                     color = Color.LightGray,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(start = 28.5.dp, end = 28.5.dp),
+                    textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { onClose() }) {
-                    Text("Ок")
+                Spacer(modifier = Modifier.height(28.5.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
+                    Button(
+                        onClick = { onClose() },
+                        colors = ButtonColors(
+                            containerColor = Color(0xFF404040),
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF404040),
+                            disabledContentColor = Color(0xFF404040)),
+                           ) {
+                        Text(
+                            text = "Отмена",
+                            style = MaterialTheme.typography.labelMedium.copy(fontSize = buttonFontSize, lineHeight = buttonFontSize)
+                        )
+                    }
+                    Button(onClick = { onClose() },colors = ButtonColors(
+                        containerColor = Color(0xFF404040),
+                        contentColor = Color.White,
+                        disabledContainerColor = Color(0xFF404040),
+                        disabledContentColor = Color(0xFF404040)),
+
+                    ) {
+                        Text(text = "Подать заявку", style = MaterialTheme.typography.labelMedium.copy(fontSize = buttonFontSize, lineHeight = buttonFontSize))
+                    }
                 }
             }
         }
@@ -125,7 +155,10 @@ fun CreateArticle(
                         animatedAlpha.animateTo(0f, tween(300, easing = FastOutSlowInEasing))
                     }
                     launch {
-                        animatedOffset.animateTo(screenHeight.value, tween(300, easing = FastOutSlowInEasing))
+                        animatedOffset.animateTo(
+                            screenHeight.value,
+                            tween(300, easing = FastOutSlowInEasing)
+                        )
                     }
                     onClose()
                 }
@@ -320,7 +353,12 @@ fun CreateArticle(
 }
 
 @SuppressLint("ViewModelConstructorInComposable")
-@Preview(name = "Small screen (360x640)", device = "spec:width=360dp,height=640dp", backgroundColor = 10, showSystemUi = true)
+@Preview(
+    name = "Small screen (360x640)",
+    device = "spec:width=360dp,height=640dp",
+    backgroundColor = 10,
+    showSystemUi = true
+)
 @Composable
 fun CreateArticlePreviewSmall() {
     UrfuLiveTheme {
@@ -350,7 +388,11 @@ fun CreateArticlePreviewDefault() {
 }
 
 @SuppressLint("ViewModelConstructorInComposable")
-@Preview(name = "Large screen (500x1000)", device = "spec:width=500dp,height=1000dp", showSystemUi = true)
+@Preview(
+    name = "Large screen (500x1000)",
+    device = "spec:width=500dp,height=1000dp",
+    showSystemUi = true
+)
 @Composable
 fun CreateArticlePreviewLarge() {
     UrfuLiveTheme {
