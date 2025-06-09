@@ -58,6 +58,8 @@ fun SettingsScreen(
 
     var showCreateArticle by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+
     if (showCreateArticle) {
         Box(
             modifier = Modifier
@@ -154,6 +156,12 @@ fun SettingsScreen(
                 SettingsItem("Аккаунт", onAccountClick, R.drawable.profilenew)
                 SettingsItem("Уведомления", onNotificationsClick, R.drawable.bell)
                 SettingsItem("Приватность", onPrivacyClick, R.drawable.eye)
+                SettingsItem("Выйти из аккаунта", onClick = {
+                    scope.launch {
+                        onLeave()
+                        TokenManagerInstance.getInstance().clearTokens()
+                    }
+                }, R.drawable.x, Color(0xFFE52828), 48)
             }
         }
 
@@ -174,7 +182,6 @@ fun TopBar(
     onBack: () -> Unit,
     onLeave: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,21 +205,6 @@ fun TopBar(
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(start = 10.dp)
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Image(
-                painter = painterResource(id = R.drawable.resource_new),
-                contentDescription = "Leave",
-                modifier = Modifier
-                    .clickable {
-                        scope.launch {
-                            onLeave()
-                            TokenManagerInstance.getInstance().clearTokens()
-                        }
-                    }
-                    .padding(end = 15.dp)
-                    .size(42.dp)
-                    .rotate(45f)
-            )
         }
     }
 }
@@ -220,8 +212,10 @@ fun TopBar(
 @Composable
 fun SettingsItem(
     title: String,
-    onClick: () -> Unit,
-    image: Int
+    onClick: () -> Unit = {},
+    image: Int,
+    textColor: Color = Color.White,
+    iconSize: Int = 48
 ) {
     Box(
         modifier = Modifier
@@ -239,7 +233,7 @@ fun SettingsItem(
             Image(
                 painter = painterResource(id = image),
                 contentDescription = "Icon",
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(iconSize.dp),
             )
             Text(
                 text = title,
@@ -247,7 +241,7 @@ fun SettingsItem(
                     fontSize = 22.sp,
                     lineHeight = 22.sp
                 ),
-                color = Color.White,
+                color = textColor,
             )
         }
     }

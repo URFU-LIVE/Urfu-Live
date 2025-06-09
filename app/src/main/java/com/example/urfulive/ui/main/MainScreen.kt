@@ -963,13 +963,8 @@ fun ExpandedPostContent(
         isHeaderVisible = scrollState.value < 100
     }
 
-    val contentPadding = when {
-        screenInfo.isCompact -> PaddingValues(horizontal = 16.dp, vertical = 15.dp)
-        screenInfo.isMedium -> PaddingValues(horizontal = 20.dp, vertical = 20.dp)
-        else -> PaddingValues(horizontal = 25.dp, vertical = 20.dp)
-    }
-
-    val topSpacerHeight = if (screenInfo.isCompact) 8.dp else 18.dp
+    // Используем те же отступы, что и в PostCard для консистентности
+    val cardPadding = AdaptiveSizes.cardPadding(screenInfo)
     val avatarSize = AdaptiveSizes.authorAvatarSize(screenInfo)
     val buttonPadding = AdaptiveSizes.buttonPadding(screenInfo)
 
@@ -983,7 +978,8 @@ fun ExpandedPostContent(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            Spacer(modifier = Modifier.height(topSpacerHeight))
+            // Используем точно такой же верхний отступ, как в PostCard
+            Spacer(modifier = Modifier.height(cardPadding.calculateTopPadding()))
 
             Box(
                 modifier = Modifier
@@ -1000,9 +996,8 @@ fun ExpandedPostContent(
                 Column(
                     modifier = Modifier
                         .padding(
-                            start = contentPadding.calculateLeftPadding(LayoutDirection.Ltr),
-                            end = contentPadding.calculateRightPadding(LayoutDirection.Ltr),
-                            top = if (screenInfo.isCompact) 16.dp else 22.dp
+                            start = cardPadding.calculateLeftPadding(LayoutDirection.Ltr),
+                            end = cardPadding.calculateRightPadding(LayoutDirection.Ltr)
                         )
                         .pointerInput(Unit) {
                             detectVerticalDragGestures(
@@ -1034,10 +1029,12 @@ fun ExpandedPostContent(
                     Text(
                         text = post.title,
                         style = adaptiveTextStyle(
-                            MaterialTheme.typography.labelLarge,
+                            MaterialTheme.typography.labelLarge.copy(
+                                color = pattern.textColor,
+                                fontWeight = FontWeight.Bold
+                            ),
                             screenInfo
-                        ),
-                        color = Color.Black
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Medium)))
@@ -1079,12 +1076,14 @@ fun ExpandedPostContent(
                                 Text(
                                     text = post.author.username,
                                     style = adaptiveTextStyle(MaterialTheme.typography.titleLarge, screenInfo),
-                                    color = Color.Black,
+                                    color = pattern.textColor,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.clickable { onAuthorClick(post.author.id) }
                                 )
                             }
+
+                            val userId = viewModel.currentUserId
 
                             if (isLoading) {
                                 CircularProgressIndicator(
@@ -1094,7 +1093,11 @@ fun ExpandedPostContent(
                                 )
                             } else {
                                 Text(
-                                    text = if (isSubscribed) "Вы подписаны" else "Подписаться",
+                                    text = when {
+                                        post.author.id.equals(userId) -> "Это вы!"
+                                        isSubscribed -> "Вы подписаны"
+                                        else -> "Подписаться"
+                                    },
                                     modifier = Modifier
                                         .clickable {
                                             coroutineScope.launch {
@@ -1120,12 +1123,18 @@ fun ExpandedPostContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(contentPadding)
+                    .padding(
+                        start = cardPadding.calculateLeftPadding(LayoutDirection.Ltr),
+                        end = cardPadding.calculateRightPadding(LayoutDirection.Ltr),
+                        bottom = cardPadding.calculateBottomPadding()
+                    )
             ) {
+                Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
+
                 Text(
                     text = post.text,
                     style = adaptiveTextStyle(MaterialTheme.typography.displayMedium, screenInfo),
-                    color = Color.Black
+                    color = pattern.textColor
                 )
 
                 Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
