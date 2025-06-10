@@ -1,6 +1,7 @@
 package com.example.urfulive.ui.notifiaction
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -44,6 +45,8 @@ fun NotificationsScreen(
     // Инициализация анимаций только если они включены
     val animatedAlpha = remember { Animatable(0f) }
     val animatedOffset = remember { Animatable(screenHeight.value) }
+
+    BackHandler { onClose() }
 
     if (enableAnimations) {
         LaunchedEffect(Unit) {

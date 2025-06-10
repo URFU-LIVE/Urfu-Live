@@ -1,7 +1,9 @@
 package com.example.urfulive.ui.settings
 
 import NavbarCallbacks
+import ScreenSizeInfo
 import TokenManagerInstance
+import adaptiveTextStyle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -19,12 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -35,6 +37,7 @@ import com.example.urfulive.components.BottomNavBar
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import kotlinx.coroutines.launch
+import rememberScreenSizeInfo
 
 @Composable
 fun SettingsScreen(
@@ -50,15 +53,15 @@ fun SettingsScreen(
     viewModel: MainSettingViewModel = viewModel(),
     onLeave: () -> Unit
 ) {
+    val screenInfo = rememberScreenSizeInfo()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val animatedAlpha = remember { Animatable(0f) }
     val animatedOffset = remember { Animatable(screenHeight.value) }
 
     val userState by viewModel.user.collectAsState()
+    val scope = rememberCoroutineScope()
 
     var showCreateArticle by remember { mutableStateOf(false) }
-
-    val scope = rememberCoroutineScope()
 
     if (showCreateArticle) {
         Box(
@@ -107,18 +110,47 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .systemBarsPadding()
         ) {
-            TopBar(onBack = onCloseOverlay, onLeave = onLeave)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 23.dp, bottom = 15.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.chevron_left),
+                        contentDescription = "Arrow",
+                        modifier = Modifier
+                            .clickable { onCloseOverlay() }
+                            .padding(start = 15.dp)
+                    )
+
+                    Text(
+                        text = "Настройки",
+                        color = Color.White,
+                        style = adaptiveTextStyle(
+                            MaterialTheme.typography.headlineLarge,
+                            screenInfo
+                        ),
+                        modifier = Modifier.padding(start = if (screenInfo.isCompact) 8.dp else 10.dp)
+                    )
+                }
+            }
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Адаптивный блок пользователя
                 if (userState != null) {
                     AsyncImage(
                         model = userState!!.avatarUrl,
                         contentDescription = "Author Icon",
                         modifier = Modifier
-                            .size(84.dp)
+                            .size(SettingsAdaptiveSizes.avatarSize(screenInfo))
                             .clip(CircleShape)
                             .border(2.dp, Color.White, CircleShape)
                             .clickable { },
@@ -129,8 +161,13 @@ fun SettingsScreen(
 
                     Text(
                         text = userState!!.username,
-                        style = MaterialTheme.typography.labelMedium.copy(color = Color.White),
-                        modifier = Modifier.padding(top = 8.dp)
+                        style = adaptiveTextStyle(
+                            MaterialTheme.typography.labelMedium.copy(
+                                color = Color.White,
+                            ),
+                            screenInfo
+                        ),
+                        modifier = Modifier.padding(top = if (screenInfo.isCompact) 6.dp else 8.dp)
                     )
                 } else {
                     // Заглушка при загрузке
@@ -138,30 +175,55 @@ fun SettingsScreen(
                         painter = painterResource(id = R.drawable.ava),
                         contentDescription = "Placeholder avatar",
                         modifier = Modifier
-                            .padding(top = 24.dp)
-                            .size(84.dp)
+                            .size(SettingsAdaptiveSizes.avatarSize(screenInfo))
                             .clip(CircleShape)
                             .border(2.dp, Color.Gray, CircleShape)
                     )
 
                     Text(
                         text = "Загрузка...",
-                        style = MaterialTheme.typography.labelMedium.copy(color = Color.Gray),
-                        modifier = Modifier.padding(top = 8.dp)
+                        style = adaptiveTextStyle(
+                            MaterialTheme.typography.labelMedium.copy(color = Color.Gray),
+                            screenInfo
+                        ),
+                        modifier = Modifier.padding(top = if (screenInfo.isCompact) 6.dp else 8.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                SettingsItem("Аккаунт", onAccountClick, R.drawable.profilenew)
-                SettingsItem("Уведомления", onNotificationsClick, R.drawable.bell)
-                SettingsItem("Приватность", onPrivacyClick, R.drawable.eye)
-                SettingsItem("Выйти из аккаунта", onClick = {
-                    scope.launch {
-                        onLeave()
-                        TokenManagerInstance.getInstance().clearTokens()
-                    }
-                }, R.drawable.x, Color(0xFFE52828), 48)
+                SettingsItem(
+                    title = "Аккаунт",
+                    onClick = onAccountClick,
+                    image = R.drawable.profilenew,
+                    screenInfo = screenInfo
+                )
+
+                SettingsItem(
+                    title = "Уведомления",
+                    onClick = onNotificationsClick,
+                    image = R.drawable.bell,
+                    screenInfo = screenInfo
+                )
+
+                SettingsItem(
+                    title = "Приватность",
+                    onClick = onPrivacyClick,
+                    image = R.drawable.eye,
+                    screenInfo = screenInfo
+                )
+
+                SettingsItem(
+                    title = "Выйти из аккаунта",
+                    onClick = {
+                        scope.launch {
+                            onLeave()
+                            TokenManagerInstance.getInstance().clearTokens()
+                        }
+                    },
+                    image = R.drawable.x,
+                    screenInfo = screenInfo
+                )
             }
         }
 
@@ -178,52 +240,22 @@ fun SettingsScreen(
 }
 
 @Composable
-fun TopBar(
-    onBack: () -> Unit,
-    onLeave: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 23.dp, bottom = 15.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.chevron_left),
-                contentDescription = "Arrow",
-                modifier = Modifier
-                    .clickable { onBack() }
-                    .padding(start = 15.dp)
-            )
-            Text(
-                text = "Настройки",
-                color = Color.White,
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(start = 10.dp)
-            )
-        }
-    }
-}
-
-@Composable
 fun SettingsItem(
     title: String,
     onClick: () -> Unit = {},
     image: Int,
     textColor: Color = Color.White,
-    iconSize: Int = 48
+    screenInfo: ScreenSizeInfo
 ) {
+    val internalPadding = SettingsAdaptiveSizes.itemInternalPadding(screenInfo)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 5.dp)
             .background(Color(0xFF292929), shape = RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp, horizontal = 20.dp),
+            .padding(internalPadding),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -233,13 +265,17 @@ fun SettingsItem(
             Image(
                 painter = painterResource(id = image),
                 contentDescription = "Icon",
-                modifier = Modifier.size(iconSize.dp),
+                modifier = Modifier.size(48.dp),
             )
+
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 22.sp,
-                    lineHeight = 22.sp
+                style = adaptiveTextStyle(
+                    MaterialTheme.typography.titleMedium.copy(
+                        fontSize = if (screenInfo.isCompact) 20.sp else 22.sp,
+                        lineHeight = if (screenInfo.isCompact) 20.sp else 22.sp
+                    ),
+                    screenInfo
                 ),
                 color = textColor,
             )

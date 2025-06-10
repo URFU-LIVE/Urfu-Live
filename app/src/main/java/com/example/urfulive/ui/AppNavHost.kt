@@ -14,6 +14,7 @@ import com.example.urfulive.ui.comments.CommentsScreen
 import com.example.urfulive.ui.profile.EditProfile
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
+import com.example.urfulive.ui.saved.SavedPostsScreen
 import com.example.urfulive.ui.settings.SettingsScreen
 import com.example.urfulive.ui.settings.account.AccountSettings
 import com.example.urfulive.ui.settings.notification.NotificationsSettings
@@ -109,6 +110,34 @@ fun AppNavHost() {
             )
         }
 
+        composable("savedPosts") {
+            SavedPostsScreen(
+                onProfileClick = { navController.navigate("profile") },
+                onCreateArticleClick = {
+                    // Implement article creation navigation
+                },
+                onHomeClick = {
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                },
+                onSavedClick = {
+                    // Уже на экране сохраненных постов, ничего не делаем
+                },
+                onMessagesClick = {  },
+                onPostClick = { post ->
+                    // Навигация к развернутому посту
+                },
+                onSearchClick = {
+                    // TODO: Implement search functionality
+                },
+                onRemoveFromSaved = { post ->
+                    // TODO: Implement remove from saved functionality
+                },
+                currentScreen = "saved"
+            )
+        }
+
         composable("settings") {
             SettingsScreen(
                 onCloseOverlay = { navController.navigate("profile") },
@@ -176,7 +205,8 @@ fun AppNavHost() {
                 navbarCallbacks = commonNavbarCallbacks(navController),
                 currentScreen = "profile",
                 onSettingsClick = { navController.navigate("settings") },
-                isOwnProfile = true
+                isOwnProfile = true,
+                onSavedClick = { navController.navigate("savedPosts") }
             )
         }
 
@@ -216,7 +246,8 @@ fun MainScreenWithOverlays(
             showNavBar = true,
             onCommentsClick = { postId ->
                 navController.navigate("comments/$postId")
-            }
+            },
+            onSavedPostsClick = {navController.navigate("savedPosts")}
         )
     }
 }
@@ -227,7 +258,7 @@ fun commonNavbarCallbacks(navController: NavHostController) = NavbarCallbacks(
             popUpTo("main") { inclusive = true }
         }
     },
-    onSavedClick = { navController.navigate("saved") },
+    onSavedClick = { navController.navigate("savedPosts") },
     onCreateArticleClick = {
         // Implement article creation
     },

@@ -453,10 +453,10 @@ fun TopBar(onNotificationsClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.weight(1f))
             Image(
-                painter = painterResource(id = R.drawable.bell),
-                contentDescription = "Bell Logo",
+                painter = painterResource(id = R.drawable.search),
+                contentDescription = "Поиск",
                 modifier = Modifier
-                    .clickable { onNotificationsClick() }
+                    .clickable { /* TODO */ }
             )
         }
     }
@@ -504,7 +504,8 @@ fun CarouselScreen(
     onProfileClick: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
     showNavBar: Boolean = true,
-    onCommentsClick: (Long) -> Unit
+    onCommentsClick: (Long) -> Unit,
+    onSavedPostsClick: () -> Unit = {}
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val postsState by viewModel.posts.collectAsState()
@@ -799,7 +800,7 @@ fun CarouselScreen(
                     onProfileClick = onProfileClick,
                     onCreateArticleClick = { showCreateArticle = true },
                     onHomeClick = { /* TODO */ },
-                    onSavedClick = { /* TODO */ },
+                    onSavedClick = {  onSavedPostsClick()  },
                     onMessagesClick = { /* TODO */ },
                     currentScreen = "home"
                 )
@@ -860,7 +861,8 @@ fun CarouselScreen(
                     .height(currentHeight)
                     .background(
                         color = if (expandedIndex >= 0 && expandedIndex < postsState.size) {
-                            val index = postsState[expandedIndex].id.rem(PostColorPatterns.size).toInt()
+                            val index =
+                                postsState[expandedIndex].id.rem(PostColorPatterns.size).toInt()
                             PostColorPatterns[index].background
                         } else {
                             Color.Transparent

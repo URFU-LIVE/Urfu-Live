@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
@@ -36,6 +37,7 @@ import com.example.urfulive.ui.createarticle.CreateArticleViewModel
 import com.example.urfulive.ui.main.PostColorPatterns
 import coil.compose.AsyncImage
 import com.example.urfulive.ui.main.PostViewModel
+import com.example.urfulive.ui.notifiaction.NotificationsScreen
 
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -58,6 +60,7 @@ fun ProfileScreen(
     onSubscribeClick: () -> Unit = {},
     onCommentsClick: () -> Unit = {},
     postViewModel: PostViewModel = viewModel(),
+    onNotificationsClick: () -> Unit = {}
 ) {
     val user = viewModel.user
     val posts = viewModel.posts
@@ -74,9 +77,13 @@ fun ProfileScreen(
         else -> 16.sp
     }
 
-    val userId = viewModel.currentUserId;
+    val userId = viewModel.currentUserId
 
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
+    var showCreateArticle by remember { mutableStateOf(false) }
+    var showNotificationsOverlay by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
+
     expandedPostIndex?.let { index ->
         if (index < posts.size) {
             ExpandedPostOverlay(
@@ -93,7 +100,6 @@ fun ProfileScreen(
         expandedPostIndex = null
     }
 
-    var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
         CreateArticle(
             onClose = { showCreateArticle = false },
@@ -142,11 +148,21 @@ fun ProfileScreen(
                             painter = painterResource(id = R.drawable.settings),
                             contentDescription = "Настройки пользователя",
                             modifier = Modifier
-                                .navigationBarsPadding()
-                                .align(Alignment.TopEnd)
-                                .padding(top = 31.dp, end = 16.dp)
+                                .systemBarsPadding()
+                                .align(Alignment.TopStart)
+                                .padding(top = 16.dp, start = 16.dp)
                                 .size(35.dp)
                                 .clickable { onSettingsClick() }
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.bell),
+                            contentDescription = "Уведомления",
+                            modifier = Modifier
+                                .systemBarsPadding()
+                                .align(Alignment.TopEnd)
+                                .padding(top = 16.dp, end = 16.dp)
+                                .size(35.dp)
+                                .clickable { showNotificationsOverlay = true }
                         )
                     } else {
                         Image(
@@ -157,7 +173,7 @@ fun ProfileScreen(
                                 .align(Alignment.TopEnd)
                                 .padding(top = 31.dp, end = 16.dp)
                                 .size(35.dp)
-                                .clickable { onReportClick() },
+                                .clickable { showReportDialog = true },
                             colorFilter = ColorFilter.tint(Color.White)
                         )
                         BackHandler {
@@ -245,7 +261,6 @@ fun ProfileScreen(
                     }
                 }
 
-                // Нижняя часть: Посты - здесь учитываем отступы от Scaffold
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -253,7 +268,6 @@ fun ProfileScreen(
                         .background(backgroundColor)
                         .padding(
                             top = 7.dp,
-                            bottom = 5.dp,
                             start = 16.dp,
                             end = 16.dp
                         )
@@ -272,83 +286,183 @@ fun ProfileScreen(
 
                     Spacer(modifier = if (isOwnProfile) Modifier.height(16.dp) else Modifier.height(9.dp))
 
-                    // Используем paddingValues от Scaffold для правильных отступов
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = paddingValues.calculateBottomPadding())
+                    // Убираем дополнительный Box и лишние отступы
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        // Правильно настраиваем contentPadding для нижней панели
+                        contentPadding = PaddingValues(
+                            bottom = paddingValues.calculateBottomPadding()
+                        ),
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            if (isOwnProfile) {
-                                item {
-                                    Button(
-                                        onClick = { showCreateArticle = true },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFF292929),
-                                            contentColor = Color.White
-                                        ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(46.dp)
-                                            .clip(RoundedCornerShape(cornerRadius))
+                        if (isOwnProfile) {
+                            item {
+                                Button(
+                                    onClick = { showCreateArticle = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF292929),
+                                        contentColor = Color.White
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(46.dp)
+                                        .clip(RoundedCornerShape(cornerRadius))
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.plus_circle),
-                                                contentDescription = "plus",
-                                                modifier = Modifier.padding(end = 8.dp)
-                                            )
-                                            Text(
-                                                text = "Добавить пост",
-                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                                            )
-                                        }
+                                        Image(
+                                            painter = painterResource(id = R.drawable.plus_circle),
+                                            contentDescription = "plus",
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        )
+                                        Text(
+                                            text = "Добавить пост",
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                        )
                                     }
                                 }
                             }
+                        }
 
-                            items(posts.size) { index ->
-                                val post = posts[index]
-                                val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
+                        items(posts.size) { index ->
+                            val post = posts[index]
+                            val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
 
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(100.dp)
-                                        .clip(RoundedCornerShape(cornerRadius))
-                                        .background(color = PostColorPatterns[colorPatternIndex].background)
-                                        .clickable { expandedPostIndex = index },
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                                    .clip(RoundedCornerShape(cornerRadius))
+                                    .background(color = PostColorPatterns[colorPatternIndex].background)
+                                    .clickable { expandedPostIndex = index },
+                            ) {
+                                Text(
+                                    text = post.title,
+                                    modifier = Modifier.padding(top = 16.dp, start = 25.dp, end = 25.dp),
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.Black
+                                )
+
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier.padding(top = 58.dp, start = 25.dp, end = 25.dp),
                                 ) {
-                                    Text(
-                                        text = post.title,
-                                        modifier = Modifier.padding(top = 16.dp, start = 25.dp, end = 25.dp),
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = Color.Black
-                                    )
-
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.padding(top = 58.dp, start = 25.dp, end = 25.dp),
-                                    ) {
-                                        post.tags.take(2).forEach { tag ->
-                                            TagChip(
-                                                tag = tag.name,
-                                                color = PostColorPatterns[colorPatternIndex].buttonColor,
-                                                size = TagSizes.Small
-                                            )
-                                        }
+                                    post.tags.take(2).forEach { tag ->
+                                        TagChip(
+                                            tag = tag.name,
+                                            color = PostColorPatterns[colorPatternIndex].buttonColor,
+                                            size = TagSizes.Small
+                                        )
                                     }
                                 }
                             }
                         }
                     }
+                }
+            }
+
+            if (showNotificationsOverlay) {
+                NotificationsScreen(
+                    onClose = { showNotificationsOverlay = false },
+                )
+            }
+
+            // Модальное окно жалобы
+            if (showReportDialog) {
+                ReportDialog(
+                    onDismiss = { showReportDialog = false },
+                    onSubmit = { reason ->
+                        // Здесь вызываем callback для отправки жалобы
+                        onReportClick()
+                        showReportDialog = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ReportDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit
+) {
+    var reportReason by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .clickable { onDismiss() },
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp)
+                .clickable(enabled = false) { }, // Предотвращаем закрытие при клике на карту
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF2A2A2A)
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Опишите причину\nжалобы ниже",
+                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 22.sp, lineHeight = 22.sp, color = Color.White),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                OutlinedTextField(
+                    value = reportReason,
+                    onValueChange = { reportReason = it },
+                    placeholder = {
+                        Text(
+                            text = "Причина жалобы",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 14.sp,)
+                        )
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = Color.Gray,
+                        cursorColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    maxLines = 4
+                )
+
+                Button(
+                    onClick = { onSubmit(reportReason) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF404040),
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = reportReason.isNotBlank()
+                ) {
+                    Text(
+                        text = "Отправить",
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
         }

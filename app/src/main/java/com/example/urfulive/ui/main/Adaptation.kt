@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
 
 // 1. Создайте класс для управления размерами экрана
 data class ScreenSizeInfo(
@@ -206,12 +207,12 @@ fun calculateAdaptiveExpandSizes(
 
     // Базовые размеры с учетом типа экрана
     val partialExpandMultiplier = when {
-        screenInfo.isCompact -> 0.75f
-        screenInfo.isMedium -> 0.82f
-        else -> 0.82f
+        screenInfo.isCompact -> 1f
+        screenInfo.isMedium -> 1f
+        else -> 1f
     }
 
-    val fullExpandMultiplier = 0.969f
+    val fullExpandMultiplier = 5f
 
     with(density) {
         val initialWidth = initialCardSize.width.toDp()
@@ -246,4 +247,119 @@ fun adaptiveSafeAreaPadding(screenInfo: ScreenSizeInfo): PaddingValues {
         },
         bottom = systemBars.calculateBottomPadding()
     )
+}
+
+// Адаптивные размеры для экрана настроек
+object SettingsAdaptiveSizes {
+    @Composable
+    fun avatarSize(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 70.dp
+        screenInfo.isMedium -> 84.dp
+        else -> 96.dp
+    }
+
+    @Composable
+    fun itemInternalPadding(screenInfo: ScreenSizeInfo): PaddingValues = when {
+        screenInfo.isCompact -> PaddingValues(
+            vertical = 10.dp,
+            horizontal = 16.dp
+        )
+        screenInfo.isMedium -> PaddingValues(
+            vertical = 14.dp,
+            horizontal = 20.dp
+        )
+        else -> PaddingValues(
+            vertical = 18.dp,
+            horizontal = 24.dp
+        )
+    }
+}
+
+// Адаптивные стили текста для настроек
+@Composable
+fun adaptiveSettingsTextStyle(
+    baseStyle: TextStyle,
+    screenInfo: ScreenSizeInfo,
+    scaleFactor: Float = 1f
+): TextStyle = baseStyle.copy(
+    fontSize = when {
+        screenInfo.isCompact -> baseStyle.fontSize * 0.85f * scaleFactor
+        screenInfo.isMedium -> baseStyle.fontSize * 0.95f * scaleFactor
+        else -> baseStyle.fontSize * scaleFactor
+    },
+    lineHeight = when {
+        screenInfo.isCompact -> baseStyle.lineHeight * 0.85f * scaleFactor
+        screenInfo.isMedium -> baseStyle.lineHeight * 0.95f * scaleFactor
+        else -> baseStyle.lineHeight * scaleFactor
+    }
+)
+
+object SavedPostsAdaptiveSizes {
+    @Composable
+    fun searchIconSize(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 24.dp
+        screenInfo.isMedium -> 28.dp
+        else -> 32.dp
+    }
+
+    @Composable
+    fun postCardPadding(screenInfo: ScreenSizeInfo): PaddingValues = when {
+        screenInfo.isCompact -> PaddingValues(
+            horizontal = 16.dp,
+            vertical = 8.dp
+        )
+        screenInfo.isMedium -> PaddingValues(
+            horizontal = 20.dp,
+            vertical = 12.dp
+        )
+        else -> PaddingValues(
+            horizontal = 24.dp,
+            vertical = 16.dp
+        )
+    }
+
+    @Composable
+    fun postContentPadding(screenInfo: ScreenSizeInfo): PaddingValues = when {
+        screenInfo.isCompact -> PaddingValues(vertical = 16.dp, horizontal = 20.dp)
+        else -> PaddingValues(vertical = 20.dp, horizontal = 25.dp)
+    }
+
+    @Composable
+    fun bookmarkIconSize(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 20.dp
+        screenInfo.isMedium -> 24.dp
+        else -> 28.dp
+    }
+
+    @Composable
+    fun titleFontSize(screenInfo: ScreenSizeInfo): TextUnit = when {
+        screenInfo.isCompact -> 14.sp
+        screenInfo.isMedium -> 16.sp
+        else -> 18.sp
+    }
+
+    @Composable
+    fun authorFontSize(screenInfo: ScreenSizeInfo): TextUnit = when {
+        screenInfo.isCompact -> 12.sp
+        screenInfo.isMedium -> 13.sp
+        else -> 14.sp
+    }
+
+    @Composable
+    fun tagSpacing(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 8.dp
+        else -> 10.dp
+    }
+
+    @Composable
+    fun postSpacing(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 8.dp
+        else -> 10.dp
+    }
+
+    @Composable
+    fun contentSpacing(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 8.dp
+        else -> 10.dp
+    }
 }
