@@ -1,3 +1,4 @@
+// Исправленная версия CreateArticle.kt БЕЗ try-catch вокруг Composable
 package com.example.urfulive.ui.createarticle
 
 import FakeCreateArticleViewModel
@@ -9,7 +10,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +31,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.DefaultResponse
+import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.UserRole
+import com.example.urfulive.ui.components.SimpleTagInput
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.launch
 
@@ -80,6 +81,9 @@ fun CreateArticle(
 
     val userState by viewModel.user.collectAsState()
 
+    // ✅ ИСПРАВЛЕНО: правильное управление состоянием тегов
+    var selectedTags by remember { mutableStateOf<List<Tag>>(emptyList()) }
+
     if (userState != null && userState!!.role == UserRole.USER) {
         Box(
             modifier = Modifier
@@ -111,21 +115,33 @@ fun CreateArticle(
                             containerColor = Color(0xFF404040),
                             contentColor = Color.White,
                             disabledContainerColor = Color(0xFF404040),
-                            disabledContentColor = Color(0xFF404040)),
-                           ) {
+                            disabledContentColor = Color(0xFF404040)
+                        ),
+                    ) {
                         Text(
                             text = "Отмена",
-                            style = MaterialTheme.typography.labelMedium.copy(fontSize = buttonFontSize, lineHeight = buttonFontSize)
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = buttonFontSize,
+                                lineHeight = buttonFontSize
+                            )
                         )
                     }
-                    Button(onClick = { onClose() },colors = ButtonColors(
-                        containerColor = Color(0xFF404040),
-                        contentColor = Color.White,
-                        disabledContainerColor = Color(0xFF404040),
-                        disabledContentColor = Color(0xFF404040)),
-
+                    Button(
+                        onClick = { onClose() },
+                        colors = ButtonColors(
+                            containerColor = Color(0xFF404040),
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF404040),
+                            disabledContentColor = Color(0xFF404040)
+                        ),
                     ) {
-                        Text(text = "Подать заявку", style = MaterialTheme.typography.labelMedium.copy(fontSize = buttonFontSize, lineHeight = buttonFontSize))
+                        Text(
+                            text = "Подать заявку",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontSize = buttonFontSize,
+                                lineHeight = buttonFontSize
+                            )
+                        )
                     }
                 }
             }
@@ -133,10 +149,11 @@ fun CreateArticle(
         return
     }
 
+    // ✅ ИСПРАВЛЕНО: обновленный callback с правильными тегами
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
-            override fun onSuccess(user: DefaultResponse) {
-                onPostSuccess(user)
+            override fun onSuccess(response: DefaultResponse) {
+                onPostSuccess(response)
                 onClose()
             }
 
@@ -226,7 +243,6 @@ fun CreateArticle(
 
         var titleText by remember { mutableStateOf("") }
         var contentText by remember { mutableStateOf("") }
-        var tagsText by remember { mutableStateOf("") }
 
         // Основной контент с возможностью прокрутки
         Column(
@@ -301,30 +317,28 @@ fun CreateArticle(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Теги
-            OutlinedTextField(
-                value = tagsText,
-                onValueChange = { tagsText = it },
-                placeholder = { Text("Теги(через запятую)", color = grayText) },
+            Text(
+                text = "Теги",
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // ✅ ИСПРАВЛЕНО: используем простую версию компонента без Hilt
+            SimpleTagInput(
+                selectedTags = selectedTags,
+                onTagsChanged = { selectedTags = it },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = darkSurface,
-                    unfocusedContainerColor = darkSurface,
-                    disabledContainerColor = darkSurface,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = lightGrayText,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                textStyle = TextStyle(color = Color.White),
-                singleLine = true
+                maxTags = 5,
+                placeholder = "Добавьте теги...",
+                isEnabled = true
             )
 
             // Эластичный разделитель для разных размеров экрана
             Spacer(modifier = Modifier.weight(1f))
 
-            // Кнопка публикации - адаптивное расположение
+            // ✅ ИСПРАВЛЕНО: кнопка публикации с правильной передачей тегов
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -333,14 +347,17 @@ fun CreateArticle(
             ) {
                 Button(
                     onClick = {
-                        viewModel.onPublishClick(titleText, contentText, tagsText, postCallBack)
+                        // ✅ ИСПРАВЛЕНО: передаем selectedTags вместо tagsText
+                        val tagsString = selectedTags.joinToString(",") { it.name }
+                        viewModel.onPublishClick(titleText, contentText, tagsString, postCallBack)
                     },
                     shape = RoundedCornerShape(42.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(red = 238, green = 126, blue = 86),
                         contentColor = Color.Black
                     ),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                    enabled = titleText.isNotBlank() && contentText.isNotBlank() // ✅ Валидация
                 ) {
                     Text(
                         "Опубликовать",
