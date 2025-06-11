@@ -4,13 +4,10 @@ activityComposeVersion = "1.7.0"
 agp = "8.9.2"
 coilCompose = "2.7.0"
 composeBomVersion = "2025.05.00"
-converterKotlinxSerialization = "1.0.0"
 datastorePreferences = "1.1.6"
 datastorePreferencesCore = "1.1.6"
 datastorePreferencesVersion = "1.1.5"
 foundation = "1.8.1"
-hiltAndroid = "2.48"
-hiltNavigationCompose = "1.2.0"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -36,7 +33,6 @@ firebaseCrashlyticsBuildtools = "3.0.3"
 datastoreCoreAndroid = "1.1.5"
 datastorePreferencesCoreJvm = "1.1.5"
 material3Android = "1.3.2"
-retrofit = "2.9.0"
 ui = "1.8.1"
 uiTooling = "1.8.1"
 uiToolingPreview = "1.8.1"
@@ -51,13 +47,9 @@ androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-p
 androidx-datastore-preferences-core-v116 = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferencesCore" }
 androidx-datastore-preferences-v116 = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
-androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version = "2.7.0" }
-converter-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "converterKotlinxSerialization" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesVersion" }
-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -87,7 +79,6 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
 androidx-datastore-preferences-core-jvm = { group = "androidx.datastore", name = "datastore-preferences-core-jvm", version.ref = "datastorePreferencesCoreJvm" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "uiTooling" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }

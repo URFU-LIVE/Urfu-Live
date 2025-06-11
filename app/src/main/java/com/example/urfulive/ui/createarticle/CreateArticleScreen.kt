@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/urfulive/ui/createarticle/CreateArticleScreen.kt
 package com.example.urfulive.ui.createarticle
 
 import FakeCreateArticleViewModel
@@ -10,7 +9,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,9 +20,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,13 +33,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.DefaultResponse
-import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.UserRole
-import com.example.urfulive.ui.components.SimpleTagInput // ✅ Импорт SimpleTagInput
 import com.example.urfulive.ui.theme.UrfuLiveTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -49,7 +54,14 @@ fun CreateArticle(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-
+    val mockTags = listOf(
+        "Технологии", "Программирование", "Android", "Kotlin", "React", "JavaScript",
+        "Веб-разработка", "Mobile", "UI/UX", "Дизайн", "Backend", "Frontend",
+        "Искусственный интеллект", "Machine Learning", "Data Science", "DevOps",
+        "Стартапы", "Бизнес", "Карьера", "Образование", "Наука", "Исследования",
+        "Новости", "События", "Мероприятия", "Конференции", "Вебинары",
+        "Спорт", "Здоровье", "Путешествия", "Фотография", "Музыка", "Кино"
+    )
     // Адаптивные отступы в зависимости от размера экрана
     val horizontalPadding = screenWidth.times(0.04f).coerceAtLeast(16.dp)
 
@@ -81,8 +93,13 @@ fun CreateArticle(
 
     val userState by viewModel.user.collectAsState()
 
-    // ✅ Управление состоянием тегов
-    var selectedTags by remember { mutableStateOf<List<Tag>>(emptyList()) }
+    var showSuggestions by remember { mutableStateOf(false) }
+    var suggestions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+    var titleText by remember { mutableStateOf("") }
+    var contentText by remember { mutableStateOf("") }
+    var tagsInput by remember { mutableStateOf("") }
+    var selectedTags by remember { mutableStateOf<List<String>>(emptyList()) }
 
     if (userState != null && userState!!.role == UserRole.USER) {
         Box(
@@ -134,7 +151,8 @@ fun CreateArticle(
                             disabledContainerColor = Color(0xFF404040),
                             disabledContentColor = Color(0xFF404040)
                         ),
-                    ) {
+
+                        ) {
                         Text(
                             text = "Подать заявку",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -149,11 +167,10 @@ fun CreateArticle(
         return
     }
 
-    // ✅ Callback для публикации
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
-            override fun onSuccess(response: DefaultResponse) {
-                onPostSuccess(response)
+            override fun onSuccess(user: DefaultResponse) {
+                onPostSuccess(user)
                 onClose()
             }
 
@@ -161,6 +178,40 @@ fun CreateArticle(
                 onPostError(error)
             }
         }
+    }
+
+    // ✅ ИСПРАВИЛ: убрал @Composable, сделал suspend функцию
+    suspend fun searchTags(query: String) {
+        if (query.isBlank()) {
+            showSuggestions = false
+            return
+        }
+
+        isLoading = true
+
+        // Простой поиск по подстроке (без учета регистра) исключая уже выбранные теги
+        val filtered = mockTags.filter { tag ->
+            tag.lowercase().contains(query.lowercase()) && !selectedTags.contains(tag)
+        }.take(5) // Ограничиваем до 5 предложений
+
+        suggestions = filtered
+        showSuggestions = filtered.isNotEmpty()
+        isLoading = false
+    }
+
+    fun selectTag(selectedTag: String) {
+        // Добавляем тег в список выбранных, если его там еще нет
+        if (!selectedTags.contains(selectedTag)) {
+            selectedTags = selectedTags + selectedTag
+        }
+        // Очищаем поле ввода
+        tagsInput = ""
+        showSuggestions = false
+    }
+
+    // Функция удаления тега
+    fun removeTag(tagToRemove: String) {
+        selectedTags = selectedTags.filter { it != tagToRemove }
     }
 
     fun handleClose() {
@@ -241,9 +292,6 @@ fun CreateArticle(
         }
     ) { innerPadding ->
 
-        var titleText by remember { mutableStateOf("") }
-        var contentText by remember { mutableStateOf("") }
-
         // Основной контент с возможностью прокрутки
         Column(
             modifier = Modifier
@@ -317,28 +365,122 @@ fun CreateArticle(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Теги",
-                style = MaterialTheme.typography.labelLarge,
-                color = Color.White
-            )
+            // Теги
+            Box {
+                OutlinedTextField(
+                    value = tagsInput,
+                    onValueChange = { newText ->
+                        tagsInput = newText
 
-            Spacer(modifier = Modifier.height(8.dp))
+                        // Ищем теги по всему тексту в поле ввода
+                        if (newText.trim().length >= 2) { // Начинаем поиск с 2 символов
+                            scope.launch {
+                                searchTags(newText.trim())
+                            }
+                        } else {
+                            showSuggestions = false
+                        }
+                    },
+                    placeholder = { Text("Введите тег и выберите из списка...", color = grayText, style = MaterialTheme.typography.bodyLarge) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = darkSurface,
+                        unfocusedContainerColor = darkSurface,
+                        disabledContainerColor = darkSurface,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = lightGrayText,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    textStyle = TextStyle(color = Color.White),
+                    singleLine = true,
+                    trailingIcon = {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color(0xFFEE7E56),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+                )
 
-//            // ✅ SimpleTagInput с интеграцией сервера
-//            SimpleTagInput(
-//                selectedTags = selectedTags,
-//                onTagsChanged = { selectedTags = it },
-//                modifier = Modifier.fillMaxWidth(),
-//                maxTags = 5,
-//                placeholder = "Добавьте теги...",
-//                isEnabled = true
-//            )
+                // Dropdown с предложениями тегов
+                DropdownMenu(
+                    expanded = showSuggestions,
+                    onDismissRequest = { showSuggestions = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF2A2A2A))
+                        .clip(RoundedCornerShape(8.dp)),
+                    properties = PopupProperties(focusable = false)
+                ) {
+                    suggestions.forEach { suggestion ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = suggestion,
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            },
+                            onClick = { selectTag(suggestion) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF2A2A2A))
+                        )
+                    }
+                }
+            }
+
+            // Показываем выбранные теги как чипы с кнопкой удаления
+            if (selectedTags.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 120.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(selectedTags.chunked(3)) { tagRow -> // Группируем по 3 тега в ряд
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            tagRow.forEach { tag ->
+                                Surface(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(52.dp)),
+                                    color = Color(0xFFEE7E56)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                    ) {
+                                        Text(
+                                            text = tag,
+                                            style = MaterialTheme.typography.labelMedium
+                                        )
+                                        // Кнопка удаления тега
+                                        Image(
+                                            painter = painterResource(id = R.drawable.x),
+                                            modifier = Modifier.size(20.dp).clickable { removeTag(tag) },
+                                            colorFilter = ColorFilter.tint(Color.Black),
+                                            contentDescription = "Удалить тег"
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // Эластичный разделитель для разных размеров экрана
             Spacer(modifier = Modifier.weight(1f))
 
-            // ✅ Кнопка публикации с правильной передачей тегов
+            // Кнопка публикации - адаптивное расположение
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -347,17 +489,14 @@ fun CreateArticle(
             ) {
                 Button(
                     onClick = {
-                        // ✅ Преобразуем теги в строку для API
-                        val tagsString = selectedTags.joinToString(",") { it.name }
-                        viewModel.onPublishClick(titleText, contentText, tagsString, postCallBack)
+                        viewModel.onPublishClick(titleText, contentText, selectedTags.joinToString(","), postCallBack)
                     },
                     shape = RoundedCornerShape(42.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(red = 238, green = 126, blue = 86),
                         contentColor = Color.Black
                     ),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
-                    enabled = titleText.isNotBlank() && contentText.isNotBlank() // ✅ Валидация
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
                 ) {
                     Text(
                         "Опубликовать",
@@ -390,7 +529,12 @@ fun CreateArticlePreviewSmall() {
 }
 
 @SuppressLint("ViewModelConstructorInComposable")
-@Preview(name = "Default screen", showBackground = true, showSystemUi = true, backgroundColor = 10)
+@Preview(
+    name = "Default screen",
+    showBackground = true,
+    showSystemUi = true,
+    backgroundColor = 10
+)
 @Composable
 fun CreateArticlePreviewDefault() {
     UrfuLiveTheme {
