@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.service.SimpleTagService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,8 +24,6 @@ class TagInputViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TagInputUiState())
     val uiState: StateFlow<TagInputUiState> = _uiState.asStateFlow()
 
-    private var loadTagsJob: Job? = null
-
     init {
         loadAllTags()
     }
@@ -36,8 +32,7 @@ class TagInputViewModel @Inject constructor(
      * Загрузка всех тегов с сервера
      */
     fun loadAllTags() {
-        loadTagsJob?.cancel()
-        loadTagsJob = viewModelScope.launch {
+        viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             tagService.getAllTags()

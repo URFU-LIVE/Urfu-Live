@@ -1,10 +1,11 @@
+// app/build.gradle.kts (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp") // ✅ KSP вместо kapt
+    id("com.google.devtools.ksp") // ✅ Используем только KSP
+    id("dagger.hilt.android.plugin") // ✅ ДОБАВИЛИ Hilt plugin
 }
 
 android {
@@ -44,6 +45,7 @@ android {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 }
+
 dependencies {
     // Core
     implementation(libs.androidx.core.ktx)
@@ -106,17 +108,9 @@ dependencies {
     // System UI
     implementation(libs.accompanist.systemuicontroller)
 
-    // Testing
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.ui.test.junit4) // Ensure this dependency is correct
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.0") // Add the missing dependency here
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
+    // ✅ Hilt (УБРАЛИ ДУБЛИРОВАНИЕ, используем только KSP)
     implementation("com.google.dagger:hilt-android:2.48")
-    ksp("com.google.dagger:hilt-compiler:2.48") // ✅ KSP вместо kapt
+    ksp("com.google.dagger:hilt-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // ✅ Retrofit
@@ -124,4 +118,13 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Testing
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.0")
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }

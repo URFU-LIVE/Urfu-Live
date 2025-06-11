@@ -3,7 +3,7 @@ package com.example.urfulive.data.service
 
 import android.util.Log
 import com.example.urfulive.data.api.ApiService
-import com.example.urfulive.data.DTOs.toModel
+import com.example.urfulive.data.DTOs.toModel // ✅ Используем extension функцию
 import com.example.urfulive.data.model.Tag
 import javax.inject.Inject
 import javax.inject.Singleton

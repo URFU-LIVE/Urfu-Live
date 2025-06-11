@@ -1,4 +1,4 @@
-// Исправленная версия CreateArticle.kt БЕЗ try-catch вокруг Composable
+// app/src/main/java/com/example/urfulive/ui/createarticle/CreateArticleScreen.kt
 package com.example.urfulive.ui.createarticle
 
 import FakeCreateArticleViewModel
@@ -33,7 +33,7 @@ import com.example.urfulive.R
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.UserRole
-import com.example.urfulive.ui.components.SimpleTagInput
+import com.example.urfulive.ui.components.SimpleTagInput // ✅ Импорт SimpleTagInput
 import com.example.urfulive.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.launch
 
@@ -81,7 +81,7 @@ fun CreateArticle(
 
     val userState by viewModel.user.collectAsState()
 
-    // ✅ ИСПРАВЛЕНО: правильное управление состоянием тегов
+    // ✅ Управление состоянием тегов
     var selectedTags by remember { mutableStateOf<List<Tag>>(emptyList()) }
 
     if (userState != null && userState!!.role == UserRole.USER) {
@@ -149,7 +149,7 @@ fun CreateArticle(
         return
     }
 
-    // ✅ ИСПРАВЛЕНО: обновленный callback с правильными тегами
+    // ✅ Callback для публикации
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
             override fun onSuccess(response: DefaultResponse) {
@@ -325,20 +325,20 @@ fun CreateArticle(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ✅ ИСПРАВЛЕНО: используем простую версию компонента без Hilt
-            SimpleTagInput(
-                selectedTags = selectedTags,
-                onTagsChanged = { selectedTags = it },
-                modifier = Modifier.fillMaxWidth(),
-                maxTags = 5,
-                placeholder = "Добавьте теги...",
-                isEnabled = true
-            )
+//            // ✅ SimpleTagInput с интеграцией сервера
+//            SimpleTagInput(
+//                selectedTags = selectedTags,
+//                onTagsChanged = { selectedTags = it },
+//                modifier = Modifier.fillMaxWidth(),
+//                maxTags = 5,
+//                placeholder = "Добавьте теги...",
+//                isEnabled = true
+//            )
 
             // Эластичный разделитель для разных размеров экрана
             Spacer(modifier = Modifier.weight(1f))
 
-            // ✅ ИСПРАВЛЕНО: кнопка публикации с правильной передачей тегов
+            // ✅ Кнопка публикации с правильной передачей тегов
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -347,7 +347,7 @@ fun CreateArticle(
             ) {
                 Button(
                     onClick = {
-                        // ✅ ИСПРАВЛЕНО: передаем selectedTags вместо tagsText
+                        // ✅ Преобразуем теги в строку для API
                         val tagsString = selectedTags.joinToString(",") { it.name }
                         viewModel.onPublishClick(titleText, contentText, tagsString, postCallBack)
                     },

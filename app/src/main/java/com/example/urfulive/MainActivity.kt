@@ -11,8 +11,9 @@ import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.core.view.WindowCompat
 import com.example.urfulive.data.manager.InterestManager
 import com.example.urfulive.data.manager.InterestManagerInstance
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private lateinit var tokenManager: TokenManager
     private lateinit var interestManager: InterestManager

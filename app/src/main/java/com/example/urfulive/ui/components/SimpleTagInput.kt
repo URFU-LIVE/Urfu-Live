@@ -2,9 +2,7 @@
 package com.example.urfulive.ui.components
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -62,7 +60,8 @@ fun SimpleTagInput(
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             // Здесь можно показать Snackbar или Toast
-            // Пока просто очищаем ошибку
+            // Пока просто очищаем ошибку через некоторое время
+            kotlinx.coroutines.delay(3000)
             viewModel.clearError()
         }
     }
@@ -113,7 +112,7 @@ fun SimpleTagInput(
                 keyboardActions = KeyboardActions(
                     onDone = {
                         if (inputValue.isNotBlank() && selectedTags.size < maxTags) {
-                            // Создаем новый тег, если его нет среди существующих
+                            // Проверяем, есть ли тег среди существующих
                             val existingTag = uiState.allTags.find {
                                 it.name.equals(inputValue.trim(), ignoreCase = true)
                             }
@@ -122,7 +121,7 @@ fun SimpleTagInput(
                                 // Добавляем существующий тег
                                 onTagsChanged(selectedTags + existingTag)
                             } else {
-                                // Создаем новый тег (можно добавить валидацию)
+                                // Создаем новый тег
                                 val newTag = Tag(
                                     id = System.currentTimeMillis(), // Временный ID
                                     name = inputValue.trim()
@@ -266,20 +265,10 @@ private fun SuggestionItem(
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Text(
-            text = buildHighlightedText(tag.name, searchQuery),
+            text = tag.name,
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
-}
-
-/**
- * Строит текст с выделением совпадающей части
- * В реальном приложении можно использовать AnnotatedString для подсветки
- */
-private fun buildHighlightedText(fullText: String, query: String): String {
-    // Простая реализация без подсветки
-    // Можно улучшить используя AnnotatedString и SpanStyle
-    return fullText
 }
