@@ -11,8 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -43,7 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("ConfigurationScreenWidthHeight")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreateArticle(
     onClose: () -> Unit,
@@ -62,15 +63,25 @@ fun CreateArticle(
         "Новости", "События", "Мероприятия", "Конференции", "Вебинары",
         "Спорт", "Здоровье", "Путешествия", "Фотография", "Музыка", "Кино"
     )
+
     // Адаптивные отступы в зависимости от размера экрана
     val horizontalPadding = screenWidth.times(0.04f).coerceAtLeast(16.dp)
 
     // Высота текстового поля: от 35% до 45% высоты экрана в зависимости от размера экрана
     val contentFieldHeight = remember(screenHeight) {
         val percentHeight = when {
-            screenHeight < 600.dp -> 0.35f
+            screenHeight < 720.dp -> 0.35f
             screenHeight < 800.dp -> 0.40f
             else -> 0.45f
+        }
+        screenHeight.times(percentHeight)
+    }
+
+    val tagFieldHeight = remember(screenHeight) {
+        val percentHeight = when {
+            screenHeight < 720.dp -> 0.18f
+            screenHeight < 800.dp -> 0.25f
+            else -> 0.40f
         }
         screenHeight.times(percentHeight)
     }
@@ -85,7 +96,8 @@ fun CreateArticle(
 
     var isClosing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
+    val scrollState = rememberScrollState() // Основной скролл страницы
+    val tagsScrollState = rememberScrollState() // Отдельный скролл для тегов
 
     // Анимация
     val animatedAlpha = remember { Animatable(if (animationsEnabled) 0f else 1f) }
@@ -100,6 +112,48 @@ fun CreateArticle(
     var contentText by remember { mutableStateOf("") }
     var tagsInput by remember { mutableStateOf("") }
     var selectedTags by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showNewTagDialog by remember { mutableStateOf(false) }
+    var newTagText by remember { mutableStateOf("") }
+
+    // Функция создания подсвеченного текста
+    @Composable
+    fun HighlightedText(text: String, query: String) {
+        val startIndex = text.lowercase().indexOf(query.lowercase())
+        if (startIndex >= 0) {
+            val endIndex = startIndex + query.length
+            Row {
+                // Текст до совпадения (серый)
+                if (startIndex > 0) {
+                    Text(
+                        text = text.substring(0, startIndex),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
+                // Совпадающий текст (белый и жирный)
+                Text(
+                    text = text.substring(startIndex, endIndex),
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                // Текст после совпадения (серый)
+                if (endIndex < text.length) {
+                    Text(
+                        text = text.substring(endIndex),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
+            }
+        } else {
+            // Если совпадений нет, показываем весь текст белым
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 14.sp
+            )
+        }
+    }
 
     if (userState != null && userState!!.role == UserRole.USER) {
         Box(
@@ -151,8 +205,7 @@ fun CreateArticle(
                             disabledContainerColor = Color(0xFF404040),
                             disabledContentColor = Color(0xFF404040)
                         ),
-
-                        ) {
+                    ) {
                         Text(
                             text = "Подать заявку",
                             style = MaterialTheme.typography.labelMedium.copy(
@@ -180,7 +233,7 @@ fun CreateArticle(
         }
     }
 
-    // ✅ ИСПРАВИЛ: убрал @Composable, сделал suspend функцию
+    // ✅ Функция поиска тегов
     suspend fun searchTags(query: String) {
         if (query.isBlank()) {
             showSuggestions = false
@@ -195,10 +248,12 @@ fun CreateArticle(
         }.take(5) // Ограничиваем до 5 предложений
 
         suggestions = filtered
-        showSuggestions = filtered.isNotEmpty()
+        showSuggestions =
+            filtered.isNotEmpty() || query.length >= 2 // Показываем если есть предложения ИЛИ введено 2+ символа для нового тега
         isLoading = false
     }
 
+    // ✅ Функция выбора тега
     fun selectTag(selectedTag: String) {
         // Добавляем тег в список выбранных, если его там еще нет
         if (!selectedTags.contains(selectedTag)) {
@@ -297,7 +352,7 @@ fun CreateArticle(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(scrollState)
+                //.verticalScroll(scrollState)
                 .padding(horizontal = horizontalPadding)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -381,7 +436,13 @@ fun CreateArticle(
                             showSuggestions = false
                         }
                     },
-                    placeholder = { Text("Введите тег и выберите из списка...", color = grayText, style = MaterialTheme.typography.bodyLarge) },
+                    placeholder = {
+                        Text(
+                            "Введите тег и выберите из списка...",
+                            color = grayText,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = darkSurface,
@@ -412,20 +473,43 @@ fun CreateArticle(
                     onDismissRequest = { showSuggestions = false },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF2A2A2A))
+                        .background(Color(0xFF232323))
                         .clip(RoundedCornerShape(8.dp)),
                     properties = PopupProperties(focusable = false)
                 ) {
+                    // Показываем найденные теги с подсветкой
                     suggestions.forEach { suggestion ->
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    text = suggestion,
-                                    color = Color.White,
-                                    fontSize = 14.sp
-                                )
+                                HighlightedText(text = suggestion, query = tagsInput.trim())
                             },
                             onClick = { selectTag(suggestion) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFF2A2A2A))
+                        )
+                    }
+
+                    // Всегда показываем "Добавить новый тег" если введено 2+ символа
+                    if (tagsInput.trim().length >= 2) {
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Добавить новый тег",
+                                        color = Color(0xFFA7A7A7),
+                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 23.4.sp)
+                                    )
+                                }
+                            },
+                            onClick = {
+                                newTagText = tagsInput.trim()
+                                showNewTagDialog = true
+                                showSuggestions = false
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(Color(0xFF2A2A2A))
@@ -438,38 +522,45 @@ fun CreateArticle(
             if (selectedTags.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 120.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = tagFieldHeight)
+                        .padding(8.dp)
+                        .verticalScroll(tagsScrollState)
                 ) {
-                    items(selectedTags.chunked(3)) { tagRow -> // Группируем по 3 тега в ряд
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            tagRow.forEach { tag ->
-                                Surface(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(52.dp)),
-                                    color = Color(0xFFEE7E56)
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        selectedTags.forEach { tag ->
+                            Surface(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(52.dp)),
+                                color = Color(0xFFEE7E56)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        horizontal = 15.dp,
+                                        vertical = 10.dp
+                                    ),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                                 ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 15.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                                    ) {
-                                        Text(
-                                            text = tag,
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                        // Кнопка удаления тега
-                                        Image(
-                                            painter = painterResource(id = R.drawable.x),
-                                            modifier = Modifier.size(20.dp).clickable { removeTag(tag) },
-                                            colorFilter = ColorFilter.tint(Color.Black),
-                                            contentDescription = "Удалить тег"
-                                        )
-                                    }
+                                    Text(
+                                        text = tag,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    // Кнопка удаления тега
+                                    Image(
+                                        painter = painterResource(id = R.drawable.x),
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clickable { removeTag(tag) },
+                                        colorFilter = ColorFilter.tint(Color.Black),
+                                        contentDescription = "Удалить тег"
+                                    )
                                 }
                             }
                         }
@@ -505,6 +596,97 @@ fun CreateArticle(
                 }
             }
         }
+    }
+
+    // Диалог для добавления нового тега
+    if (showNewTagDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showNewTagDialog = false
+                newTagText = ""
+            },
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(28.5.dp))
+                    Text(
+                        text = "Добавление нового тега",
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(start = 28.5.dp, end = 28.5.dp),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(42.dp))
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OutlinedTextField(
+                        value = newTagText,
+                        onValueChange = { newTagText = it },
+                        placeholder = { Text("Введите новый тег", color = grayText) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF292929),
+                            unfocusedContainerColor = Color(0xFF292929),
+                            disabledContainerColor = Color(0xFF292929),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = lightGrayText,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        textStyle = TextStyle(color = Color.White),
+                        singleLine = true
+                    )
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = Color(red = 131, green = 131, blue = 131)
+                    )
+                    Spacer(modifier = Modifier.height(28.5.dp))
+                }
+            },
+            confirmButton = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        onClick = {
+                            if (newTagText.trim().isNotBlank() && !selectedTags.contains(newTagText.trim())) {
+                                selectedTags = selectedTags + newTagText.trim()
+                                tagsInput = ""
+                            }
+                            showNewTagDialog = false
+                            newTagText = ""
+                        },
+                        colors = ButtonColors(
+                            containerColor = Color(0xFF404040),
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF404040),
+                            disabledContentColor = Color(0xFF404040)
+                        )
+                    ) {
+                        Text(
+                            text = "Добавить",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+            },
+            dismissButton = {},
+            containerColor = Color(0xFF292929),
+            shape = RoundedCornerShape(52.dp),
+            modifier = Modifier.padding(0.dp)
+                .fillMaxWidth(1f)
+        )
     }
 }
 

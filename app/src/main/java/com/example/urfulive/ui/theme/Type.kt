@@ -13,6 +13,7 @@ val Montserrat = FontFamily(
     Font(R.font.montserrat_regular, FontWeight.Normal),
     Font(R.font.montserrat_semibold, FontWeight.SemiBold),
     Font(R.font.montserrat_semibolditalic, FontWeight.SemiBold),
+    Font(R.font.montserrat_mediumitalic, FontWeight.Medium),
     Font(R.font.montserrat_bold, FontWeight.Bold),
     Font(R.font.montserrat_light, FontWeight.Light)
 )
