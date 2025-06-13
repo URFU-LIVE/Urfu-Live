@@ -15,6 +15,7 @@ import com.example.urfulive.ui.profile.EditProfile
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
 import com.example.urfulive.ui.saved.SavedPostsScreen
+import com.example.urfulive.ui.search.SearchScreen
 import com.example.urfulive.ui.settings.SettingsScreen
 import com.example.urfulive.ui.settings.account.AccountSettings
 import com.example.urfulive.ui.settings.notification.NotificationsSettings
@@ -209,6 +210,21 @@ fun AppNavHost() {
                 onSavedClick = { navController.navigate("savedPosts") }
             )
         }
+
+        composable("search") {
+            SearchScreen(
+                onClose = { navController.popBackStack() },
+                onPostClick = { post ->
+                    // Навигация к детальному просмотру поста
+                    navController.navigate("postDetail/${post.id}")
+                },
+                onAuthorClick = { authorId ->
+                    navController.navigate("author/$authorId")
+                }
+            )
+        }
+
+
 
         composable(
             route = "author/{userId}",

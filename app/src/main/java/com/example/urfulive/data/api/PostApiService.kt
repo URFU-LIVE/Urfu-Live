@@ -78,4 +78,20 @@ class PostApiService : BaseApiService() {
             }
         }
     }
+
+    suspend fun searchByTag(tag: String, limit: Int = 20, offset: Int = 0): Result<List<PostDto>> {
+        val token = getToken()
+        return authorizedRequest {
+            client.get("$baseUrl/posts") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+                url {
+                    parameters.append("tag", tag)
+                    parameters.append("limit", limit.toString())
+                    parameters.append("offset", offset.toString())
+                }
+            }
+        }
+    }
 }

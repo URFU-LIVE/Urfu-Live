@@ -104,6 +104,7 @@ import com.example.urfulive.ui.main.PostColorPattern
 import com.example.urfulive.ui.main.PostColorPatterns
 import com.example.urfulive.ui.main.PostViewModel
 import com.example.urfulive.ui.notifiaction.NotificationsScreen
+import com.example.urfulive.ui.search.SearchScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -429,7 +430,8 @@ fun PostCard(
 }
 
 @Composable
-fun TopBar(onNotificationsClick: () -> Unit) {
+fun TopBar(onNotificationsClick: () -> Unit,
+           onSearchClick: () -> Unit) {
     val screenInfo = rememberScreenSizeInfo()
     val safeAreaPadding = adaptiveSafeAreaPadding(screenInfo)
 
@@ -456,7 +458,7 @@ fun TopBar(onNotificationsClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.search),
                 contentDescription = "Поиск",
                 modifier = Modifier
-                    .clickable { /* TODO */ }
+                    .clickable { onSearchClick() }
             )
         }
     }
@@ -550,6 +552,9 @@ fun CarouselScreen(
     val fixedOpenDuration = if (screenInfo.isCompact) 600 else 750
     val fixedSwipeDuration = if (screenInfo.isCompact) 250 else 300
     val fullExpandDuration = if (screenInfo.isCompact) 350 else 400
+
+    var showSearchOverlay by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(postsState) {
         if (postsState.isNotEmpty()) {
@@ -826,11 +831,27 @@ fun CarouselScreen(
                     .align(Alignment.TopCenter)
                     .zIndex(if (showNotificationsOverlay) 0f else 1f)
             ) {
-                TopBar(onNotificationsClick = { showNotificationsOverlay = true })
+                TopBar(onNotificationsClick = { showNotificationsOverlay = true },
+                    onSearchClick = { showSearchOverlay = true })
             }
 
             if (showNotificationsOverlay) {
                 NotificationsScreen(onClose = { showNotificationsOverlay = false })
+            }
+
+            if (showSearchOverlay) {
+                SearchScreen(
+                    onClose = { showSearchOverlay = false },
+                    onPostClick = { post ->
+                        // Можно добавить навигацию к посту или открыть его
+                        showSearchOverlay = false
+                        // onPostClick(post) если нужно
+                    },
+                    onAuthorClick = { authorId ->
+                        showSearchOverlay = false
+                        onAuthorClick(authorId)
+                    }
+                )
             }
         }
 
