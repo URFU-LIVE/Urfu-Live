@@ -473,9 +473,13 @@ fun CreateArticle(
                     onDismissRequest = { showSuggestions = false },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = horizontalPadding)
                         .background(Color(0xFF232323))
                         .clip(RoundedCornerShape(8.dp)),
-                    properties = PopupProperties(focusable = false)
+                    properties = PopupProperties(focusable = false),
+                    containerColor = Color(0xFF131313),
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp
                 ) {
                     // Показываем найденные теги с подсветкой
                     suggestions.forEach { suggestion ->
@@ -486,7 +490,7 @@ fun CreateArticle(
                             onClick = { selectTag(suggestion) },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF2A2A2A))
+                                .background(Color(0xFF232323))
                         )
                     }
 
@@ -512,7 +516,7 @@ fun CreateArticle(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(Color(0xFF2A2A2A))
+                                .background(Color(0xFF232323))
                         )
                     }
                 }
