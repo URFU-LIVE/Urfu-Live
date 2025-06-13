@@ -211,11 +211,20 @@ fun AppNavHost() {
             )
         }
 
-        composable("search") {
+        composable(
+            route = "search?tag={tag}",
+            arguments = listOf(navArgument("tag") {
+                type = NavType.StringType
+                defaultValue = ""
+                nullable = true
+            })
+        ) { backStackEntry ->
+            val selectedTag = backStackEntry.arguments?.getString("tag") ?: ""
+
             SearchScreen(
+                initialTag = selectedTag, // Передаем тег как есть
                 onClose = { navController.popBackStack() },
                 onPostClick = { post ->
-                    // Навигация к детальному просмотру поста
                     navController.navigate("postDetail/${post.id}")
                 },
                 onAuthorClick = { authorId ->
@@ -257,6 +266,7 @@ fun MainScreenWithOverlays(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         CarouselScreen(
+            navController = navController,
             onProfileClick = { navController.navigate("profile") },
             onAuthorClick = { authorId -> navController.navigate("author/$authorId") },
             showNavBar = true,

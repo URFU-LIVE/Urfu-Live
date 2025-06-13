@@ -18,8 +18,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -104,6 +106,7 @@ import com.example.urfulive.ui.main.PostColorPattern
 import com.example.urfulive.ui.main.PostColorPatterns
 import com.example.urfulive.ui.main.PostViewModel
 import com.example.urfulive.ui.notifiaction.NotificationsScreen
+import com.example.urfulive.ui.search.SearchBar
 import com.example.urfulive.ui.search.SearchScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -148,7 +151,8 @@ fun ArticlesScreenPreview() {
     )
     CarouselScreen(
         onProfileClick = {},
-        onCommentsClick = {}
+        onCommentsClick = {},
+        navController = previewNavController
     )
 }
 
@@ -502,6 +506,7 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun CarouselScreen(
+    navController: NavController,
     viewModel: PostViewModel = viewModel(),
     onProfileClick: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
@@ -553,8 +558,7 @@ fun CarouselScreen(
     val fixedSwipeDuration = if (screenInfo.isCompact) 250 else 300
     val fullExpandDuration = if (screenInfo.isCompact) 350 else 400
 
-    var showSearchOverlay by remember { mutableStateOf(false) }
-
+    var showSearchBar by remember { mutableStateOf(false) }
 
     LaunchedEffect(postsState) {
         if (postsState.isNotEmpty()) {
@@ -661,7 +665,7 @@ fun CarouselScreen(
         expandedIndex != -1 -> {
             val startPos = cardTopPositions.value[expandedIndex] ?: 0f
             if (isFullyExpanded || fullExpansionProgress > 0f) {
-                androidx.compose.ui.util.lerp(startPos, fullExpandTopY, fullExpansionProgress) + dragOffset
+                lerp(startPos, fullExpandTopY, fullExpansionProgress) + dragOffset
             } else {
                 startPos + dragOffset
             }
@@ -832,26 +836,55 @@ fun CarouselScreen(
                     .zIndex(if (showNotificationsOverlay) 0f else 1f)
             ) {
                 TopBar(onNotificationsClick = { showNotificationsOverlay = true },
-                    onSearchClick = { showSearchOverlay = true })
+                    onSearchClick = { showSearchBar = true })
             }
 
             if (showNotificationsOverlay) {
                 NotificationsScreen(onClose = { showNotificationsOverlay = false })
             }
 
-            if (showSearchOverlay) {
-                SearchScreen(
-                    onClose = { showSearchOverlay = false },
-                    onPostClick = { post ->
-                        // Можно добавить навигацию к посту или открыть его
-                        showSearchOverlay = false
-                        // onPostClick(post) если нужно
-                    },
-                    onAuthorClick = { authorId ->
-                        showSearchOverlay = false
-                        onAuthorClick(authorId)
+            if (showSearchBar) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(300f)
+                        .pointerInput(Unit) {
+                            // Перехватываем все касания на уровне экрана
+                            detectTapGestures(
+                                onTap = { offset ->
+                                    // Здесь можно добавить логику для определения
+                                    // попадания в область SearchBar, если нужно
+                                    showSearchBar = false
+                                }
+                            )
+                        }
+                ) {
+                    // SearchBar
+                    Box(
+                        modifier = Modifier.align(Alignment.TopCenter)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .pointerInput(Unit) {
+                                    // Предотвращаем закрытие при клике на SearchBar
+                                    detectTapGestures(
+                                        onTap = { /* Ничего не делаем - блокируем событие */ }
+                                    )
+                                }
+                        ) {
+                            SearchBar(
+                                onClose = { showSearchBar = false },
+                                onTagSelected = { selectedTag ->
+                                    showSearchBar = false
+                                    val safeTag = selectedTag.replace(" ", "_")
+                                    navController.navigate("search?tag=${safeTag}")
+                                },
+                                screenInfo = screenInfo
+                            )
+                        }
                     }
-                )
+                }
             }
         }
 
@@ -861,7 +894,7 @@ fun CarouselScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         enabled = expandedIndex != -1 && !isClosing && !isAnimationInProgress
                     ) {
@@ -891,7 +924,7 @@ fun CarouselScreen(
                         shape = RoundedCornerShape(52.dp)
                     )
                     .clickable(
-                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) { }
                     .zIndex(10f)

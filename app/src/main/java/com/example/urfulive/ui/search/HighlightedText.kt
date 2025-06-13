@@ -1,65 +1,71 @@
 package com.example.urfulive.ui.search
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun HighlightedText(
     text: String,
     query: String,
-    highlightColor: Color = Color.White,
-    normalColor: Color = Color.Gray
+    highlightColor: Color,
+    normalColor: Color,
+    modifier: Modifier = Modifier
 ) {
     if (query.isBlank()) {
         Text(
             text = text,
             color = normalColor,
-            style = MaterialTheme.typography.bodyMedium
+            modifier = modifier
         )
         return
     }
 
-    val startIndex = text.lowercase().indexOf(query.lowercase())
+    val annotatedString = buildAnnotatedString {
+        val lowerCaseText = text.lowercase()
+        val lowerCaseQuery = query.lowercase()
+        var lastIndex = 0
+        var startIndex = lowerCaseText.indexOf(lowerCaseQuery, lastIndex)
 
-    if (startIndex >= 0) {
-        val endIndex = startIndex + query.length
-
-        Row {
-            // Текст до совпадения
-            if (startIndex > 0) {
-                Text(
-                    text = text.substring(0, startIndex),
-                    color = normalColor,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+        while (startIndex != -1) {
+            // Добавляем текст до найденного совпадения
+            if (startIndex > lastIndex) {
+                withStyle(style = SpanStyle(color = normalColor)) {
+                    append(text.substring(lastIndex, startIndex))
+                }
             }
 
-            // Выделенный текст
-            Text(
-                text = text.substring(startIndex, endIndex),
-                color = highlightColor,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-            )
-
-            // Текст после совпадения
-            if (endIndex < text.length) {
-                Text(
-                    text = text.substring(endIndex),
-                    color = normalColor,
-                    style = MaterialTheme.typography.bodyMedium
+            // Добавляем найденное совпадение с подсветкой
+            withStyle(
+                style = SpanStyle(
+                    color = highlightColor,
+                    fontWeight = FontWeight.Medium
                 )
+            ) {
+                append(text.substring(startIndex, startIndex + query.length))
+            }
+
+            lastIndex = startIndex + query.length
+            startIndex = lowerCaseText.indexOf(lowerCaseQuery, lastIndex)
+        }
+
+        // Добавляем оставшуюся часть текста
+        if (lastIndex < text.length) {
+            withStyle(style = SpanStyle(color = normalColor)) {
+                append(text.substring(lastIndex))
             }
         }
-    } else {
-        // Если совпадений нет, показываем обычный текст
-        Text(
-            text = text,
-            color = normalColor,
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
+
+    Text(
+        text = annotatedString,
+        modifier = modifier,
+        fontSize = 14.sp
+    )
 }

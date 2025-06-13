@@ -82,6 +82,7 @@ import rememberScreenSizeInfo
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(
+    initialTag: String = "",
     onClose: () -> Unit = {},
     onPostClick: (Post) -> Unit = {},
     onAuthorClick: (String) -> Unit = {},
@@ -98,6 +99,13 @@ fun SearchScreen(
     val showSuggestions by viewModel.showSuggestions.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
     val hasSearched by viewModel.hasSearched.collectAsState()
+
+    LaunchedEffect(initialTag) {
+        if (initialTag.isNotBlank()) {
+            viewModel.updateSearchQuery(initialTag)
+            viewModel.searchByTag(initialTag)
+        }
+    }
 
     // Анимации
     val animatedAlpha = remember { Animatable(if (enableAnimations) 0f else 1f) }
