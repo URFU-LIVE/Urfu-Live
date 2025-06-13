@@ -22,7 +22,9 @@ fun HighlightedText(
         Text(
             text = text,
             color = normalColor,
-            modifier = modifier
+            modifier = modifier,
+            fontSize = 14.sp,
+            lineHeight = 16.sp,
         )
         return
     }

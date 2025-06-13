@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/urfulive/ui/search/SearchBar.kt
 package com.example.urfulive.ui.search
 
 import ScreenSizeInfo
@@ -8,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
@@ -43,6 +44,7 @@ fun SearchBar(
     val tagSuggestions by viewModel.tagSuggestions.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val showSuggestions by viewModel.showSuggestions.collectAsState()
+    val hasSuggestions = tagSuggestions.isNotEmpty()
 
     // Анимации
     val animatedAlpha = remember {
@@ -107,7 +109,9 @@ fun SearchBar(
                     }
                 },
                 onBackClick = onClose,
-                screenInfo = screenInfo
+                screenInfo = screenInfo,
+                showSuggestions = showSuggestions,
+                hasSuggestions = hasSuggestions
             )
 
             SearchSuggestions(
@@ -127,7 +131,9 @@ private fun SearchInputRow(
     onQueryChange: (String) -> Unit,
     onSearchClick: () -> Unit,
     onBackClick: () -> Unit,
-    screenInfo: ScreenSizeInfo
+    screenInfo: ScreenSizeInfo,
+    showSuggestions: Boolean,
+    hasSuggestions: Boolean
 ) {
     val safeAreaPadding = adaptiveSafeAreaPadding(screenInfo)
     Row(
@@ -143,6 +149,8 @@ private fun SearchInputRow(
             isLoading = isLoading,
             onSearchClick = onSearchClick,
             screenInfo = screenInfo,
+            showSuggestions = showSuggestions,
+            hasSuggestions = hasSuggestions,
             modifier = Modifier.weight(1f)
         )
     }
@@ -155,8 +163,22 @@ private fun SearchTextField(
     isLoading: Boolean,
     onSearchClick: () -> Unit,
     screenInfo: ScreenSizeInfo,
+    showSuggestions: Boolean,
+    hasSuggestions: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val bottomRadius by animateDpAsState(
+        targetValue = if (showSuggestions && hasSuggestions) {
+            0.dp // Прямые углы когда есть подсказки
+        } else {
+            SearchTheme.Dimensions.SuggestionRadius // Круглые когда нет
+        },
+        animationSpec = tween(
+            durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION, // Такая же продолжительность как у подсказок
+            easing = FastOutSlowInEasing // Тот же easing
+        ),
+        label = "bottomRadius"
+    )
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -177,7 +199,7 @@ private fun SearchTextField(
             unfocusedBorderColor = SearchTheme.Colors.Transparent,
             cursorColor = SearchTheme.Colors.TextPrimary
         ),
-        shape = RoundedCornerShape(SearchTheme.Dimensions.BorderRadius),
+        shape = RoundedCornerShape(topStart = SearchTheme.Dimensions.SuggestionRadius, topEnd = SearchTheme.Dimensions.SuggestionRadius, bottomEnd = bottomRadius, bottomStart = bottomRadius),
         singleLine = true,
         trailingIcon = {
             when {
@@ -212,20 +234,41 @@ private fun SearchSuggestions(
 ) {
     AnimatedVisibility(
         visible = visible,
-        enter = expandVertically() + fadeIn(),
-        exit = shrinkVertically() + fadeOut()
-    ) {
+        enter = fadeIn(
+            animationSpec = tween(
+                durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+                easing = FastOutSlowInEasing
+            )
+        ) + expandVertically(
+            animationSpec = tween(
+                durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+                easing = FastOutSlowInEasing
+            ),
+            expandFrom = Alignment.Top // ← Ключевое изменение
+        ),
+        exit = fadeOut(
+            animationSpec = tween(
+                durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+                easing = FastOutSlowInEasing
+            )
+        ) + shrinkVertically(
+            animationSpec = tween(
+                durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+                easing = FastOutSlowInEasing
+            ),
+            shrinkTowards = Alignment.Top // ← Ключевое изменение
+        )) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = SearchTheme.Dimensions.SuggestionsTopPadding)
+//                .padding(top = SearchTheme.Dimensions.SuggestionsTopPadding)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         SearchTheme.Colors.SuggestionsBackground,
-                        RoundedCornerShape(SearchTheme.Dimensions.SuggestionRadius)
+                        RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomEnd =SearchTheme.Dimensions.SuggestionRadius, bottomStart = SearchTheme.Dimensions.SuggestionRadius)
                     )
                     .heightIn(max = SearchTheme.Dimensions.SuggestionMaxHeight)
             ) {

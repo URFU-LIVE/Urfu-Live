@@ -32,7 +32,10 @@ class SearchBarViewModel : ViewModel() {
             loadTagSuggestions(query)
             _showSuggestions.value = true
         } else {
-            hideSuggestions()
+            viewModelScope.launch {
+                delay(150) // Даем время анимации начаться
+                _showSuggestions.value = false
+            }
         }
     }
 

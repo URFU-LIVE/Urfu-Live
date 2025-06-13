@@ -9,7 +9,7 @@ object SearchTheme {
     object Colors {
         val SearchBarBackground = Color(0xFF131313)
         val TextFieldBackground = Color(0xFF292929)
-        val SuggestionsBackground = Color(0xFF232323)
+        val SuggestionsBackground = Color(0xFF292929)
         val AccentColor = Color(0xFFEE7E56)
         val TextPrimary = Color.White
         val TextSecondary = Color.Gray
@@ -25,7 +25,7 @@ object SearchTheme {
         val SmallIconSize = 20.dp
         val SpacerWidth = 12.dp
         val BorderRadius = 52.dp
-        val SuggestionRadius = 12.dp
+        val SuggestionRadius = 30.dp
         val SuggestionMaxHeight = 200.dp
         val SuggestionItemPadding = 16.dp
         val SuggestionItemVerticalPadding = 12.dp
@@ -38,6 +38,7 @@ object SearchTheme {
     // Анимации
     object Animation {
         const val DURATION_FAST = 200
+        const val SUGGESTIONS_DURATION = 300
         const val DEBOUNCE_DELAY = 300L
         const val INITIAL_ALPHA = 0f
         const val FINAL_ALPHA = 1f
