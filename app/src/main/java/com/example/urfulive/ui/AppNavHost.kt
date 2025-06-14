@@ -11,11 +11,14 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.ui.comments.CommentsScreen
+import com.example.urfulive.ui.main.PostViewModel
 import com.example.urfulive.ui.profile.EditProfile
+import com.example.urfulive.ui.profile.ExpandedPostOverlay
 import com.example.urfulive.ui.profile.ProfileScreen
 import com.example.urfulive.ui.profile.ProfileViewModel
 import com.example.urfulive.ui.saved.SavedPostsScreen
 import com.example.urfulive.ui.search.SearchScreen
+import com.example.urfulive.ui.search.SearchViewModel
 import com.example.urfulive.ui.settings.SettingsScreen
 import com.example.urfulive.ui.settings.account.AccountSettings
 import com.example.urfulive.ui.settings.notification.NotificationsSettings
@@ -220,20 +223,27 @@ fun AppNavHost() {
             })
         ) { backStackEntry ->
             val selectedTag = backStackEntry.arguments?.getString("tag") ?: ""
-
+            val searchViewModel: SearchViewModel = viewModel()
+            val postViewModel: PostViewModel = viewModel()
             SearchScreen(
-                initialTag = selectedTag, // Передаем тег как есть
+                initialTag = selectedTag,
                 onClose = { navController.popBackStack() },
                 onPostClick = { post ->
-                    navController.navigate("postDetail/${post.id}")
+                    // Этот колбэк больше не используется, так как посты раскрываются внутри SearchScreen
                 },
                 onAuthorClick = { authorId ->
-                    navController.navigate("author/$authorId")
-                }
+                    // Навигация к профилю автора
+                    navController.navigate("profile/$authorId")
+                },
+                onCommentsClick = { postId ->
+                    // ✅ Навигация к экрану комментариев
+                    navController.navigate("comments/$postId")
+                },
+                viewModel = searchViewModel,
+                enableAnimations = true,
+                postViewModel = postViewModel // ✅ Передаем PostViewModel для лайков
             )
         }
-
-
 
         composable(
             route = "author/{userId}",

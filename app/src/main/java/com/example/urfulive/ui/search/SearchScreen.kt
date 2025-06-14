@@ -7,14 +7,9 @@ import TagChip
 import TagSizes
 import adaptiveTextStyle
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,7 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -76,6 +71,8 @@ import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.ui.main.PostColorPatterns
+import com.example.urfulive.ui.main.PostViewModel
+import com.example.urfulive.ui.profile.ExpandedPostOverlay
 import kotlinx.coroutines.launch
 import rememberScreenSizeInfo
 
@@ -86,8 +83,10 @@ fun SearchScreen(
     onClose: () -> Unit = {},
     onPostClick: (Post) -> Unit = {},
     onAuthorClick: (String) -> Unit = {},
+    onCommentsClick: (Long) -> Unit = {},
     viewModel: SearchViewModel = viewModel(),
-    enableAnimations: Boolean = true
+    enableAnimations: Boolean = true,
+    postViewModel: PostViewModel = viewModel(),
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -99,6 +98,31 @@ fun SearchScreen(
     val showSuggestions by viewModel.showSuggestions.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
     val hasSearched by viewModel.hasSearched.collectAsState()
+
+    var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
+
+    expandedPostIndex?.let { index ->
+        if (index < searchResults.size) {
+            ExpandedPostOverlay(
+                post = searchResults[index],
+                onClose = { expandedPostIndex = null },
+                onCommentsClick = { onCommentsClick(searchResults[index].id) },
+                viewModel = postViewModel
+            )
+        }
+    }
+
+    val searchBarAdapter = remember(viewModel) {
+        SearchViewModel.SearchBarAdapter(viewModel)
+    }
+
+    BackHandler {
+        if (expandedPostIndex != null) {
+            expandedPostIndex = null
+        } else {
+            onClose()
+        }
+    }
 
     LaunchedEffect(initialTag) {
         if (initialTag.isNotBlank()) {
@@ -128,8 +152,6 @@ fun SearchScreen(
         }
     }
 
-    BackHandler { onClose() }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -141,66 +163,43 @@ fun SearchScreen(
                 } else Modifier
             )
             .background(Color(0xFF131313))
-            .systemBarsPadding()
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header с поиском
-            SearchHeader(
-                searchQuery = searchQuery,
-                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
-                onSearchSubmit = { viewModel.searchByTag(it) },
+            SearchBar(
                 onClose = onClose,
+                onTagSelected = { tag ->
+                    viewModel.selectSuggestion(tag)
+                    viewModel.searchByTag(tag)
+                },
                 screenInfo = screenInfo,
-                isLoading = isLoading
+                adapter = searchBarAdapter,
+                enableAnimations = enableAnimations,
+                showBackButton = true
             )
-
-            // Подсказки тегов
-            Box(modifier = Modifier.fillMaxWidth()) {
-                DropdownMenu(
-                    expanded = showSuggestions && tagSuggestions.isNotEmpty(),
-                    onDismissRequest = { viewModel.hideSuggestions() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = if (screenInfo.isCompact) 16.dp else 24.dp)
-                        .heightIn(max = 200.dp),
-                    properties = PopupProperties(focusable = false),
-                    containerColor = Color(0xFF232323)
-                ) {
-                    tagSuggestions.forEach { suggestion ->
-                        DropdownMenuItem(
-                            text = {
-                                HighlightedText(
-                                    text = suggestion,
-                                    query = searchQuery.trim(),
-                                    highlightColor = Color.White,
-                                    normalColor = Color.Gray
-                                )
-                            },
-                            onClick = { viewModel.selectSuggestion(suggestion) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            }
 
             // Контент
             when {
                 isLoading -> {
                     LoadingContent(screenInfo)
                 }
+
                 hasSearched && searchResults.isEmpty() -> {
                     EmptySearchResults(searchQuery, screenInfo)
                 }
+
                 hasSearched && searchResults.isNotEmpty() -> {
                     SearchResultsList(
                         posts = searchResults,
-                        onPostClick = onPostClick,
+                        onPostClick = { index -> expandedPostIndex = index },
                         onAuthorClick = onAuthorClick,
-                        screenInfo = screenInfo
+                        onCommentsClick = onCommentsClick,
+                        screenInfo = screenInfo,
+                        postViewModel = postViewModel
                     )
                 }
+
                 else -> {
                     DefaultSearchContent(
                         recentSearches = recentSearches,
@@ -220,7 +219,7 @@ private fun SearchHeader(
     onSearchSubmit: (String) -> Unit,
     onClose: () -> Unit,
     screenInfo: ScreenSizeInfo,
-    isLoading: Boolean
+    isLoading: Boolean,
 ) {
     Box(
         modifier = Modifier
@@ -313,7 +312,7 @@ private fun LoadingContent(screenInfo: ScreenSizeInfo) {
 @Composable
 private fun EmptySearchResults(
     searchQuery: String,
-    screenInfo: ScreenSizeInfo
+    screenInfo: ScreenSizeInfo,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -359,7 +358,7 @@ private fun EmptySearchResults(
 private fun DefaultSearchContent(
     recentSearches: List<String>,
     onRecentSearchClick: (String) -> Unit,
-    screenInfo: ScreenSizeInfo
+    screenInfo: ScreenSizeInfo,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -426,7 +425,10 @@ private fun DefaultSearchContent(
                         Text(
                             text = tag,
                             color = Color.White,
-                            style = adaptiveTextStyle(MaterialTheme.typography.labelSmall, screenInfo)
+                            style = adaptiveTextStyle(
+                                MaterialTheme.typography.labelSmall,
+                                screenInfo
+                            )
                         )
                     }
                 }
@@ -438,9 +440,11 @@ private fun DefaultSearchContent(
 @Composable
 private fun SearchResultsList(
     posts: List<Post>,
-    onPostClick: (Post) -> Unit,
+    onPostClick: (Int) -> Unit,
     onAuthorClick: (String) -> Unit,
-    screenInfo: ScreenSizeInfo
+    onCommentsClick: (Long) -> Unit,
+    screenInfo: ScreenSizeInfo,
+    postViewModel: PostViewModel,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -452,23 +456,32 @@ private fun SearchResultsList(
     ) {
         item {
             Text(
-                text = "Найдено ${posts.size} ${when {
-                    posts.size % 10 == 1 && posts.size % 100 != 11 -> "пост"
-                    posts.size % 10 in 2..4 && posts.size % 100 !in 12..14 -> "поста"
-                    else -> "постов"
-                }}",
+                text = "${
+                    when {
+                        posts.size % 10 == 1 && posts.size % 100 != 11 -> "Найден"
+                        else -> "Найдено"
+                    }
+                } ${posts.size} ${
+                    when {
+                        posts.size % 10 == 1 && posts.size % 100 != 11 -> "пост"
+                        posts.size % 10 in 2..4 && posts.size % 100 !in 12..14 -> "поста"
+                        else -> "постов"
+                    }
+                }",
                 style = adaptiveTextStyle(MaterialTheme.typography.bodyLarge, screenInfo),
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
 
-        items(posts) { post ->
+        itemsIndexed(posts) { index, post ->
             SearchPostCard(
                 post = post,
-                onClick = { onPostClick(post) },
+                onClick = { onPostClick(index) },
                 onAuthorClick = { onAuthorClick(post.author.id) },
-                screenInfo = screenInfo
+                onCommentsClick = onCommentsClick,
+                screenInfo = screenInfo,
+                postViewModel = postViewModel
             )
         }
     }
@@ -480,10 +493,22 @@ private fun SearchPostCard(
     post: Post,
     onClick: () -> Unit,
     onAuthorClick: () -> Unit,
-    screenInfo: ScreenSizeInfo
+    onCommentsClick: (Long) -> Unit,
+    screenInfo: ScreenSizeInfo,
+    postViewModel: PostViewModel,
 ) {
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val colorPattern = PostColorPatterns[colorPatternIndex]
+
+    val likedPosts by postViewModel.likedPostIds.collectAsState()
+    val likesLoading by postViewModel.likesLoading.collectAsState()
+
+    val postLikes by postViewModel.postLikes.collectAsState()
+
+    val isLiked = likedPosts.contains(post.id)
+    val isLikeLoading = likesLoading.contains(post.id)
+
+    val actualLikesCount = postLikes[post.id] ?: post.likes
 
     Card(
         modifier = Modifier
@@ -516,7 +541,14 @@ private fun SearchPostCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Medium)))
+            Spacer(
+                modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Medium
+                    )
+                )
+            )
 
             // Автор
             Row(
@@ -560,7 +592,14 @@ private fun SearchPostCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Medium)))
+            Spacer(
+                modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Medium
+                    )
+                )
+            )
 
             // Теги
             FlowRow(
@@ -576,7 +615,14 @@ private fun SearchPostCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Medium)))
+            Spacer(
+                modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Medium
+                    )
+                )
+            )
 
             // Превью текста
             Text(
@@ -587,7 +633,14 @@ private fun SearchPostCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Small)))
+            Spacer(
+                modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Small
+                    )
+                )
+            )
 
             // Статистика
             Row(
@@ -596,35 +649,70 @@ private fun SearchPostCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.clickable(
+                        enabled = !isLikeLoading
+                    ) {
+                        postViewModel.likeAndDislike(post.id)
+                    }
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.likebottom),
-                        contentDescription = "Лайки",
-                        modifier = Modifier.size(16.dp),
-                        colorFilter = ColorFilter.tint(colorPattern.reactionColor)
-                    )
+//                    if (isLikeLoading) {
+//                        CircularProgressIndicator(
+//                            modifier = Modifier.size(16.dp),
+//                            color = colorPattern.reactionColor,
+//                            strokeWidth = 1.dp
+//                        )
+//                    } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(SearchAdaptiveSizes.reactionIconSize(screenInfo))
+                    ) {
+                        // ✅ Показываем заливку для лайкнутых постов
+                        if (isLiked) {
+                            Image(
+                                painter = painterResource(id = R.drawable.like_filling),
+                                contentDescription = null,
+                                colorFilter = ColorFilter.tint(colorPattern.reactionColorFilling),
+                                modifier = Modifier.size(
+                                    SearchAdaptiveSizes.reactionIconSize(
+                                        screenInfo
+                                    ) - 2.dp
+                                )
+                            )
+                        }
+
+                        Image(
+                            painter = painterResource(id = R.drawable.likebottom),
+                            contentDescription = "Лайки",
+                            modifier = Modifier.fillMaxSize(),
+                            colorFilter = ColorFilter.tint(colorPattern.reactionColor)
+                        )
+                    }
+                    //}
                     Text(
-                        text = post.likes.toString(),
+                        text = actualLikesCount.toString(),
                         color = colorPattern.textColor,
-                        style = adaptiveTextStyle(MaterialTheme.typography.displaySmall, screenInfo)
+                        style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo)
                     )
                 }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.clickable {
+                        onCommentsClick(post.id)
+                    }
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.commentbottom),
                         contentDescription = "Комментарии",
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(SearchAdaptiveSizes.reactionIconSize(screenInfo)),
                         colorFilter = ColorFilter.tint(colorPattern.reactionColor)
                     )
                     Text(
                         text = post.comments.toString(),
                         color = colorPattern.textColor,
-                        style = adaptiveTextStyle(MaterialTheme.typography.displaySmall, screenInfo)
+                        style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo)
                     )
                 }
             }

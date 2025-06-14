@@ -133,4 +133,27 @@ class SearchViewModel : ViewModel() {
     fun hideSuggestions() {
         _showSuggestions.value = false
     }
+
+    class SearchBarAdapter(
+        private val searchViewModel: SearchViewModel
+    ) {
+        // Пробрасываем состояния
+        val searchQuery = searchViewModel.searchQuery
+        val tagSuggestions = searchViewModel.tagSuggestions
+        val isLoading = searchViewModel.isLoading
+        val showSuggestions = searchViewModel.showSuggestions
+
+        // Пробрасываем методы
+        fun updateSearchQuery(query: String) {
+            searchViewModel.updateSearchQuery(query)
+        }
+
+        fun hideSuggestions() {
+            searchViewModel.hideSuggestions()
+        }
+
+        fun selectSuggestion(suggestion: String) {
+            searchViewModel.selectSuggestion(suggestion)
+        }
+    }
 }

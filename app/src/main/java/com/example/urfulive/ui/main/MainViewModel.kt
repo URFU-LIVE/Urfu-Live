@@ -59,6 +59,9 @@ class PostViewModel : ViewModel() {
     private val _likedPostIds = MutableStateFlow<Set<Long>>(emptySet())
     val likedPostIds: StateFlow<Set<Long>> = _likedPostIds
 
+    private val _postLikes = MutableStateFlow<Map<Long, Int>>(emptyMap())
+    val postLikes: StateFlow<Map<Long, Int>> = _postLikes
+
     private val _subscriptions = MutableStateFlow<Set<String>>(emptySet())
     val subscriptions: StateFlow<Set<String>> = _subscriptions
 
@@ -75,6 +78,11 @@ class PostViewModel : ViewModel() {
         }
     }
 
+    private fun initPostLikes(posts: List<Post>) {
+        val likesMap = posts.associate { it.id to it.likes }
+        _postLikes.value = likesMap
+    }
+
     private fun fetchPosts() {
         viewModelScope.launch {
             val result = postApiService.getRecommendation(0)
@@ -85,6 +93,7 @@ class PostViewModel : ViewModel() {
 
                 initLikedPosts(posts)
                 initSubscriptions(posts)
+                initPostLikes(posts)
             }.onFailure {
                 viewModelScope.launch {
                     val newResult = postApiService.getAll()
@@ -96,6 +105,7 @@ class PostViewModel : ViewModel() {
 
                         initLikedPosts(posts)
                         initSubscriptions(posts)
+                        initPostLikes(posts)
                     }.onFailure {
                         it.printStackTrace()
                     }
@@ -143,6 +153,8 @@ class PostViewModel : ViewModel() {
             val likedBy = post.likedBy.toMutableList()
             val userId = _currentUserId.value?.toInt() ?: return
 
+            val newLikesCount = if (isCurrentlyLiked) post.likes - 1 else post.likes + 1
+
             if (isCurrentlyLiked) {
                 likedBy.remove(userId)
             } else {
@@ -150,10 +162,14 @@ class PostViewModel : ViewModel() {
             }
 
             currentPosts[index] = post.copy(
-                likes = if (isCurrentlyLiked) post.likes - 1 else post.likes + 1,
+                likes = newLikesCount,
                 likedBy = likedBy
             )
             _posts.value = currentPosts
+
+            val currentLikes = _postLikes.value.toMutableMap()
+            currentLikes[id] = newLikesCount
+            _postLikes.value = currentLikes
         }
     }
 
@@ -276,5 +292,6 @@ class PostViewModel : ViewModel() {
     fun reinitializeStates(posts: List<Post>) {
         initLikedPosts(posts)
         initSubscriptions(posts)
+        initPostLikes(posts)
     }
 }

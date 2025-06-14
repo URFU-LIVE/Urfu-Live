@@ -61,6 +61,9 @@ fun ExpandedPostOverlay(
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
+    val postLikes by viewModel.postLikes.collectAsState()
+    val actualLikesCount = postLikes[post.id] ?: currentPost.likes
+
     val systemUiController = rememberSystemUiController()
     DisposableEffect(Unit) {
         systemUiController.setStatusBarColor(Color.Black)
@@ -239,7 +242,7 @@ fun ExpandedPostOverlay(
                     }
 
                     Text(
-                        text = currentPost.likes.toString(),
+                        text = actualLikesCount.toString(),
                         style = MaterialTheme.typography.displayLarge,
                         color = pattern.textColor
                     )

@@ -9,6 +9,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import com.example.urfulive.ui.theme.Montserrat
 
 @Composable
 fun HighlightedText(
@@ -23,8 +24,10 @@ fun HighlightedText(
             text = text,
             color = normalColor,
             modifier = modifier,
-            fontSize = 14.sp,
-            lineHeight = 16.sp,
+            fontFamily = Montserrat,
+            fontSize = 18.sp,
+            lineHeight = 18.sp,
+            fontWeight = FontWeight.SemiBold
         )
         return
     }
@@ -47,7 +50,6 @@ fun HighlightedText(
             withStyle(
                 style = SpanStyle(
                     color = highlightColor,
-                    fontWeight = FontWeight.Medium
                 )
             ) {
                 append(text.substring(startIndex, startIndex + query.length))
@@ -68,6 +70,9 @@ fun HighlightedText(
     Text(
         text = annotatedString,
         modifier = modifier,
-        fontSize = 14.sp
+        fontFamily = Montserrat,
+        fontSize = 18.sp,
+        lineHeight = 18.sp,
+        fontWeight = FontWeight.SemiBold
     )
 }

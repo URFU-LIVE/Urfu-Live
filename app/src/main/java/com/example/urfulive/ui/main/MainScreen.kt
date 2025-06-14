@@ -108,6 +108,7 @@ import com.example.urfulive.ui.main.PostViewModel
 import com.example.urfulive.ui.notifiaction.NotificationsScreen
 import com.example.urfulive.ui.search.SearchBar
 import com.example.urfulive.ui.search.SearchScreen
+import com.example.urfulive.ui.search.SearchViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -860,6 +861,10 @@ fun CarouselScreen(
                         }
                 ) {
                     // SearchBar
+                    val quickSearchViewModel: SearchViewModel = viewModel()
+                    val searchBarAdapter = remember(quickSearchViewModel) {
+                        SearchViewModel.SearchBarAdapter(quickSearchViewModel)
+                    }
                     Box(
                         modifier = Modifier.align(Alignment.TopCenter)
                     ) {
@@ -880,7 +885,8 @@ fun CarouselScreen(
                                     val safeTag = selectedTag.replace(" ", "_")
                                     navController.navigate("search?tag=${safeTag}")
                                 },
-                                screenInfo = screenInfo
+                                screenInfo = screenInfo,
+                                adapter = searchBarAdapter
                             )
                         }
                     }

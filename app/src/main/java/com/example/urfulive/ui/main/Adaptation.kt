@@ -363,3 +363,11 @@ object SavedPostsAdaptiveSizes {
         else -> 10.dp
     }
 }
+
+object SearchAdaptiveSizes {
+    @Composable
+    fun reactionIconSize(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 20.dp
+        else -> 25.dp
+    }
+}

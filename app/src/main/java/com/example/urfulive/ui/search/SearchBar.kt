@@ -26,7 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.urfulive.R
@@ -37,13 +39,14 @@ fun SearchBar(
     onClose: () -> Unit,
     onTagSelected: (String) -> Unit,
     screenInfo: ScreenSizeInfo,
-    viewModel: SearchBarViewModel = viewModel(),
-    enableAnimations: Boolean = true
+    adapter: SearchViewModel.SearchBarAdapter,
+    enableAnimations: Boolean = true,
+    showBackButton: Boolean = false
 ) {
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val tagSuggestions by viewModel.tagSuggestions.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val showSuggestions by viewModel.showSuggestions.collectAsState()
+    val searchQuery by adapter.searchQuery.collectAsState()
+    val tagSuggestions by adapter.tagSuggestions.collectAsState()
+    val isLoading by adapter.isLoading.collectAsState()
+    val showSuggestions by adapter.showSuggestions.collectAsState()
     val hasSuggestions = tagSuggestions.isNotEmpty()
 
     // Анимации
@@ -102,7 +105,7 @@ fun SearchBar(
             SearchInputRow(
                 searchQuery = searchQuery,
                 isLoading = isLoading,
-                onQueryChange = viewModel::updateSearchQuery,
+                onQueryChange = adapter::updateSearchQuery,
                 onSearchClick = {
                     if (searchQuery.isNotBlank()) {
                         onTagSelected(searchQuery.trim())
@@ -111,8 +114,30 @@ fun SearchBar(
                 onBackClick = onClose,
                 screenInfo = screenInfo,
                 showSuggestions = showSuggestions,
-                hasSuggestions = hasSuggestions
+                hasSuggestions = hasSuggestions,
+                showBackButton = showBackButton
             )
+            AnimatedVisibility(
+                visible = showSuggestions && tagSuggestions.isNotEmpty(),
+                enter = fadeIn(
+                    animationSpec = tween(
+                        durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ),
+                exit = fadeOut(
+                    animationSpec = tween(
+                        durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            ) {
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color(0xFF838383), // Добавить в SearchTheme если нет
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             SearchSuggestions(
                 visible = showSuggestions && tagSuggestions.isNotEmpty(),
@@ -133,16 +158,31 @@ private fun SearchInputRow(
     onBackClick: () -> Unit,
     screenInfo: ScreenSizeInfo,
     showSuggestions: Boolean,
-    hasSuggestions: Boolean
+    hasSuggestions: Boolean,
+    showBackButton: Boolean = false
 ) {
     val safeAreaPadding = adaptiveSafeAreaPadding(screenInfo)
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(
-            top = safeAreaPadding.calculateTopPadding()-15.dp,
-        )
+                top = safeAreaPadding.calculateTopPadding() - 15.dp,
+            )
     ) {
+        if (showBackButton && onBackClick != null) {
+            Image(
+                painter = painterResource(id = R.drawable.chevron_left),
+                contentDescription = "Назад",
+                modifier = Modifier
+                    .clickable { onBackClick() }
+                    .size(24.dp),
+                colorFilter = ColorFilter.tint(Color.White)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+        }
+
         SearchTextField(
             value = searchQuery,
             onValueChange = onQueryChange,
@@ -165,7 +205,7 @@ private fun SearchTextField(
     screenInfo: ScreenSizeInfo,
     showSuggestions: Boolean,
     hasSuggestions: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val bottomRadius by animateDpAsState(
         targetValue = if (showSuggestions && hasSuggestions) {
@@ -186,7 +226,13 @@ private fun SearchTextField(
             Text(
                 "Поиск по тегам...",
                 color = SearchTheme.Colors.TextSecondary,
-                style = adaptiveTextStyle(MaterialTheme.typography.bodyMedium, screenInfo)
+                style = adaptiveTextStyle(
+                    MaterialTheme.typography.titleSmall.copy(
+                        fontSize = 18.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    ), screenInfo
+                )
             )
         },
         modifier = modifier,
@@ -199,7 +245,12 @@ private fun SearchTextField(
             unfocusedBorderColor = SearchTheme.Colors.Transparent,
             cursorColor = SearchTheme.Colors.TextPrimary
         ),
-        shape = RoundedCornerShape(topStart = SearchTheme.Dimensions.SuggestionRadius, topEnd = SearchTheme.Dimensions.SuggestionRadius, bottomEnd = bottomRadius, bottomStart = bottomRadius),
+        shape = RoundedCornerShape(
+            topStart = SearchTheme.Dimensions.SuggestionRadius,
+            topEnd = SearchTheme.Dimensions.SuggestionRadius,
+            bottomEnd = bottomRadius,
+            bottomStart = bottomRadius
+        ),
         singleLine = true,
         trailingIcon = {
             when {
@@ -210,6 +261,7 @@ private fun SearchTextField(
                         strokeWidth = SearchTheme.Dimensions.LoadingStrokeWidth
                     )
                 }
+
                 value.isNotEmpty() -> {
                     Image(
                         painter = painterResource(id = R.drawable.search), // убедитесь что у вас есть этот ресурс
@@ -230,7 +282,7 @@ private fun SearchSuggestions(
     visible: Boolean,
     suggestions: List<String>,
     searchQuery: String,
-    onSuggestionClick: (String) -> Unit
+    onSuggestionClick: (String) -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -257,7 +309,8 @@ private fun SearchSuggestions(
                 easing = FastOutSlowInEasing
             ),
             shrinkTowards = Alignment.Top // ← Ключевое изменение
-        )) {
+        )
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -268,7 +321,12 @@ private fun SearchSuggestions(
                     .fillMaxWidth()
                     .background(
                         SearchTheme.Colors.SuggestionsBackground,
-                        RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomEnd =SearchTheme.Dimensions.SuggestionRadius, bottomStart = SearchTheme.Dimensions.SuggestionRadius)
+                        RoundedCornerShape(
+                            topStart = 0.dp,
+                            topEnd = 0.dp,
+                            bottomEnd = SearchTheme.Dimensions.SuggestionRadius,
+                            bottomStart = SearchTheme.Dimensions.SuggestionRadius
+                        )
                     )
                     .heightIn(max = SearchTheme.Dimensions.SuggestionMaxHeight)
             ) {
@@ -288,7 +346,7 @@ private fun SearchSuggestions(
 private fun SuggestionItem(
     text: String,
     query: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Box(
         modifier = Modifier
