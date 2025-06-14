@@ -2,6 +2,7 @@ package com.example.urfulive.ui.settings
 
 import NavbarCallbacks
 import ScreenSizeInfo
+import SettingsAdaptiveSizes.settingsItemIconSize
 import TokenManagerInstance
 import adaptiveTextStyle
 import androidx.activity.compose.BackHandler
@@ -51,17 +52,20 @@ fun SettingsScreen(
     currentScreen: String = "profile",
     navbarCallbacks: NavbarCallbacks? = null,
     viewModel: MainSettingViewModel = viewModel(),
-    onLeave: () -> Unit
+    onLeave: () -> Unit,
+    enableAnimation: Boolean = true
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val animatedAlpha = remember { Animatable(0f) }
-    val animatedOffset = remember { Animatable(screenHeight.value) }
+    val animatedAlpha = remember { Animatable(if (enableAnimation) 0f else 1f) }
+    val animatedOffset = remember { Animatable(if (enableAnimation) screenHeight.value else 0f) }
 
     val userState by viewModel.user.collectAsState()
     val scope = rememberCoroutineScope()
 
     var showCreateArticle by remember { mutableStateOf(false) }
+
+
 
     if (showCreateArticle) {
         Box(
@@ -80,18 +84,20 @@ fun SettingsScreen(
 
     BackHandler { onCloseOverlay() }
 
-    LaunchedEffect(Unit) {
-        launch {
-            animatedAlpha.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-            )
-        }
-        launch {
-            animatedOffset.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-            )
+    if (enableAnimation) {
+        LaunchedEffect(Unit) {
+            launch {
+                animatedAlpha.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                )
+            }
+            launch {
+                animatedOffset.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                )
+            }
         }
     }
 
@@ -265,7 +271,7 @@ fun SettingsItem(
             Image(
                 painter = painterResource(id = image),
                 contentDescription = "Icon",
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(settingsItemIconSize(screenInfo)),
             )
 
             Text(

@@ -273,6 +273,12 @@ object SettingsAdaptiveSizes {
             horizontal = 24.dp
         )
     }
+
+    @Composable
+    fun settingsItemIconSize(screenInfo: ScreenSizeInfo): Dp = when {
+        screenInfo.isCompact -> 40.dp
+        else -> 48.dp
+    }
 }
 
 // Адаптивные стили текста для настроек

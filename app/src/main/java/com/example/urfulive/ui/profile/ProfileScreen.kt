@@ -58,7 +58,7 @@ fun ProfileScreen(
     onCloseOverlay: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onSubscribeClick: () -> Unit = {},
-    onCommentsClick: () -> Unit = {},
+    onCommentsClick: (Long) -> Unit = {},
     postViewModel: PostViewModel = viewModel(),
     onNotificationsClick: () -> Unit = {}
 ) {
@@ -89,7 +89,9 @@ fun ProfileScreen(
             ExpandedPostOverlay(
                 post = posts[index],
                 onClose = { expandedPostIndex = null },
-                onCommentsClick = onCommentsClick,
+                onCommentsClick = { postId ->
+                    onCommentsClick(postId)
+                },
                 viewModel = postViewModel
             )
         }

@@ -142,7 +142,17 @@ fun AppNavHost() {
             )
         }
 
-        composable("settings") {
+        composable(
+            route = "settings?showAnimation={showAnimation}",
+            arguments = listOf(
+                navArgument("showAnimation") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            )
+        ) { backStackEntry ->
+            val showAnimation = backStackEntry.arguments?.getBoolean("showAnimation") ?: false
+
             SettingsScreen(
                 onCloseOverlay = { navController.navigate("profile") },
                 onAccountClick = { navController.navigate("accountSettings") },
@@ -150,13 +160,14 @@ fun AppNavHost() {
                 onPrivacyClick = { navController.navigate("privacySettings") },
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
                 navbarCallbacks = commonNavbarCallbacks(navController),
-                onLeave =  {navController.navigate("login") { popUpTo(0) { inclusive = true } }}
+                onLeave = { navController.navigate("login") { popUpTo(0) { inclusive = true } } },
+                enableAnimation = showAnimation
             )
         }
 
         composable("accountSettings") {
             AccountSettings(
-                onClose = { navController.navigate("settings") },
+                onClose = { navController.navigate("settings?showAnimation=false") },
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
                 navbarCallbacks = commonNavbarCallbacks(navController)
             )
@@ -164,7 +175,7 @@ fun AppNavHost() {
 
         composable("notificationsSettings") {
             NotificationsSettings(
-                onClose = { navController.navigate("settings") },
+                onClose = { navController.navigate("settings?showAnimation=false") },
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
                 navbarCallbacks = commonNavbarCallbacks(navController)
             )
@@ -172,7 +183,7 @@ fun AppNavHost() {
 
         composable("privacySettings") {
             PrivacySettings(
-                onClose = { navController.navigate("settings") },
+                onClose = { navController.navigate("settings?showAnimation=false") },
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
                 navbarCallbacks = commonNavbarCallbacks(navController)
             )
@@ -208,9 +219,14 @@ fun AppNavHost() {
                 onEditProfileClick = { navController.navigate("editProfile") },
                 navbarCallbacks = commonNavbarCallbacks(navController),
                 currentScreen = "profile",
-                onSettingsClick = { navController.navigate("settings") },
+                onSettingsClick = {
+                    navController.navigate("settings?showAnimation=true")
+                },
                 isOwnProfile = true,
-                onSavedClick = { navController.navigate("savedPosts") }
+                onSavedClick = { navController.navigate("savedPosts") },
+                onCommentsClick = { postId ->
+                    navController.navigate("comments/$postId")
+                }
             )
         }
 
@@ -263,7 +279,11 @@ fun AppNavHost() {
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
                 navbarCallbacks = commonNavbarCallbacks(navController),
                 currentScreen = "author",
-                onCloseOverlay = { navController.popBackStack() }
+                onCloseOverlay = { navController.popBackStack() },
+                onCommentsClick = { postId ->
+                    navController.navigate("comments/$postId")
+                }
+
             )
         }
     }

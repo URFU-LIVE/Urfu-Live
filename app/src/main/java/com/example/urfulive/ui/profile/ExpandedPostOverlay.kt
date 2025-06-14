@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 fun ExpandedPostOverlay(
     post: Post,
     onClose: () -> Unit,
-    onCommentsClick: () -> Unit = {},
+    onCommentsClick: (Long) -> Unit = {},
     viewModel: PostViewModel,
 ) {
     val scrollState = rememberScrollState()
@@ -254,7 +254,7 @@ fun ExpandedPostOverlay(
                         colorFilter = ColorFilter.tint(pattern.reactionColor),
                         contentDescription = "Comment",
                         modifier = Modifier
-                            .clickable { onCommentsClick() }
+                            .clickable { onCommentsClick(post.id) }
                             .size(35.dp)
                     )
 
