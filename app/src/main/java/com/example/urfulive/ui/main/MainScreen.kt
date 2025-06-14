@@ -153,7 +153,8 @@ fun ArticlesScreenPreview() {
     CarouselScreen(
         onProfileClick = {},
         onCommentsClick = {},
-        navController = previewNavController
+        navController = previewNavController,
+        viewModel = viewModel()
     )
 }
 
@@ -508,7 +509,7 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
 @Composable
 fun CarouselScreen(
     navController: NavController,
-    viewModel: PostViewModel = viewModel(),
+    viewModel: PostViewModel,
     onProfileClick: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
     showNavBar: Boolean = true,

@@ -59,7 +59,7 @@ fun ProfileScreen(
     onEditProfileClick: () -> Unit = {},
     onSubscribeClick: () -> Unit = {},
     onCommentsClick: (Long) -> Unit = {},
-    postViewModel: PostViewModel = viewModel(),
+    sharedPostViewModel: PostViewModel,
     onNotificationsClick: () -> Unit = {}
 ) {
     val user = viewModel.user
@@ -92,7 +92,7 @@ fun ProfileScreen(
                 onCommentsClick = { postId ->
                     onCommentsClick(postId)
                 },
-                viewModel = postViewModel
+                viewModel = sharedPostViewModel
             )
         }
     }

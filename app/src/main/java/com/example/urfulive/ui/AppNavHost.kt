@@ -37,6 +37,8 @@ fun AppNavHost() {
     val profileViewModel: ProfileViewModel = viewModel()
     val userApiService = UserApiService()
 
+    val sharedPostViewModel: PostViewModel = viewModel()
+
     val authState = remember { mutableStateOf<AuthState>(AuthState.Loading) }
 
     LaunchedEffect(Unit) {
@@ -110,7 +112,8 @@ fun AppNavHost() {
         composable("main") {
             MainScreenWithOverlays(
                 navController = navController,
-                profileViewModel = profileViewModel
+                profileViewModel = profileViewModel,
+                sharedPostViewModel = sharedPostViewModel
             )
         }
 
@@ -226,7 +229,8 @@ fun AppNavHost() {
                 onSavedClick = { navController.navigate("savedPosts") },
                 onCommentsClick = { postId ->
                     navController.navigate("comments/$postId")
-                }
+                },
+                sharedPostViewModel = sharedPostViewModel
             )
         }
 
@@ -240,7 +244,6 @@ fun AppNavHost() {
         ) { backStackEntry ->
             val selectedTag = backStackEntry.arguments?.getString("tag") ?: ""
             val searchViewModel: SearchViewModel = viewModel()
-            val postViewModel: PostViewModel = viewModel()
             SearchScreen(
                 initialTag = selectedTag,
                 onClose = { navController.popBackStack() },
@@ -257,7 +260,7 @@ fun AppNavHost() {
                 },
                 viewModel = searchViewModel,
                 enableAnimations = true,
-                postViewModel = postViewModel // ✅ Передаем PostViewModel для лайков
+                postViewModel = sharedPostViewModel
             )
         }
 
@@ -282,8 +285,8 @@ fun AppNavHost() {
                 onCloseOverlay = { navController.popBackStack() },
                 onCommentsClick = { postId ->
                     navController.navigate("comments/$postId")
-                }
-
+                },
+                sharedPostViewModel = sharedPostViewModel
             )
         }
     }
@@ -292,7 +295,8 @@ fun AppNavHost() {
 @Composable
 fun MainScreenWithOverlays(
     navController: NavHostController,
-    profileViewModel: ProfileViewModel
+    profileViewModel: ProfileViewModel,
+    sharedPostViewModel: PostViewModel
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         CarouselScreen(
@@ -303,7 +307,8 @@ fun MainScreenWithOverlays(
             onCommentsClick = { postId ->
                 navController.navigate("comments/$postId")
             },
-            onSavedPostsClick = {navController.navigate("savedPosts")}
+            onSavedPostsClick = {navController.navigate("savedPosts")},
+            viewModel = sharedPostViewModel
         )
     }
 }

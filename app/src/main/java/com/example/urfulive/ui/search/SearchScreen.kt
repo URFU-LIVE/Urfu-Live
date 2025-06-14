@@ -501,14 +501,12 @@ private fun SearchPostCard(
     val colorPattern = PostColorPatterns[colorPatternIndex]
 
     val likedPosts by postViewModel.likedPostIds.collectAsState()
-    val likesLoading by postViewModel.likesLoading.collectAsState()
-
     val postLikes by postViewModel.postLikes.collectAsState()
+    val isLikeLoading by postViewModel.likesLoading.collectAsState()
 
     val isLiked = likedPosts.contains(post.id)
-    val isLikeLoading = likesLoading.contains(post.id)
-
     val actualLikesCount = postLikes[post.id] ?: post.likes
+    val isCurrentlyLoading = isLikeLoading.contains(post.id)
 
     Card(
         modifier = Modifier
@@ -651,18 +649,12 @@ private fun SearchPostCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.clickable(
-                        enabled = !isLikeLoading
+                        enabled = !isCurrentlyLoading
                     ) {
                         postViewModel.likeAndDislike(post.id)
                     }
                 ) {
-//                    if (isLikeLoading) {
-//                        CircularProgressIndicator(
-//                            modifier = Modifier.size(16.dp),
-//                            color = colorPattern.reactionColor,
-//                            strokeWidth = 1.dp
-//                        )
-//                    } else {
+
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.size(SearchAdaptiveSizes.reactionIconSize(screenInfo))
@@ -688,7 +680,6 @@ private fun SearchPostCard(
                             colorFilter = ColorFilter.tint(colorPattern.reactionColor)
                         )
                     }
-                    //}
                     Text(
                         text = actualLikesCount.toString(),
                         color = colorPattern.textColor,

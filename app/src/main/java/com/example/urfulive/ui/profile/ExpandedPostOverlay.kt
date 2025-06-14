@@ -48,21 +48,22 @@ fun ExpandedPostOverlay(
     val scrollState = rememberScrollState()
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val pattern = PostColorPatterns[colorPatternIndex]
-    val view = androidx.compose.ui.platform.LocalView.current
     val tagScrollState = rememberScrollState()
 
     val posts by viewModel.posts.collectAsState()
-    val currentPost = posts.find { it.id == post.id } ?: post
     val likedPosts by viewModel.likedPostIds.collectAsState()
-    val isLiked = likedPosts.contains(post.id)
-
+    val postLikes by viewModel.postLikes.collectAsState()
     val subscriptions by viewModel.subscriptions.collectAsState()
+    val isLikeLoading by viewModel.likesLoading.collectAsState()
+
     val isSubscribed = subscriptions.contains(post.author.id)
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    val postLikes by viewModel.postLikes.collectAsState()
+    val currentPost = posts.find { it.id == post.id } ?: post
+    val isLiked = likedPosts.contains(post.id)
     val actualLikesCount = postLikes[post.id] ?: currentPost.likes
+    val isCurrentlyLoadingLike = isLikeLoading.contains(post.id)
 
     val systemUiController = rememberSystemUiController()
     DisposableEffect(Unit) {
