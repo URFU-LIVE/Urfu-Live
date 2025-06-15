@@ -41,6 +41,7 @@ import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.UserRole
 import com.example.urfulive.ui.createarticle.CreateArticle
 import com.example.urfulive.ui.createarticle.CreateArticleViewModel
+import com.example.urfulive.ui.savedPosts.SavedPostsViewModel
 import rememberScreenSizeInfo
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -110,7 +111,7 @@ fun SavedPostsScreen(
                         post = post,
                         screenInfo = screenInfo,
                         onPostClick = { onPostClick(post) },
-                        onRemoveFromSaved = { onRemoveFromSaved(post) }
+                        onRemoveFromSaved = { viewModel.removeFromSaved(post) }
                     )
                 }
 
@@ -260,7 +261,7 @@ fun SavedPostCard(
 
             // Иконка закладки
             IconButton(
-                onClick = onRemoveFromSaved,
+                onClick =  onRemoveFromSaved,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .size(SavedPostsAdaptiveSizes.bookmarkIconSize(screenInfo) + 8.dp)
@@ -316,77 +317,5 @@ fun EmptyStateMessage(screenInfo: ScreenSizeInfo) {
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
         }
-    }
-}
-
-// ViewModel для сохраненных постов
-class SavedPostsViewModel : ViewModel() {
-    private val _savedPosts = mutableStateOf<List<Post>>(emptyList())
-    val savedPosts: List<Post> by _savedPosts
-
-    init {
-        loadSavedPosts()
-    }
-
-    private fun loadSavedPosts() {
-        // Здесь будет загрузка сохраненных постов из базы данных или API
-        // Пока используем тестовые данные
-        _savedPosts.value = getSampleSavedPosts()
-    }
-
-    fun removeFromSaved(post: Post) {
-        _savedPosts.value = _savedPosts.value.filter { it.id != post.id }
-    }
-
-    private fun getSampleSavedPosts(): List<Post> {
-        val sampleUser = User(
-            id = "1",
-            username = "Peemkay_42",
-            avatarUrl = "",
-            backgroundUrl = "",
-            description = "",
-            followersCount = 42,
-            followers = emptyList(),
-            email = "asd",
-            role = UserRole.WRITER
-        )
-
-        val sampleTags = listOf(
-            Tag(1, "Учеба"),
-            Tag(2, "42Братухи")
-        )
-
-        return listOf(
-            Post(
-                id = 1,
-                title = "«42, Братухи»: что означает популярная фраза из «ТикТока»",
-                text = "",
-                author = sampleUser,
-                tags = sampleTags,
-                time = "",
-                likes = 0,
-                comments = 0
-            ),
-            Post(
-                id = 2,
-                title = "«42, Братухи»: что означает популярная фраза из «ТикТока»",
-                text = "",
-                author = sampleUser,
-                tags = sampleTags,
-                time = "",
-                likes = 0,
-                comments = 0
-            ),
-            Post(
-                id = 3,
-                title = "«42, Братухи»: что означает популярная фраза из «ТикТока»",
-                text = "",
-                author = sampleUser,
-                tags = sampleTags,
-                time = "",
-                likes = 0,
-                comments = 0
-            ),
-        )
     }
 }

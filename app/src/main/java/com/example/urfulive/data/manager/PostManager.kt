@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-private val Context.postsDataStore: DataStore<Preferences> by preferencesDataStore(name = "interest_preferences")
+private val Context.postsDataStore: DataStore<Preferences> by preferencesDataStore(name = "posts_preferences")
 
 object PostManagerInstance{
     @SuppressLint("StaticFieldLeak")
@@ -36,9 +36,19 @@ class PostManager(context: Context) {
         private val POSTS_KEY = stringSetPreferencesKey("selected_posts")
     }
 
-    suspend fun savePosts(posts: Set<Post>) {
+    suspend fun savePost(post: Post) {
         dataStore.edit { prefs ->
-            prefs[POSTS_KEY] = posts.map { it.id.toString() }.toSet()
+            val currentPosts = prefs[POSTS_KEY] ?: emptySet()
+            val updatedPosts = currentPosts + post.id.toString()
+            prefs[POSTS_KEY] = updatedPosts
+        }
+    }
+
+    suspend fun removePost(post: Post) {
+        dataStore.edit { prefs ->
+            val currentPosts = prefs[POSTS_KEY] ?: emptySet()
+            val updatedPosts = currentPosts - post.id.toString()
+            prefs[POSTS_KEY] = updatedPosts
         }
     }
 

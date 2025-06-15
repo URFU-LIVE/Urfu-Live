@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.api.PostApiService
 import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.data.manager.DtoManager
+import com.example.urfulive.data.manager.PostManagerInstance
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.ui.search.SearchViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -383,6 +384,12 @@ class PostViewModel : ViewModel() {
     fun refreshUserAuth() {
         viewModelScope.launch {
             Log.d("PostViewModel", "🔄 Manual auth refresh called")
+        }
+    }
+
+    fun savePost(post: Post) {
+        viewModelScope.launch {
+            PostManagerInstance.getInstance().savePost(post)
         }
     }
 }

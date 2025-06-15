@@ -96,6 +96,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.urfulive.R
 import com.example.urfulive.components.BottomNavBar
+import com.example.urfulive.data.manager.PostManagerInstance
 import com.example.urfulive.data.model.Post
 import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.User
@@ -246,7 +247,7 @@ fun PostCard(
             .background(pattern.background, shape = RoundedCornerShape(52.dp))
             .padding(cardPadding)
     ) {
-        val spacing = maxHeight * 0.025f
+        val spacing = maxHeight * 0.025f //todo
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -428,7 +429,7 @@ fun PostCard(
                     contentDescription = "Bookmark",
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
                     modifier = Modifier
-                        .clickable { /* TODO: Handle bookmark */ }
+                        .clickable { viewModel.savePost(post)}
                         .size(if (screenInfo.isCompact) 25.dp else 30.dp),
                 )
             }
@@ -437,7 +438,7 @@ fun PostCard(
 }
 
 @Composable
-fun TopBar(onNotificationsClick: () -> Unit,
+fun TopBar(onNotificationsClick: () -> Unit, // todo
            onSearchClick: () -> Unit) {
     val screenInfo = rememberScreenSizeInfo()
     val safeAreaPadding = adaptiveSafeAreaPadding(screenInfo)

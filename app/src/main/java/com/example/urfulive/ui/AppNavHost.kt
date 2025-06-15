@@ -296,7 +296,7 @@ fun AppNavHost() {
 @Composable
 fun MainScreenWithOverlays(
     navController: NavHostController,
-    profileViewModel: ProfileViewModel,
+    profileViewModel: ProfileViewModel, // todo
     sharedPostViewModel: PostViewModel
 ) {
     Box(modifier = Modifier.fillMaxSize()) {

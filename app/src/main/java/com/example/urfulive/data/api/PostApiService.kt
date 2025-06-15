@@ -94,4 +94,15 @@ class PostApiService : BaseApiService() {
             }
         }
     }
+
+    suspend fun get(id: Long): Result<PostDto> {
+        val token = getToken()
+        return authorizedRequest {
+            client.get("$baseUrl/posts/$id") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bearer $token")
+                }
+            }
+        }
+    }
 }
