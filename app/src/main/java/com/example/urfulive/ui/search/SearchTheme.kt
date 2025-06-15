@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/urfulive/ui/search/SearchTheme.kt
 package com.example.urfulive.ui.search
 
 import androidx.compose.ui.graphics.Color
@@ -7,7 +6,6 @@ import androidx.compose.ui.unit.dp
 object SearchTheme {
     // Цвета
     object Colors {
-        val SearchBarBackground = Color(0xFF131313)
         val TextFieldBackground = Color(0xFF292929)
         val SuggestionsBackground = Color(0xFF292929)
         val AccentColor = Color(0xFFEE7E56)
@@ -21,18 +19,14 @@ object SearchTheme {
         val SearchBarPadding = 16.dp
         val SearchBarPaddingLarge = 24.dp
         val SearchBarVerticalPadding = 12.dp
-        val IconSize = 24.dp
         val SmallIconSize = 20.dp
-        val SpacerWidth = 12.dp
-        val BorderRadius = 52.dp
         val SuggestionRadius = 30.dp
         val SuggestionMaxHeight = 200.dp
         val SuggestionItemPadding = 16.dp
         val SuggestionItemVerticalPadding = 12.dp
-        val SuggestionsTopPadding = 8.dp
         val LoadingStrokeWidth = 2.dp
         val SearchBarZIndex = 200f
-        val SearchBarAlpha = 0.95f
+        val BackButtonOffset = 36.dp
     }
 
     // Анимации

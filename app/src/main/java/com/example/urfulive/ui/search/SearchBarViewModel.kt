@@ -63,7 +63,7 @@ class SearchBarViewModel : ViewModel() {
             } catch (e: Exception) {
                 _isLoading.value = false
                 _tagSuggestions.value = emptyList()
-                // В реальном приложении здесь можно логировать ошибку
+
                 e.printStackTrace()
             }
         }

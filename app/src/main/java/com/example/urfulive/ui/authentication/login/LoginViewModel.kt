@@ -45,7 +45,6 @@ class LoginViewModel : ViewModel() {
                     if (result.isSuccess) {
                         Log.d("LoginViewModel", "✅ LOGIN SUCCESS - refreshing PostViewModel")
 
-
                         // Принудительно обновляем PostViewModel
                         postViewModel?.refreshUserAuth()
 

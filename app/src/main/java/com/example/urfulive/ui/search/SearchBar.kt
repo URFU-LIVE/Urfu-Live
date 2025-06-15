@@ -134,8 +134,8 @@ fun SearchBar(
             ) {
                 HorizontalDivider(
                     thickness = 1.dp,
-                    color = Color(0xFF838383), // Добавить в SearchTheme если нет
-                    modifier = Modifier.fillMaxWidth()
+                    color = Color(0xFF838383),
+                    modifier = Modifier.fillMaxWidth().padding(start = if (showBackButton) SearchTheme.Dimensions.BackButtonOffset else 0.dp)
                 )
             }
 
@@ -143,7 +143,8 @@ fun SearchBar(
                 visible = showSuggestions && tagSuggestions.isNotEmpty(),
                 suggestions = tagSuggestions,
                 searchQuery = searchQuery,
-                onSuggestionClick = onTagSelected
+                onSuggestionClick = onTagSelected,
+                showBackButton = showBackButton
             )
         }
     }
@@ -170,7 +171,7 @@ private fun SearchInputRow(
                 top = safeAreaPadding.calculateTopPadding() - 15.dp,
             )
     ) {
-        if (showBackButton && onBackClick != null) {
+        if (showBackButton) {
             Image(
                 painter = painterResource(id = R.drawable.chevron_left),
                 contentDescription = "Назад",
@@ -209,13 +210,13 @@ private fun SearchTextField(
 ) {
     val bottomRadius by animateDpAsState(
         targetValue = if (showSuggestions && hasSuggestions) {
-            0.dp // Прямые углы когда есть подсказки
+            0.dp
         } else {
-            SearchTheme.Dimensions.SuggestionRadius // Круглые когда нет
+            SearchTheme.Dimensions.SuggestionRadius
         },
         animationSpec = tween(
-            durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION, // Такая же продолжительность как у подсказок
-            easing = FastOutSlowInEasing // Тот же easing
+            durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
+            easing = FastOutSlowInEasing
         ),
         label = "bottomRadius"
     )
@@ -264,7 +265,7 @@ private fun SearchTextField(
 
                 value.isNotEmpty() -> {
                     Image(
-                        painter = painterResource(id = R.drawable.search), // убедитесь что у вас есть этот ресурс
+                        painter = painterResource(id = R.drawable.search),
                         contentDescription = "Поиск",
                         modifier = Modifier
                             .clickable { onSearchClick() }
@@ -283,6 +284,7 @@ private fun SearchSuggestions(
     suggestions: List<String>,
     searchQuery: String,
     onSuggestionClick: (String) -> Unit,
+    showBackButton: Boolean = false
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -296,7 +298,7 @@ private fun SearchSuggestions(
                 durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
                 easing = FastOutSlowInEasing
             ),
-            expandFrom = Alignment.Top // ← Ключевое изменение
+            expandFrom = Alignment.Top
         ),
         exit = fadeOut(
             animationSpec = tween(
@@ -308,13 +310,13 @@ private fun SearchSuggestions(
                 durationMillis = SearchTheme.Animation.SUGGESTIONS_DURATION,
                 easing = FastOutSlowInEasing
             ),
-            shrinkTowards = Alignment.Top // ← Ключевое изменение
+            shrinkTowards = Alignment.Top
         )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-//                .padding(top = SearchTheme.Dimensions.SuggestionsTopPadding)
+                .padding(start = if (showBackButton) SearchTheme.Dimensions.BackButtonOffset else 0.dp)
         ) {
             Column(
                 modifier = Modifier
