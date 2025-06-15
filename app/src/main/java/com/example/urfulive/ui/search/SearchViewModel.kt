@@ -1,5 +1,6 @@
 package com.example.urfulive.ui.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urfulive.data.api.PostApiService
@@ -13,12 +14,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class SearchViewModel : ViewModel() {
 
     private val postApiService = PostApiService()
     private val tagApiService = TagApiService()
     private val dtoManager = DtoManager()
+
+    private val searchResultsMutex = Mutex()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -154,6 +159,21 @@ class SearchViewModel : ViewModel() {
 
         fun selectSuggestion(suggestion: String) {
             searchViewModel.selectSuggestion(suggestion)
+        }
+    }
+
+    suspend fun updatePostInSearchResults(updatedPost: Post) {
+        searchResultsMutex.withLock {
+            val currentResults = _searchResults.value.toMutableList()
+            val index = currentResults.indexOfFirst { it.id == updatedPost.id }
+            if (index != -1) {
+                currentResults[index] = updatedPost
+                _searchResults.value = currentResults
+                Log.d("SearchViewModel", "🔄 Updated post ${updatedPost.id} in search results")
+                Log.d("SearchViewModel", "   New likes: ${updatedPost.likes}, likedBy: ${updatedPost.likedBy}")
+            } else {
+                Log.w("SearchViewModel", "⚠️ Post ${updatedPost.id} not found in search results for update")
+            }
         }
     }
 }

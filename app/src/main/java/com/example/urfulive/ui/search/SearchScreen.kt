@@ -6,6 +6,7 @@ import SpacerType
 import TagChip
 import TagSizes
 import adaptiveTextStyle
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -44,6 +45,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -86,7 +88,7 @@ fun SearchScreen(
     onCommentsClick: (Long) -> Unit = {},
     viewModel: SearchViewModel = viewModel(),
     enableAnimations: Boolean = true,
-    postViewModel: PostViewModel = viewModel(),
+    postViewModel: PostViewModel,
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -100,6 +102,23 @@ fun SearchScreen(
     val hasSearched by viewModel.hasSearched.collectAsState()
 
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
+    DisposableEffect(postViewModel, viewModel) {
+        Log.d("SearchScreen", "🔗 Connecting SearchViewModel to PostViewModel for sync")
+        postViewModel.connectSearchViewModel(viewModel)
+
+        onDispose {
+            Log.d("SearchScreen", "🔌 Disconnecting SearchViewModel from PostViewModel")
+            postViewModel.disconnectSearchViewModel(viewModel)
+        }
+    }
+
+    // 🔄 СИНХРОНИЗАЦИЯ: Добавляем посты из поиска в PostViewModel
+    LaunchedEffect(searchResults) {
+        if (searchResults.isNotEmpty()) {
+            Log.d("SearchScreen", "🔄 Syncing ${searchResults.size} search posts with PostViewModel")
+            postViewModel.addSearchPostsIfNeeded(searchResults)
+        }
+    }
 
     expandedPostIndex?.let { index ->
         if (index < searchResults.size) {

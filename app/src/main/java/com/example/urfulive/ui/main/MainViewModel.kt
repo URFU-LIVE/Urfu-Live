@@ -1,5 +1,6 @@
 package com.example.urfulive.ui.main
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -9,9 +10,12 @@ import com.example.urfulive.data.api.PostApiService
 import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.data.manager.DtoManager
 import com.example.urfulive.data.model.Post
+import com.example.urfulive.ui.search.SearchViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 data class PostColorPattern(
     val background: Color,
@@ -56,6 +60,9 @@ data class PostUiState(
 class PostViewModel : ViewModel() {
     private val postApiService = PostApiService()
     private val userApiService = UserApiService()
+
+    private val postsUpdateMutex = Mutex()
+    private val connectedSearchViewModels = mutableSetOf<SearchViewModel>()
 
     // 📊 ОСНОВНЫЕ ДАННЫЕ
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
@@ -323,5 +330,107 @@ class PostViewModel : ViewModel() {
 
     fun isSubscriptionLoading(postId: Long): Boolean {
         return _postsUiState.value[postId]?.isSubscriptionLoading ?: false
+    }
+
+    /**
+     * Подключает SearchViewModel для синхронизации
+     */
+    fun connectSearchViewModel(searchViewModel: SearchViewModel) {
+        connectedSearchViewModels.add(searchViewModel)
+        Log.d("PostViewModel", "🔗 Connected SearchViewModel: ${searchViewModel.hashCode()}")
+    }
+
+    /**
+     * Отключает SearchViewModel от синхронизации
+     */
+    fun disconnectSearchViewModel(searchViewModel: SearchViewModel) {
+        connectedSearchViewModels.remove(searchViewModel)
+        Log.d("PostViewModel", "🔌 Disconnected SearchViewModel: ${searchViewModel.hashCode()}")
+    }
+
+    /**
+     * 🔄 Добавляет посты из поиска в основной список для синхронизации лайков
+     */
+    suspend fun addSearchPostsIfNeeded(searchPosts: List<Post>) {
+        postsUpdateMutex.withLock {
+            val currentPosts = _posts.value.toMutableList()
+            val currentPostIds = currentPosts.map { it.id }.toSet()
+
+            // Добавляем только те посты, которых еще нет в основном списке
+            val newPosts = searchPosts.filter { it.id !in currentPostIds }
+
+            if (newPosts.isNotEmpty()) {
+                currentPosts.addAll(newPosts)
+                _posts.value = currentPosts
+
+                // Инициализируем UI состояния для новых постов
+                val currentUiStates = _postsUiState.value.toMutableMap()
+                newPosts.forEach { post ->
+                    currentUiStates[post.id] = PostUiState(
+                        isProcessing = false,
+                        isSubscriptionLoading = false
+                    )
+                }
+                _postsUiState.value = currentUiStates
+
+                Log.d("PostViewModel", "✅ Added ${newPosts.size} search posts to main list")
+                Log.d("PostViewModel", "📊 Total posts now: ${_posts.value.size}")
+            }
+        }
+    }
+
+    /**
+     * 🔄 Обновляет пост во всех местах и уведомляет подключенные SearchViewModel
+     */
+    private suspend fun updatePostEverywhere(updatedPost: Post) {
+        // Обновляем в основном списке
+        updatePostInListSafe(updatedPost)
+
+        // Уведомляем все подключенные SearchViewModel
+        connectedSearchViewModels.forEach { searchViewModel ->
+            try {
+                searchViewModel.updatePostInSearchResults(updatedPost)
+                Log.d("PostViewModel", "🔄 Synced post ${updatedPost.id} with SearchViewModel: ${searchViewModel.hashCode()}")
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "❌ Failed to sync with SearchViewModel: ${e.message}")
+            }
+        }
+    }
+
+    // 🎯 КЛЮЧЕВЫЕ МЕТОДЫ: Используют РЕАЛЬНЫЕ данные поста
+
+
+    /**
+     * Thread-safe обновление поста в списке
+     */
+    private suspend fun updatePostInListSafe(updatedPost: Post) {
+        postsUpdateMutex.withLock {
+            val currentPosts = _posts.value.toMutableList()
+            val index = currentPosts.indexOfFirst { it.id == updatedPost.id }
+            if (index != -1) {
+                currentPosts[index] = updatedPost
+                _posts.value = currentPosts
+                Log.d("PostViewModel", "✅ Updated post ${updatedPost.id} at index $index")
+                Log.d("PostViewModel", "New state - Likes: ${updatedPost.likes}, LikedBy: ${updatedPost.likedBy}")
+            } else {
+                Log.e("PostViewModel", "❌ Post ${updatedPost.id} not found for update")
+            }
+        }
+    }
+
+    /**
+     * 📊 Метод для отладки состояния
+     */
+    fun debugState() {
+        Log.d("PostViewModel", "=== DEBUG STATE ===")
+        Log.d("PostViewModel", "ViewModel instance: ${this.hashCode()}")
+        Log.d("PostViewModel", "Posts count: ${_posts.value.size}")
+        Log.d("PostViewModel", "Current user ID: ${_currentUserId.value}")
+        Log.d("PostViewModel", "Connected SearchViewModels: ${connectedSearchViewModels.size}")
+        _posts.value.forEach { post ->
+            Log.d("PostViewModel", "Post ${post.id}: likes=${post.likes}, likedBy=${post.likedBy}")
+        }
+        Log.d("PostViewModel", "UI States: ${_postsUiState.value.keys}")
+        Log.d("PostViewModel", "==================")
     }
 }
