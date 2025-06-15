@@ -29,6 +29,7 @@ import com.example.urfulive.data.DTOs.AuthResponse
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.platform.LocalConfiguration
+import com.example.urfulive.ui.main.PostViewModel
 
 
 @Composable
@@ -38,6 +39,7 @@ fun LoginScreen(
     onRestorePasswordClick: () -> Unit,
     onLoginSuccess: (AuthResponse) -> Unit,
     onLoginError: (Exception) -> Unit,
+    postViewModel: PostViewModel,
     viewModel: LoginViewModel = viewModel()
 ) {
     val loginValue by viewModel.login.collectAsState()
@@ -180,7 +182,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback) },
+            onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback, postViewModel) },
             modifier = Modifier
                 .fillMaxWidth()
                 .systemBarsPadding()
@@ -196,56 +198,56 @@ fun LoginScreen(
     }
 }
 
-@Preview(
-    name = "Small screen (360x640)",
-    device = "spec:width=360dp,height=640dp",
-    showSystemUi = true,
-)
-@Composable
-fun LoginScreenPreviewSmall() {
-    UrfuLiveTheme {
-        LoginScreen(
-            onRegisterClick = {},
-            onLoginClick = {},
-            onLoginSuccess = {},
-            onLoginError = {},
-            onRestorePasswordClick = {}
-        )
-    }
-}
-
-@Preview(
-    name = "Default screen",
-    showBackground = true,
-    showSystemUi = true
-)
-@Composable
-fun LoginScreenPreviewDefault() {
-    UrfuLiveTheme {
-        LoginScreen(
-            onRegisterClick = {},
-            onLoginClick = {},
-            onLoginSuccess = {},
-            onLoginError = {},
-            onRestorePasswordClick = {}
-        )
-    }
-}
-
-@Preview(
-    name = "Large screen (500x1000)",
-    device = "spec:width=500dp,height=1000dp",
-    showSystemUi = true,
-)
-@Composable
-fun LoginScreenPreviewLarge() {
-    UrfuLiveTheme {
-        LoginScreen(
-            onRegisterClick = {},
-            onLoginClick = {},
-            onLoginSuccess = {},
-            onLoginError = {},
-            onRestorePasswordClick = {}
-        )
-    }
-}
+//@Preview(
+//    name = "Small screen (360x640)",
+//    device = "spec:width=360dp,height=640dp",
+//    showSystemUi = true,
+//)
+//@Composable
+//fun LoginScreenPreviewSmall() {
+//    UrfuLiveTheme {
+//        LoginScreen(
+//            onRegisterClick = {},
+//            onLoginClick = {},
+//            onLoginSuccess = {},
+//            onLoginError = {},
+//            onRestorePasswordClick = {}
+//        )
+//    }
+//}
+//
+//@Preview(
+//    name = "Default screen",
+//    showBackground = true,
+//    showSystemUi = true
+//)
+//@Composable
+//fun LoginScreenPreviewDefault() {
+//    UrfuLiveTheme {
+//        LoginScreen(
+//            onRegisterClick = {},
+//            onLoginClick = {},
+//            onLoginSuccess = {},
+//            onLoginError = {},
+//            onRestorePasswordClick = {}
+//        )
+//    }
+//}
+//
+//@Preview(
+//    name = "Large screen (500x1000)",
+//    device = "spec:width=500dp,height=1000dp",
+//    showSystemUi = true,
+//)
+//@Composable
+//fun LoginScreenPreviewLarge() {
+//    UrfuLiveTheme {
+//        LoginScreen(
+//            onRegisterClick = {},
+//            onLoginClick = {},
+//            onLoginSuccess = {},
+//            onLoginError = {},
+//            onRestorePasswordClick = {}
+//        )
+//    }
+//}

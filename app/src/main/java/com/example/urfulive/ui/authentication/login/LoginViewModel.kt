@@ -1,8 +1,11 @@
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.urfulive.data.DTOs.AuthResponse
 import com.example.urfulive.data.api.UserApiService
+import com.example.urfulive.ui.main.PostViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -32,26 +35,30 @@ class LoginViewModel : ViewModel() {
     }
 
     // Нажатие на кнопку «Войти»
-    fun onLoginClick(login: String, password: String, callback: LoginCallback) {
+    fun onLoginClick(login: String, password: String, callback: LoginCallback, postViewModel: PostViewModel? = null) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val result = userApiService.login(
-                    login,
-                    password,
-                )
+                Log.d("LoginViewModel", "🔑 LOGIN ATTEMPT for user: $login")
+                val result = userApiService.login(login, password)
 
-                // Переключаемся на главный поток для обратного вызова
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
-                        TokenManagerInstance.getInstance().saveID(
-                            userApiService.getUserProfile().getOrNull()?.id.toString()
-                        )
+                        Log.d("LoginViewModel", "✅ LOGIN SUCCESS - refreshing PostViewModel")
+
+                        // Ждем немного чтобы UserApiService успел сохранить User ID
+                        delay(500)
+
+                        // Принудительно обновляем PostViewModel
+                        postViewModel?.refreshUserAuth()
+
                         callback.onSuccess(result.getOrThrow())
                     } else {
+                        Log.e("LoginViewModel", "❌ LOGIN FAILED")
                         callback.onError(Exception("Неизвестная ошибка"))
                     }
                 }
             } catch (e: Exception) {
+                Log.e("LoginViewModel", "💥 LOGIN EXCEPTION: ${e.message}")
                 withContext(Dispatchers.Main) {
                     callback.onError(e)
                 }

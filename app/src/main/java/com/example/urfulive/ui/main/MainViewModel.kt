@@ -80,7 +80,19 @@ class PostViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            _currentUserId.value = TokenManagerInstance.getInstance().getUserIdBlocking()
+            TokenManagerInstance.getInstance().userId.collect { userId ->
+                Log.d("PostViewModel", "🔄 User ID changed: $userId")
+                _currentUserId.value = userId
+
+                if (userId != null) {
+                    Log.d("PostViewModel", "✅ User authorized, User ID: $userId")
+                } else {
+                    Log.d("PostViewModel", "❌ User not authorized")
+                }
+            }
+        }
+
+        viewModelScope.launch {
             fetchPosts()
         }
     }
@@ -160,66 +172,102 @@ class PostViewModel : ViewModel() {
      * Основной метод лайков с правильной логикой
      */
     fun likeAndDislike(postId: Long) {
+        Log.d("PostViewModel", "🎯 START likeAndDislike for post $postId")
+
         viewModelScope.launch {
+            // === ПРОВЕРКА 1: Существование поста ===
             val currentPost = _posts.value.find { it.id == postId }
+            if (currentPost == null) {
+                Log.e("PostViewModel", "❌ CRITICAL ERROR: Post $postId NOT FOUND in main list")
+                Log.d("PostViewModel", "📊 Available posts: ${_posts.value.map { it.id }}")
+                return@launch
+            }
+            Log.d("PostViewModel", "✅ Post found: ${currentPost.title}")
+
+            // === ПРОВЕРКА 2: UI состояние ===
             val currentUiState = _postsUiState.value[postId]
-
-            if (currentPost == null || currentUiState == null) {
-                println("ERROR: Post $postId not found")
+            if (currentUiState == null) {
+                Log.e("PostViewModel", "❌ CRITICAL ERROR: UI State for post $postId NOT FOUND")
+                Log.d("PostViewModel", "📊 Available UI states: ${_postsUiState.value.keys}")
                 return@launch
             }
+            Log.d("PostViewModel", "✅ UI State found: $currentUiState")
 
+            // === ПРОВЕРКА 3: Обработка ===
             if (currentUiState.isProcessing) {
-                println("Post $postId is already processing")
+                Log.w("PostViewModel", "⚠️ Post $postId is already processing - BLOCKING")
                 return@launch
             }
 
+            // === ПРОВЕРКА 4: Пользователь ===
             val userId = _currentUserId.value?.toInt()
             if (userId == null) {
-                println("ERROR: User ID is null")
+                Log.e("PostViewModel", "❌ CRITICAL ERROR: User ID is NULL")
+                Log.d("PostViewModel", "📊 Current user value: ${_currentUserId.value}")
                 return@launch
             }
+            Log.d("PostViewModel", "✅ User ID: $userId")
 
-            // 🔍 ИСПОЛЬЗУЕМ РЕАЛЬНЫЕ ДАННЫЕ для определения состояния
+            // === ПРОВЕРКА 5: Текущее состояние лайка ===
             val isCurrentlyLiked = currentPost.likedBy.contains(userId)
+            Log.d("PostViewModel", "📊 BEFORE LIKE STATE:")
+            Log.d("PostViewModel", "   Currently liked: $isCurrentlyLiked")
+            Log.d("PostViewModel", "   Likes count: ${currentPost.likes}")
+            Log.d("PostViewModel", "   LikedBy list: ${currentPost.likedBy}")
 
-            println("=== LIKE/DISLIKE DEBUG ===")
-            println("Post ID: $postId")
-            println("User ID: $userId")
-            println("Currently liked (from REAL data): $isCurrentlyLiked")
-            println("Post likedBy: ${currentPost.likedBy}")
-            println("Current likes count: ${currentPost.likes}")
-
-            // Устанавливаем состояние загрузки
+            // === НАЧАЛО ОБРАБОТКИ ===
+            Log.d("PostViewModel", "🔄 Setting processing state...")
             updatePostUiState(postId) { it.copy(isProcessing = true) }
 
-            // Оптимистичное обновление реальных данных
+            // === ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ ===
+            Log.d("PostViewModel", "⚡ Applying optimistic update...")
             val updatedPost = optimisticallyUpdatePost(currentPost, userId, isCurrentlyLiked)
-            updatePostInList(updatedPost)
 
+            Log.d("PostViewModel", "📊 AFTER OPTIMISTIC UPDATE:")
+            Log.d("PostViewModel", "   New likes count: ${updatedPost.likes}")
+            Log.d("PostViewModel", "   New likedBy list: ${updatedPost.likedBy}")
+
+            // 🎯 КРИТИЧЕСКИЙ МОМЕНТ: Вызываем правильный метод синхронизации
             try {
+                Log.d("PostViewModel", "🌍 Calling updatePostEverywhere...")
+                updatePostEverywhere(updatedPost)
+                Log.d("PostViewModel", "✅ updatePostEverywhere completed")
+            } catch (e: Exception) {
+                Log.e("PostViewModel", "💥 updatePostEverywhere FAILED: ${e.message}")
+                e.printStackTrace()
+            }
+
+            // === API ВЫЗОВ ===
+            try {
+                Log.d("PostViewModel", "🌐 Making API call...")
                 val result = if (isCurrentlyLiked) {
-                    println("🔥 SENDING DISLIKE for post $postId")
+                    Log.d("PostViewModel", "🔥 SENDING DISLIKE for post $postId")
                     postApiService.dislike(postId)
                 } else {
-                    println("❤️ SENDING LIKE for post $postId")
+                    Log.d("PostViewModel", "❤️ SENDING LIKE for post $postId")
                     postApiService.like(postId)
                 }
 
                 result.onSuccess { response ->
-                    println("✅ API SUCCESS for post $postId")
-                    // Сервер подтвердил - оставляем оптимистичное обновление
+                    Log.d("PostViewModel", "✅ API SUCCESS for post $postId")
                     updatePostUiState(postId) { it.copy(isProcessing = false) }
+
+                    // Проверяем финальное состояние
+                    val finalPost = _posts.value.find { it.id == postId }
+                    Log.d("PostViewModel", "📊 FINAL STATE:")
+                    Log.d("PostViewModel", "   Final likes: ${finalPost?.likes}")
+                    Log.d("PostViewModel", "   Final likedBy: ${finalPost?.likedBy}")
+
                 }.onFailure { error ->
-                    println("❌ API FAILED for post $postId: ${error.message}")
-                    // Откатываем к исходному состоянию
-                    updatePostInList(currentPost)
+                    Log.e("PostViewModel", "❌ API FAILED for post $postId: ${error.message}")
+                    // Откат с правильной синхронизацией
+                    updatePostEverywhere(currentPost)
                     updatePostUiState(postId) { it.copy(isProcessing = false) }
                     error.printStackTrace()
                 }
             } catch (e: Exception) {
-                println("💥 EXCEPTION for post $postId: ${e.message}")
-                updatePostInList(currentPost)
+                Log.e("PostViewModel", "💥 API EXCEPTION for post $postId: ${e.message}")
+                updatePostEverywhere(currentPost)
                 updatePostUiState(postId) { it.copy(isProcessing = false) }
                 e.printStackTrace()
             }
@@ -383,17 +431,30 @@ class PostViewModel : ViewModel() {
      * 🔄 Обновляет пост во всех местах и уведомляет подключенные SearchViewModel
      */
     private suspend fun updatePostEverywhere(updatedPost: Post) {
-        // Обновляем в основном списке
-        updatePostInListSafe(updatedPost)
+        Log.d("PostViewModel", "🔄 updatePostEverywhere START for post ${updatedPost.id}")
 
-        // Уведомляем все подключенные SearchViewModel
-        connectedSearchViewModels.forEach { searchViewModel ->
-            try {
-                searchViewModel.updatePostInSearchResults(updatedPost)
-                Log.d("PostViewModel", "🔄 Synced post ${updatedPost.id} with SearchViewModel: ${searchViewModel.hashCode()}")
-            } catch (e: Exception) {
-                Log.e("PostViewModel", "❌ Failed to sync with SearchViewModel: ${e.message}")
+        try {
+            // Обновляем в основном списке
+            Log.d("PostViewModel", "📝 Updating in main list...")
+            updatePostInListSafe(updatedPost)
+
+            // Синхронизируем с SearchViewModel
+            Log.d("PostViewModel", "🔗 Syncing with ${connectedSearchViewModels.size} SearchViewModels...")
+            connectedSearchViewModels.forEach { searchViewModel ->
+                try {
+                    Log.d("PostViewModel", "   Syncing with SearchVM: ${searchViewModel.hashCode()}")
+                    searchViewModel.updatePostInSearchResults(updatedPost)
+                    Log.d("PostViewModel", "   ✅ Sync successful")
+                } catch (e: Exception) {
+                    Log.e("PostViewModel", "   ❌ Sync failed: ${e.message}")
+                }
             }
+
+            Log.d("PostViewModel", "✅ updatePostEverywhere COMPLETED")
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "💥 updatePostEverywhere EXCEPTION: ${e.message}")
+            e.printStackTrace()
+            throw e
         }
     }
 
@@ -404,16 +465,23 @@ class PostViewModel : ViewModel() {
      * Thread-safe обновление поста в списке
      */
     private suspend fun updatePostInListSafe(updatedPost: Post) {
+        Log.d("PostViewModel", "🔒 updatePostInListSafe START for post ${updatedPost.id}")
+
         postsUpdateMutex.withLock {
             val currentPosts = _posts.value.toMutableList()
             val index = currentPosts.indexOfFirst { it.id == updatedPost.id }
+
+            Log.d("PostViewModel", "🔍 Looking for post ${updatedPost.id} in list of ${currentPosts.size} posts")
+            Log.d("PostViewModel", "🔍 Found at index: $index")
+
             if (index != -1) {
                 currentPosts[index] = updatedPost
                 _posts.value = currentPosts
                 Log.d("PostViewModel", "✅ Updated post ${updatedPost.id} at index $index")
-                Log.d("PostViewModel", "New state - Likes: ${updatedPost.likes}, LikedBy: ${updatedPost.likedBy}")
+                Log.d("PostViewModel", "📊 New state - Likes: ${updatedPost.likes}, LikedBy: ${updatedPost.likedBy}")
             } else {
-                Log.e("PostViewModel", "❌ Post ${updatedPost.id} not found for update")
+                Log.e("PostViewModel", "❌ Post ${updatedPost.id} NOT FOUND for update")
+                Log.d("PostViewModel", "📊 Available post IDs: ${currentPosts.map { it.id }}")
             }
         }
     }
@@ -432,5 +500,15 @@ class PostViewModel : ViewModel() {
         }
         Log.d("PostViewModel", "UI States: ${_postsUiState.value.keys}")
         Log.d("PostViewModel", "==================")
+    }
+
+    fun refreshUserAuth() {
+        viewModelScope.launch {
+            Log.d("PostViewModel", "🔄 Manual auth refresh called")
+            val userId = TokenManagerInstance.getInstance().getUserIdBlocking()
+            Log.d("PostViewModel", "🔄 Got User ID: $userId")
+            _currentUserId.value = userId
+            Log.d("PostViewModel", "🔄 Updated _currentUserId to: ${_currentUserId.value}")
+        }
     }
 }

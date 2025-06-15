@@ -1,4 +1,5 @@
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import com.example.urfulive.data.DTOs.AuthResponse
@@ -72,10 +73,16 @@ class RegistrationViewModel : ViewModel() {
 
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
-                        TokenManagerInstance.getInstance().saveID(
-                            userApiService.getUserProfile().getOrNull()?.id.toString()
-                        )
-                        callback.onSuccess(result.getOrThrow())
+                        val authResponse = result.getOrThrow()
+                        val userId = JwtParser.extractUserIdFromToken(authResponse.accessToken)
+
+
+                        if (userId != null) {
+                            TokenManagerInstance.getInstance().saveID(userId)
+                            Log.d("LoginViewModel", "✅ Saved User ID from JWT: $userId")
+                        } else {
+                            Log.e("LoginViewModel", "❌ Failed to extract User ID from JWT")
+                        }
                     } else {
                         callback.onError(Exception("Неизвестная ошибка"))
                     }

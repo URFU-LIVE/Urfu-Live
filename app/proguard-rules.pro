@@ -19,3 +19,20 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Сохранить ViewModel классы
+-keep class com.example.urfulive.ui.main.PostViewModel { *; }
+-keep class com.example.urfulive.ui.search.SearchViewModel { *; }
+
+# Сохранить методы лайков
+-keepclassmembers class * {
+    public void likeAndDislike(*);
+    public void updatePostEverywhere(*);
+}
+
+# Сохранить корутины
+-dontwarn kotlinx.coroutines.**
+-keep class kotlinx.coroutines.** { *; }
+
+# Сохранить Flow и StateFlow
+-keep class kotlinx.coroutines.flow.** { *; }
