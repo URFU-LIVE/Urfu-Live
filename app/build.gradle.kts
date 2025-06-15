@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.urfulive"
+    namespace = "live.urfu.frontend"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.urfulive"
+        applicationId = "live.urfu.frontend"
         minSdk = 25
         targetSdk = 35
         versionCode = 1

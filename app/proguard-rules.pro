@@ -21,8 +21,8 @@
 #-renamesourcefileattribute SourceFile
 
 # Сохранить ViewModel классы
--keep class com.example.urfulive.ui.main.PostViewModel { *; }
--keep class com.example.urfulive.ui.search.SearchViewModel { *; }
+-keep class live.urfu.frontend.ui.main.PostViewModel { *; }
+-keep class live.urfu.frontend.ui.search.SearchViewModel { *; }
 
 # Сохранить методы лайков
 -keepclassmembers class * {
