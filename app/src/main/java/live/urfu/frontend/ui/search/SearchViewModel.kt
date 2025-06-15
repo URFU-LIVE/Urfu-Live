@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import live.urfu.frontend.data.model.Tag
 
 class SearchViewModel : ViewModel() {
 
@@ -48,16 +49,20 @@ class SearchViewModel : ViewModel() {
     private var searchJob: Job? = null
     private var suggestionJob: Job? = null
 
-    // Список популярных тегов для подсказок
-    private val mockTags = listOf(
-        "Учеба", "Программирование", "Android", "Kotlin", "React", "JavaScript",
-        "Веб-разработка", "Mobile", "UI/UX", "Дизайн", "Backend", "Frontend",
-        "Искусственный интеллект", "Machine Learning", "Data Science", "DevOps",
-        "Стартапы", "Бизнес", "Карьера", "Образование", "Наука", "Исследования",
-        "Новости", "События", "Мероприятия", "Конференции", "Вебинары",
-        "Спорт", "Здоровье", "Путешествия", "Фотография", "Музыка", "Кино",
-        "Юмор", "Внеучебная деятельность", "Стажировка", "Знакомства", "Работа", "Волонтерство"
-    )
+    private val _tags = MutableStateFlow<List<Tag?>>(emptyList())
+    val tags: StateFlow<List<Tag?>> get() = _tags;
+
+    init {
+        fetchTags()
+    }
+
+    private fun fetchTags() {
+        viewModelScope.launch {
+            tagApiService.getAll().onSuccess { tags ->
+                _tags.value = tags
+            }
+        }
+    }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
@@ -77,10 +82,25 @@ class SearchViewModel : ViewModel() {
         suggestionJob = viewModelScope.launch {
             delay(300) // Debounce
 
-            // Фильтруем теги по введенному запросу
-            val filtered = mockTags.filter { tag ->
-                tag.lowercase().contains(query.lowercase())
-            }.take(5)
+            val trimmedQuery = query.lowercase().trim()
+
+            val filtered = tags.value
+                .asSequence()
+                .filterNotNull()
+                .filter { tag ->
+                    tag.name.lowercase().contains(trimmedQuery)
+                }
+                .sortedBy { tag ->
+                    val name = tag.name.lowercase()
+                    when {
+                        name.startsWith(trimmedQuery) -> 0
+                        name.contains(trimmedQuery) -> 1
+                        else -> 2
+                    }
+                }
+                .map { it.name }
+                .take(5)
+                .toList()
 
             _tagSuggestions.value = filtered
         }

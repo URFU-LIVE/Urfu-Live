@@ -48,62 +48,9 @@ class SavedPostsViewModel : ViewModel() {
 
 
     fun removeFromSaved(post: Post) {
-        println("ААААА УДАЛЕНИЯ ПОСТА!!!!")
         viewModelScope.launch {
             PostManagerInstance.getInstance().removePost(post)
         }
         _savedPosts.value = _savedPosts.value.filter { it.id != post.id }
-    }
-
-    private fun getSampleSavedPosts(): List<Post> {
-        val sampleUser = User(
-            id = "1",
-            username = "Peemkay_42",
-            avatarUrl = "",
-            backgroundUrl = "",
-            description = "",
-            followersCount = 42,
-            followers = emptyList(),
-            email = "asd",
-            role = UserRole.WRITER
-        )
-
-        val sampleTags = listOf(
-            Tag(1, "Учеба"),
-            Tag(2, "42Братухи")
-        )
-
-        return listOf(
-            Post(
-                id = 1,
-                title = "«42, Братухи»: что означает популярная фраза из «ТикТока»",
-                text = "",
-                author = sampleUser,
-                tags = sampleTags,
-                time = "",
-                likes = 0,
-                comments = 0
-            ),
-            Post(
-                id = 2,
-                title = "«42, Братухи»: что означает популярная фраза из «ТикТока»",
-                text = "",
-                author = sampleUser,
-                tags = sampleTags,
-                time = "",
-                likes = 0,
-                comments = 0
-            ),
-            Post(
-                id = 3,
-                title = "«42, Братухи»: что означает популярная фраза из «ТикТока»",
-                text = "",
-                author = sampleUser,
-                tags = sampleTags,
-                time = "",
-                likes = 0,
-                comments = 0
-            ),
-        )
     }
 }

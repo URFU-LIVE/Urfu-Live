@@ -45,12 +45,13 @@ android {
 dependencies {
     // Core
     implementation(libs.androidx.core.ktx)
-    implementation("androidx.core:core-ktx:1.15.0")
+    //implementation(libs.androidx.core.ktx.v1150)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    //implementation(libs.androidx.lifecycle.runtime.ktx.v287)
+    //noinspection UseTomlInstead,GradleDependency
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // Compose BOM (одна версия для всех)
     val composeBom = platform("androidx.compose:compose-bom:2023.03.00")
@@ -59,17 +60,19 @@ dependencies {
 
     // Compose
     implementation(libs.androidx.activity.compose)
-    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation("androidx.compose.ui:ui:1.7.8")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.8")
+    //noinspection GradleDependency
+    //implementation(libs.androidx.ui.v178)
+    implementation(libs.androidx.ui.tooling.preview.v178)
     implementation(libs.androidx.material3.android)
 
     implementation(libs.coil.compose)
 
-    debugImplementation("androidx.compose.ui:ui-tooling:1.7.8")
+    //noinspection GradleDependency
+    debugImplementation(libs.androidx.ui.tooling.v178)
 
     // Navigation
     implementation(libs.androidx.navigation.runtime.android)
@@ -82,9 +85,10 @@ dependencies {
     implementation(libs.firebase.crashlytics.buildtools)
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("androidx.datastore:datastore-preferences-core:1.0.0")
-    implementation("androidx.datastore:datastore-core:1.0.0")
+    implementation(libs.androidx.datastore.preferences.v116)
+    implementation(libs.androidx.datastore.preferences.core.v100)
+    //noinspection UseTomlInstead
+    implementation(libs.androidx.datastore.core)
 
     // Ktor
     implementation(libs.ktor.ktor.client.core)
