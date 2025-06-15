@@ -11,11 +11,14 @@ import com.example.urfulive.ui.theme.UrfuLiveTheme
 import androidx.core.view.WindowCompat
 import com.example.urfulive.data.manager.InterestManager
 import com.example.urfulive.data.manager.InterestManagerInstance
+import com.example.urfulive.data.manager.PostManager
+import com.example.urfulive.data.manager.PostManagerInstance
 
 
 class MainActivity : ComponentActivity() {
     private lateinit var tokenManager: TokenManager
     private lateinit var interestManager: InterestManager
+    private lateinit var postsManager: PostManager
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,6 +28,9 @@ class MainActivity : ComponentActivity() {
 
         InterestManagerInstance.initialize(applicationContext)
         interestManager = InterestManager(applicationContext)
+
+        PostManagerInstance.initialize(applicationContext)
+        postsManager = PostManager(applicationContext)
 
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
