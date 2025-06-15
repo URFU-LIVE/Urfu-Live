@@ -98,19 +98,15 @@ fun SearchScreen(
 
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
     DisposableEffect(postViewModel, viewModel) {
-        Log.d("SearchScreen", "🔗 Connecting SearchViewModel to PostViewModel for sync")
         postViewModel.connectSearchViewModel(viewModel)
 
         onDispose {
-            Log.d("SearchScreen", "🔌 Disconnecting SearchViewModel from PostViewModel")
             postViewModel.disconnectSearchViewModel(viewModel)
         }
     }
 
-    // 🔄 СИНХРОНИЗАЦИЯ: Добавляем посты из поиска в PostViewModel
     LaunchedEffect(searchResults) {
         if (searchResults.isNotEmpty()) {
-            Log.d("SearchScreen", "🔄 Syncing ${searchResults.size} search posts with PostViewModel")
             postViewModel.addSearchPostsIfNeeded(searchResults)
         }
     }
@@ -669,7 +665,6 @@ private fun SearchPostCard(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier.size(SearchAdaptiveSizes.reactionIconSize(screenInfo))
                     ) {
-                        // ✅ Показываем заливку для лайкнутых постов
                         if (isLiked) {
                             Image(
                                 painter = painterResource(id = R.drawable.like_filling),

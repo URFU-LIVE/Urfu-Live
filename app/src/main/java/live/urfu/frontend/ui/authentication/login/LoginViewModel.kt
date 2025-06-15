@@ -42,14 +42,8 @@ class LoginViewModel : ViewModel() {
 
                 withContext(Dispatchers.Main) {
                     if (result.isSuccess) {
-                        Log.d("LoginViewModel", "✅ LOGIN SUCCESS - refreshing PostViewModel")
-
-                        // Принудительно обновляем PostViewModel
-                        postViewModel?.refreshUserAuth()
-
                         callback.onSuccess(result.getOrThrow())
                     } else {
-                        Log.e("LoginViewModel", "❌ LOGIN FAILED")
                         callback.onError(Exception("Неизвестная ошибка"))
                     }
                 }

@@ -37,6 +37,7 @@ fun AppNavHost() {
     val userApiService = UserApiService()
 
     val sharedPostViewModel: PostViewModel = viewModel()
+    val sharedSearchViewModel: SearchViewModel = viewModel()
 
     val authState = remember { mutableStateOf<AuthState>(AuthState.Loading) }
 
@@ -141,7 +142,14 @@ fun AppNavHost() {
                 onRemoveFromSaved = { post ->
                     // TODO: Implement remove from saved functionality
                 },
-                currentScreen = "saved"
+                onAuthorClick = { authorId ->
+                    navController.navigate("author/$authorId")
+                },
+                onCommentsClick = { postId ->
+                    navController.navigate("comments/$postId")
+                },
+                currentScreen = "saved",
+                sharedPostViewModel = sharedPostViewModel
             )
         }
 
@@ -243,7 +251,6 @@ fun AppNavHost() {
             })
         ) { backStackEntry ->
             val selectedTag = backStackEntry.arguments?.getString("tag") ?: ""
-            val searchViewModel: SearchViewModel = viewModel()
             SearchScreen(
                 initialTag = selectedTag,
                 onClose = { navController.popBackStack() },
@@ -258,7 +265,7 @@ fun AppNavHost() {
                     // ✅ Навигация к экрану комментариев
                     navController.navigate("comments/$postId")
                 },
-                viewModel = searchViewModel,
+                viewModel = sharedSearchViewModel,
                 enableAnimations = true,
                 postViewModel = sharedPostViewModel
             )

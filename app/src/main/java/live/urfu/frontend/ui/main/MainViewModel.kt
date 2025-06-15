@@ -1,6 +1,5 @@
 package live.urfu.frontend.ui.main
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -80,7 +79,6 @@ class PostViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             TokenManagerInstance.getInstance().userId.collect { userId ->
-                Log.d("PostViewModel", "🔄 User ID changed: $userId")
                 _currentUserId.value = userId
 
                 if (userId != null) {
@@ -164,7 +162,6 @@ class PostViewModel : ViewModel() {
             }
 
             if (currentUiState.isProcessing) {
-                Log.w("PostViewModel", "⚠️ Post $postId is already processing - BLOCKING")
                 return@launch
             }
 
@@ -192,15 +189,8 @@ class PostViewModel : ViewModel() {
                     postApiService.like(postId)
                 }
 
-                result.onSuccess { response ->
-                    Log.d("PostViewModel", "✅ API SUCCESS for post $postId")
+                result.onSuccess {
                     updatePostUiState(postId) { it.copy(isProcessing = false) }
-
-                    val finalPost = _posts.value.find { it.id == postId }
-                    Log.d("PostViewModel", "📊 FINAL STATE:")
-                    Log.d("PostViewModel", "   Final likes: ${finalPost?.likes}")
-                    Log.d("PostViewModel", "   Final likedBy: ${finalPost?.likedBy}")
-
                 }.onFailure { error ->
                     updatePostEverywhere(currentPost)
                     updatePostUiState(postId) { it.copy(isProcessing = false) }
@@ -250,38 +240,132 @@ class PostViewModel : ViewModel() {
     fun subscribeAndUnsubscribe(post: Post) {
         viewModelScope.launch {
             val authorId = post.author.id
-            val currentUiState = _postsUiState.value[post.id] ?: return@launch
+            val postId = post.id
+            val currentUserId = _currentUserId.value?.toInt()
 
+            if (currentUserId == null) {
+                return@launch
+            }
+
+            val currentUiState = _postsUiState.value[postId] ?: PostUiState()
             if (currentUiState.isSubscriptionLoading) {
                 return@launch
             }
 
-            updatePostUiState(post.id) {
-                it.copy(isSubscriptionLoading = true)
+            val isCurrentlySubscribed = post.author.followers.contains(currentUserId)
+
+            updatePostUiState(postId) { it.copy(isSubscriptionLoading = true) }
+
+            val updatedPosts = optimisticallyUpdateAuthorSubscription(
+                authorId,
+                !isCurrentlySubscribed,
+                currentUserId
+            )
+
+            try {
+                updateAllAuthorPostsEverywhere(updatedPosts)
+            } catch (e: Exception) {
             }
 
             try {
-                val isSubscribed = _subscriptions.value.contains(authorId)
-                val result = if (!isSubscribed) {
+                val result = if (!isCurrentlySubscribed) {
                     userApiService.subscribe(authorId.toLong())
                 } else {
                     userApiService.unsubscribe(authorId.toLong())
                 }
 
                 result.onSuccess {
-                    updateSubscriptionStateLocally(authorId)
+                    refreshSubscriptionsFromPosts()
                     kotlinx.coroutines.delay(300)
-                }.onFailure {
-                    it.printStackTrace()
+
+                }.onFailure { error ->
+                    val revertedPosts = optimisticallyUpdateAuthorSubscription(
+                        authorId,
+                        isCurrentlySubscribed,
+                        currentUserId
+                    )
+                    updateAllAuthorPostsEverywhere(revertedPosts)
+                    refreshSubscriptionsFromPosts()
+
+                    error.printStackTrace()
                 }
             } catch (e: Exception) {
+                val revertedPosts = optimisticallyUpdateAuthorSubscription(
+                    authorId,
+                    isCurrentlySubscribed,
+                    currentUserId
+                )
+                updateAllAuthorPostsEverywhere(revertedPosts)
+                refreshSubscriptionsFromPosts()
+
                 e.printStackTrace()
             } finally {
-                updatePostUiState(post.id) {
-                    it.copy(isSubscriptionLoading = false)
-                }
+                updatePostUiState(postId) { it.copy(isSubscriptionLoading = false) }
             }
         }
+    }
+
+    private fun optimisticallyUpdateAuthorSubscription(
+        authorId: String,
+        isSubscribed: Boolean,
+        currentUserId: Int
+    ): List<Post> {
+        val currentPosts = _posts.value.toMutableList()
+        val updatedPosts = mutableListOf<Post>()
+
+        currentPosts.forEachIndexed { index, post ->
+            if (post.author.id == authorId) {
+                val currentFollowers = post.author.followers.toMutableList()
+
+                // Обновляем список подписчиков
+                if (isSubscribed && !currentFollowers.contains(currentUserId)) {
+                    currentFollowers.add(currentUserId)
+                } else if (!isSubscribed && currentFollowers.contains(currentUserId)) {
+                    currentFollowers.remove(currentUserId)
+                }
+
+                val updatedAuthor = post.author.copy(
+                    followers = currentFollowers,
+                    followersCount = currentFollowers.size
+                )
+                val updatedPost = post.copy(author = updatedAuthor)
+
+                currentPosts[index] = updatedPost
+                updatedPosts.add(updatedPost)
+            }
+        }
+
+        _posts.value = currentPosts
+
+        return updatedPosts
+    }
+
+    private suspend fun updateAllAuthorPostsEverywhere(updatedPosts: List<Post>) {
+        try {
+
+            connectedSearchViewModels.forEach { searchViewModel ->
+                updatedPosts.forEach { updatedPost ->
+                    try {
+                        searchViewModel.updatePostInSearchResults(updatedPost)
+                    } catch (e: Exception) {
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
+        }
+    }
+
+    private fun refreshSubscriptionsFromPosts() {
+        val currentUserId = _currentUserId.value?.toInt() ?: return
+
+        val subscriptionsFromPosts = _posts.value
+            .filter { post -> post.author.followers.contains(currentUserId) }
+            .map { it.author.id }
+            .toSet()
+        _subscriptions.value = subscriptionsFromPosts
     }
 
     private fun updateSubscriptionStateLocally(authorId: String) {
@@ -301,8 +385,19 @@ class PostViewModel : ViewModel() {
         initSubscriptions(posts)
     }
 
+    fun isUserSubscribed(post: Post): Boolean {
+        val currentUserId = _currentUserId.value?.toInt() ?: return false
+        val isSubscribedFromPost = post.author.followers.contains(currentUserId)
+
+        val isSubscribedFromState = _subscriptions.value.contains(post.author.id)
+        if (isSubscribedFromPost != isSubscribedFromState) {
+       }
+
+        return isSubscribedFromPost
+    }
+
     fun isUserSubscribe(post: Post): Boolean {
-        return _subscriptions.value.contains(post.author.id)
+        return isUserSubscribed(post)
     }
 
     fun isSubscriptionLoading(postId: Long): Boolean {
@@ -311,12 +406,10 @@ class PostViewModel : ViewModel() {
 
     fun connectSearchViewModel(searchViewModel: SearchViewModel) {
         connectedSearchViewModels.add(searchViewModel)
-        Log.d("PostViewModel", "🔗 Connected SearchViewModel: ${searchViewModel.hashCode()}")
     }
 
     fun disconnectSearchViewModel(searchViewModel: SearchViewModel) {
         connectedSearchViewModels.remove(searchViewModel)
-        Log.d("PostViewModel", "🔌 Disconnected SearchViewModel: ${searchViewModel.hashCode()}")
     }
 
     suspend fun addSearchPostsIfNeeded(searchPosts: List<Post>) {
@@ -346,16 +439,12 @@ class PostViewModel : ViewModel() {
 
     private suspend fun updatePostEverywhere(updatedPost: Post) {
         try {
-            Log.d("PostViewModel", "📝 Updating in main list...")
             updatePostInListSafe(updatedPost)
 
             connectedSearchViewModels.forEach { searchViewModel ->
                 try {
-                    Log.d("PostViewModel", "   Syncing with SearchVM: ${searchViewModel.hashCode()}")
                     searchViewModel.updatePostInSearchResults(updatedPost)
-                    Log.d("PostViewModel", "   ✅ Sync successful")
                 } catch (e: Exception) {
-                    Log.e("PostViewModel", "   ❌ Sync failed: ${e.message}")
                 }
             }
         } catch (e: Exception) {
@@ -372,18 +461,13 @@ class PostViewModel : ViewModel() {
             if (index != -1) {
                 currentPosts[index] = updatedPost
                 _posts.value = currentPosts
-                Log.d("PostViewModel", "✅ Updated post ${updatedPost.id} at index $index")
-                Log.d("PostViewModel", "📊 New state - Likes: ${updatedPost.likes}, LikedBy: ${updatedPost.likedBy}")
             } else {
-                Log.e("PostViewModel", "❌ Post ${updatedPost.id} NOT FOUND for update")
-                Log.d("PostViewModel", "📊 Available post IDs: ${currentPosts.map { it.id }}")
             }
         }
     }
 
     fun refreshUserAuth() {
         viewModelScope.launch {
-            Log.d("PostViewModel", "🔄 Manual auth refresh called")
         }
     }
 
