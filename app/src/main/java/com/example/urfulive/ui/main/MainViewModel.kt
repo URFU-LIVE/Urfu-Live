@@ -86,14 +86,14 @@ class PostViewModel : ViewModel() {
 
                 if (userId != null) {
                     Log.d("PostViewModel", "✅ User authorized, User ID: $userId")
+                    // 🎯 Загружаем посты только когда пользователь авторизован
+                    fetchPosts()
                 } else {
                     Log.d("PostViewModel", "❌ User not authorized")
+                    // Очищаем посты при разлогине
+                    _posts.value = emptyList()
                 }
             }
-        }
-
-        viewModelScope.launch {
-            fetchPosts()
         }
     }
 
@@ -505,10 +505,6 @@ class PostViewModel : ViewModel() {
     fun refreshUserAuth() {
         viewModelScope.launch {
             Log.d("PostViewModel", "🔄 Manual auth refresh called")
-            val userId = TokenManagerInstance.getInstance().getUserIdBlocking()
-            Log.d("PostViewModel", "🔄 Got User ID: $userId")
-            _currentUserId.value = userId
-            Log.d("PostViewModel", "🔄 Updated _currentUserId to: ${_currentUserId.value}")
         }
     }
 }

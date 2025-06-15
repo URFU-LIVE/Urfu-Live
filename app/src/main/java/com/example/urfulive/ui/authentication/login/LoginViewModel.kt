@@ -45,8 +45,6 @@ class LoginViewModel : ViewModel() {
                     if (result.isSuccess) {
                         Log.d("LoginViewModel", "✅ LOGIN SUCCESS - refreshing PostViewModel")
 
-                        // Ждем немного чтобы UserApiService успел сохранить User ID
-                        delay(500)
 
                         // Принудительно обновляем PostViewModel
                         postViewModel?.refreshUserAuth()
