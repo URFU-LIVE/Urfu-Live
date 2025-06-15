@@ -158,7 +158,7 @@ fun CommentsItem(
                     contentScale = ContentScale.FillBounds,
                     placeholder = painterResource(R.drawable.ava),
                     error = painterResource(R.drawable.ava)
-                ).run { println(comment.author.avatarUrl) }
+                )
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(

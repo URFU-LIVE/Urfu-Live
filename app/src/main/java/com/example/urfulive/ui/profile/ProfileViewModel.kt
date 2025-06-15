@@ -35,7 +35,7 @@ class ProfileViewModel : ViewModel() {
             if (userId != null) {
                 currentUserId = userId.toInt();
             } else {
-                println("Хуй")
+                // todo Сделать какую-нибудь заглушку
             }
         }
     }

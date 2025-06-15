@@ -10,7 +10,7 @@ class TagApiService : BaseApiService() {
     suspend fun getAll(): Result<List<Tag>> {
         val token = getToken()
         return authorizedRequest {
-            client.get("$baseUrl/admin/tags") {
+            client.get("$baseUrl/tags") {
                 headers { append(HttpHeaders.Authorization, "Bearer $token") }
             }
         }

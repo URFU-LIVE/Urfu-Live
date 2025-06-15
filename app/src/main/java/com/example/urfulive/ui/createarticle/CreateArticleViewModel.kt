@@ -2,11 +2,15 @@ package com.example.urfulive.ui.createarticle
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.request.Tags
 import com.example.urfulive.data.DTOs.DefaultResponse
 import com.example.urfulive.data.api.PostApiService
+import com.example.urfulive.data.api.TagApiService
 import com.example.urfulive.data.api.UserApiService
 import com.example.urfulive.data.manager.DtoManager
 import com.example.urfulive.data.model.Notification
+import com.example.urfulive.data.model.Tag
 import com.example.urfulive.data.model.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,19 +23,32 @@ open class CreateArticleViewModel : ViewModel() {
 
     private val postApiService = PostApiService()
     private val userApiService = UserApiService()
+    private val tagApiService = TagApiService()
 
     private val _user = MutableStateFlow<User?>(null)
     open val user: StateFlow<User?> get() = _user
 
+    private val _tags = MutableStateFlow<List<Tag?>>(emptyList())
+    open val tags: StateFlow<List<Tag?>> get() = _tags;
+
     init {
-       fetchUser()
+        fetchUser()
+        fetchTags()
     }
 
-    fun fetchUser() {
+    private fun fetchUser() {
         viewModelScope.launch {
             userApiService.getUserProfile().onSuccess { userDto ->
                 val dtoManager = DtoManager()
                 _user.value = dtoManager.run { userDto.toUser() }
+            }
+        }
+    }
+
+    private fun fetchTags() {
+        viewModelScope.launch {
+            tagApiService.getAll().onSuccess { tags ->
+                _tags.value = tags
             }
         }
     }

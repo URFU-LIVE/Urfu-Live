@@ -55,14 +55,15 @@ fun CreateArticle(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val mockTags = listOf(
-        "Технологии", "Программирование", "Android", "Kotlin", "React", "JavaScript",
-        "Веб-разработка", "Mobile", "UI/UX", "Дизайн", "Backend", "Frontend",
-        "Искусственный интеллект", "Machine Learning", "Data Science", "DevOps",
-        "Стартапы", "Бизнес", "Карьера", "Образование", "Наука", "Исследования",
-        "Новости", "События", "Мероприятия", "Конференции", "Вебинары",
-        "Спорт", "Здоровье", "Путешествия", "Фотография", "Музыка", "Кино"
-    )
+
+//    val mockTags = listOf(
+//        "Технологии", "Программирование", "Android", "Kotlin", "React", "JavaScript",
+//        "Веб-разработка", "Mobile", "UI/UX", "Дизайн", "Backend", "Frontend",
+//        "Искусственный интеллект", "Machine Learning", "Data Science", "DevOps",
+//        "Стартапы", "Бизнес", "Карьера", "Образование", "Наука", "Исследования",
+//        "Новости", "События", "Мероприятия", "Конференции", "Вебинары",
+//        "Спорт", "Здоровье", "Путешествия", "Фотография", "Музыка", "Кино"
+//    )
 
     // Адаптивные отступы в зависимости от размера экрана
     val horizontalPadding = screenWidth.times(0.04f).coerceAtLeast(16.dp)
@@ -114,6 +115,12 @@ fun CreateArticle(
     var selectedTags by remember { mutableStateOf<List<String>>(emptyList()) }
     var showNewTagDialog by remember { mutableStateOf(false) }
     var newTagText by remember { mutableStateOf("") }
+
+    val tags by viewModel.tags.collectAsState()
+
+    val tagNames = tags
+        .filterNotNull()
+        .map { it.name }
 
     // Функция создания подсвеченного текста
     @Composable
@@ -234,7 +241,7 @@ fun CreateArticle(
     }
 
     // ✅ Функция поиска тегов
-    suspend fun searchTags(query: String) {
+    fun searchTags(query: String) {
         if (query.isBlank()) {
             showSuggestions = false
             return
@@ -243,9 +250,9 @@ fun CreateArticle(
         isLoading = true
 
         // Простой поиск по подстроке (без учета регистра) исключая уже выбранные теги
-        val filtered = mockTags.filter { tag ->
+        val filtered = tagNames.filter { tag ->
             tag.lowercase().contains(query.lowercase()) && !selectedTags.contains(tag)
-        }.take(5) // Ограничиваем до 5 предложений
+        }.take(5)
 
         suggestions = filtered
         showSuggestions =
