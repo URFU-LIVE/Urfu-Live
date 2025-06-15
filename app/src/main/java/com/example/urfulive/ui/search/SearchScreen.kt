@@ -500,13 +500,9 @@ private fun SearchPostCard(
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val colorPattern = PostColorPatterns[colorPatternIndex]
 
-    val likedPosts by postViewModel.likedPostIds.collectAsState()
-    val postLikes by postViewModel.postLikes.collectAsState()
-    val isLikeLoading by postViewModel.likesLoading.collectAsState()
-
-    val isLiked = likedPosts.contains(post.id)
-    val actualLikesCount = postLikes[post.id] ?: post.likes
-    val isCurrentlyLoading = isLikeLoading.contains(post.id)
+    val isLiked = postViewModel.isPostLikedByCurrentUser(post.id)
+    val actualLikesCount = postViewModel.getPostLikesCount(post.id)
+    val isProcessing = postViewModel.isPostProcessing(post.id)
 
     Card(
         modifier = Modifier
@@ -649,7 +645,7 @@ private fun SearchPostCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.clickable(
-                        enabled = !isCurrentlyLoading
+                        enabled = !isProcessing
                     ) {
                         postViewModel.likeAndDislike(post.id)
                     }

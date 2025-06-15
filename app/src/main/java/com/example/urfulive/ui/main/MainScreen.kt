@@ -211,8 +211,9 @@ fun PostCard(
     val pattern = remember(colorPatternIndex) { PostColorPatterns[colorPatternIndex.toInt()] }
     val rememberedPost = remember(post) { post }
 
-    val likedPosts by viewModel.likedPostIds.collectAsState()
-    val isLiked = likedPosts.contains(rememberedPost.id)
+    val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+    val likesCount = viewModel.getPostLikesCount(post.id)
+    val isProcessing = viewModel.isPostProcessing(post.id)
 
     val likeScale by remember { mutableStateOf(1f) }
     val animatedLikeScale by animateFloatAsState(
@@ -1018,8 +1019,9 @@ fun ExpandedPostContent(
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    val likedPosts by viewModel.likedPostIds.collectAsState()
-    val isLiked = likedPosts.contains(post.id)
+    val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+    val likesCount = viewModel.getPostLikesCount(post.id)
+    val isProcessing = viewModel.isPostProcessing(post.id)
 
     var isHeaderVisible by remember { mutableStateOf(true) }
     LaunchedEffect(scrollState.value) {
@@ -1239,8 +1241,9 @@ fun AdaptiveReactionPanel(
         label = "reactionPanelOffset"
     )
 
-    val likedPosts by viewModel.likedPostIds.collectAsState()
-    val isLiked = likedPosts.contains(post.id)
+    val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+    val likesCount = viewModel.getPostLikesCount(post.id)
+    val isProcessing = viewModel.isPostProcessing(post.id)
 
     // Адаптивные размеры иконок
     val iconSizes = when {

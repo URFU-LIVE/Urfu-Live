@@ -51,19 +51,16 @@ fun ExpandedPostOverlay(
     val tagScrollState = rememberScrollState()
 
     val posts by viewModel.posts.collectAsState()
-    val likedPosts by viewModel.likedPostIds.collectAsState()
-    val postLikes by viewModel.postLikes.collectAsState()
     val subscriptions by viewModel.subscriptions.collectAsState()
-    val isLikeLoading by viewModel.likesLoading.collectAsState()
 
     val isSubscribed = subscriptions.contains(post.author.id)
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     val currentPost = posts.find { it.id == post.id } ?: post
-    val isLiked = likedPosts.contains(post.id)
-    val actualLikesCount = postLikes[post.id] ?: currentPost.likes
-    val isCurrentlyLoadingLike = isLikeLoading.contains(post.id)
+    val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+    val actualLikesCount = viewModel.getPostLikesCount(post.id)
+    val isCurrentlyLoadingLike = viewModel.isPostProcessing(post.id)
 
     val systemUiController = rememberSystemUiController()
     DisposableEffect(Unit) {
