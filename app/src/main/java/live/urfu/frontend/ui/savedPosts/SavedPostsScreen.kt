@@ -8,6 +8,7 @@ import TagSizes
 import adaptiveSafeAreaPadding
 import adaptiveTextStyle
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,12 +37,14 @@ import live.urfu.frontend.ui.main.PostColorPatterns
 import live.urfu.frontend.data.model.Post
 import live.urfu.frontend.ui.createarticle.CreateArticle
 import live.urfu.frontend.ui.createarticle.CreateArticleViewModel
+import live.urfu.frontend.ui.main.PostViewModel
+import live.urfu.frontend.ui.profile.ExpandedPostOverlay
 import live.urfu.frontend.ui.savedPosts.SavedPostsViewModel
 import rememberScreenSizeInfo
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-@Preview
+//@Preview
 fun SavedPostsScreen(
     viewModel: SavedPostsViewModel = viewModel(),
     onProfileClick: () -> Unit = {},
@@ -52,10 +55,15 @@ fun SavedPostsScreen(
     onPostClick: (Post) -> Unit = {},
     onSearchClick: () -> Unit = {},
     onRemoveFromSaved: (Post) -> Unit = {},
-    currentScreen: String = "saved"
+    onAuthorClick: (String) -> Unit,
+    onCommentsClick: (Long) -> Unit,
+    currentScreen: String = "saved",
+    sharedPostViewModel: PostViewModel
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val savedPosts = viewModel.savedPosts
+
+    var expandedPost by remember { mutableStateOf<Post?>(null) }
 
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
@@ -65,6 +73,10 @@ fun SavedPostsScreen(
             onPostError = {},
             viewModel = CreateArticleViewModel()
         )
+    }
+
+    BackHandler(enabled = expandedPost != null) {
+        expandedPost = null
     }
 
     Scaffold(
@@ -105,7 +117,12 @@ fun SavedPostsScreen(
                     SavedPostCard(
                         post = post,
                         screenInfo = screenInfo,
-                        onPostClick = { onPostClick(post) },
+                        onPostClick = {
+                            expandedPost = post
+                        },
+                        onAuthorClick = { authorId ->
+                            onAuthorClick(authorId)
+                        },
                         onRemoveFromSaved = { viewModel.removeFromSaved(post) }
                     )
                 }
@@ -117,6 +134,17 @@ fun SavedPostsScreen(
                     }
                 }
             }
+        }
+        expandedPost?.let { post ->
+            ExpandedPostOverlay(
+                post = post,
+                onClose = { expandedPost = null },
+                onCommentsClick = { postId ->
+                    onCommentsClick(postId)
+                    expandedPost = null
+                },
+                viewModel = sharedPostViewModel
+            )
         }
     }
 }
@@ -161,6 +189,7 @@ fun SavedPostCard(
     post: Post,
     screenInfo: ScreenSizeInfo,
     onPostClick: () -> Unit,
+    onAuthorClick: (String) -> Unit,
     onRemoveFromSaved: () -> Unit,
 ) {
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
@@ -208,7 +237,9 @@ fun SavedPostCard(
                         modifier = Modifier
                             .size(authorAvatarSize(screenInfo))
                             .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape),
+                            .border(2.dp, Color.White, CircleShape).clickable {
+                                onAuthorClick(post.author.id)
+                            },
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.ava),
                         error = painterResource(R.drawable.ava)
@@ -228,7 +259,9 @@ fun SavedPostCard(
                             color = Color.Black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.clickable { /* TODO onAuthorClick(post.author.id)*/ }
+                            modifier = Modifier.clickable {
+                                onAuthorClick(post.author.id)
+                            }
                         )
                     }
                 }
