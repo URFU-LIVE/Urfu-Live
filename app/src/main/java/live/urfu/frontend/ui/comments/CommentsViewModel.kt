@@ -31,6 +31,7 @@ class CommentsViewModel(
                 _comments.value = commentsDto.map { dtoManager.run { it.toComment() } }
             }.onFailure {
                 // Handle error
+                // todo
             }
         }
     }

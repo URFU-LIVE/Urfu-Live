@@ -20,6 +20,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import java.io.File
 
 class UserApiService: BaseApiService() {
@@ -38,7 +39,7 @@ class UserApiService: BaseApiService() {
             try {
                 val userProfile = getUserProfile().getOrNull()
                 if (userProfile != null) {
-                    // Используем TokenManagerInstance напрямую
+                    // Используем live.urfu.frontend.data.manager.TokenManagerInstance напрямую
                     TokenManagerInstance.getInstance().saveID(userProfile.id.toString())
                     android.util.Log.d("UserApiService", "✅ Saved User ID: ${userProfile.id}")
                 } else {

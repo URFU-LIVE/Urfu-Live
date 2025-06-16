@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,15 +45,15 @@ fun CommentsScreen(
     val commentText = remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val previousSize = remember { mutableStateOf(0) }
+    val previousSize = remember { mutableIntStateOf(0) }
 
     // Скролл вниз при добавлении нового комментария
     LaunchedEffect(comments.size) {
-        if (comments.size > previousSize.value) {
+        if (comments.size > previousSize.intValue) {
             coroutineScope.launch {
                 listState.animateScrollToItem(comments.size - 1)
             }
-            previousSize.value = comments.size
+            previousSize.intValue = comments.size
         }
     }
 
@@ -67,7 +68,6 @@ fun CommentsScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,7 +85,6 @@ fun CommentsScreen(
                             .clickable { onClose() }
                             .padding(start = 15.dp)
                     )
-
                     Text(
                         text = "Комментарии",
                         color = Color.White,
@@ -94,8 +93,6 @@ fun CommentsScreen(
                     )
                 }
             }
-
-            // Comments List
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 state = listState
@@ -109,8 +106,6 @@ fun CommentsScreen(
                     )
                 }
             }
-
-            // Input Field
             CommentInputField(
                 text = commentText.value,
                 onTextChange = { commentText.value = it },
@@ -135,6 +130,7 @@ fun CommentsScreen(
 fun CommentsItem(
     comment: Comment,
     onReplyClick: (Comment) -> Unit,
+    // todo
     onLikeClick: (Comment) -> Unit,
     onProfileClick: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -158,7 +154,6 @@ fun CommentsItem(
                     placeholder = painterResource(R.drawable.ava),
                     error = painterResource(R.drawable.ava)
                 )
-
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = comment.author.username,
@@ -172,17 +167,15 @@ fun CommentsItem(
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-
                 Image(
                     painter = painterResource(id = R.drawable.flag),
                     contentDescription = "Report",
                     colorFilter = ColorFilter.tint(Color.White),
                     modifier = Modifier
                         .size(18.dp)
-                        .clickable { /* Report comment */ }
+                        .clickable { /* Report comment */  } //todo
                 )
             }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -196,9 +189,7 @@ fun CommentsItem(
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.clickable { onReplyClick(comment) }
                 )
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Text(
                     text = comment.createdAt,
                     color = Color.White.copy(alpha = 0.7f),
@@ -209,6 +200,7 @@ fun CommentsItem(
     }
 }
 
+// todo ЮЗЛЕС!
 @Composable
 fun CommentReplyItem(
     comment: Comment,
@@ -236,7 +228,6 @@ fun CommentReplyItem(
                             .size(40.dp)
                             .clickable { onProfileClick(comment.author.id) }
                     )
-
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = comment.author.username,
@@ -250,17 +241,15 @@ fun CommentReplyItem(
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
-
                     Image(
                         painter = painterResource(id = R.drawable.flag),
                         contentDescription = "Report",
                         colorFilter = ColorFilter.tint(Color.White),
                         modifier = Modifier
                             .size(16.dp)
-                            .clickable { /* Report comment */ }
+                            .clickable { /* Report comment */ } // todo
                     )
                 }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -274,9 +263,7 @@ fun CommentReplyItem(
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.clickable { onReplyClick(comment) }
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Text(
                         text = comment.createdAt,
                         color = Color.White.copy(alpha = 0.7f),
@@ -316,7 +303,6 @@ fun CommentInputField(
                 unfocusedIndicatorColor = Color.Transparent
             )
         )
-
         Box(
             modifier = Modifier
                 .size(36.dp)
@@ -330,9 +316,7 @@ fun CommentInputField(
                 colorFilter = ColorFilter.tint(Color.White),
                 modifier = Modifier
                     .size(20.dp)
-                    .graphicsLayer {
-                        rotationZ = 180f
-                    }
+                    .graphicsLayer { rotationZ = 180f }
             )
         }
     }

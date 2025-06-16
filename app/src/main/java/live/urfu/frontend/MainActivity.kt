@@ -1,7 +1,7 @@
 package live.urfu.frontend
 
 import AppNavHost
-import TokenManager
+import live.urfu.frontend.data.manager.TokenManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,6 +13,7 @@ import live.urfu.frontend.data.manager.InterestManager
 import live.urfu.frontend.data.manager.InterestManagerInstance
 import live.urfu.frontend.data.manager.PostManager
 import live.urfu.frontend.data.manager.PostManagerInstance
+import live.urfu.frontend.data.manager.TokenManagerInstance
 
 
 class MainActivity : ComponentActivity() {

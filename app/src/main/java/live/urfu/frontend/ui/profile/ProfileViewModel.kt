@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.profile
 
-import TokenManagerInstance
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue

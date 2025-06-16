@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import live.urfu.frontend.R
 
 @SuppressLint("ConfigurationScreenWidthHeight")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateArticle(
     onClose: () -> Unit,
@@ -52,19 +52,8 @@ fun CreateArticle(
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-//    val mockTags = listOf(
-//        "Технологии", "Программирование", "Android", "Kotlin", "React", "JavaScript",
-//        "Веб-разработка", "Mobile", "UI/UX", "Дизайн", "Backend", "Frontend",
-//        "Искусственный интеллект", "Machine Learning", "Data Science", "DevOps",
-//        "Стартапы", "Бизнес", "Карьера", "Образование", "Наука", "Исследования",
-//        "Новости", "События", "Мероприятия", "Конференции", "Вебинары",
-//        "Спорт", "Здоровье", "Путешествия", "Фотография", "Музыка", "Кино"
-//    )
-
-    // Адаптивные отступы в зависимости от размера экрана
     val horizontalPadding = screenWidth.times(0.04f).coerceAtLeast(16.dp)
 
-    // Высота текстового поля: от 35% до 45% высоты экрана в зависимости от размера экрана
     val contentFieldHeight = remember(screenHeight) {
         val percentHeight = when {
             screenHeight < 720.dp -> 0.35f
@@ -93,10 +82,8 @@ fun CreateArticle(
 
     var isClosing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val scrollState = rememberScrollState() // Основной скролл страницы
-    val tagsScrollState = rememberScrollState() // Отдельный скролл для тегов
+    val tagsScrollState = rememberScrollState()
 
-    // Анимация
     val animatedAlpha = remember { Animatable(if (animationsEnabled) 0f else 1f) }
     val animatedOffset = remember { Animatable(if (animationsEnabled) screenHeight.value else 0f) }
 
@@ -118,14 +105,12 @@ fun CreateArticle(
         .filterNotNull()
         .map { it.name }
 
-    // Функция создания подсвеченного текста
     @Composable
     fun HighlightedText(text: String, query: String) {
         val startIndex = text.lowercase().indexOf(query.lowercase())
         if (startIndex >= 0) {
             val endIndex = startIndex + query.length
             Row {
-                // Текст до совпадения (серый)
                 if (startIndex > 0) {
                     Text(
                         text = text.substring(0, startIndex),
@@ -133,13 +118,11 @@ fun CreateArticle(
                         style = MaterialTheme.typography.headlineMedium
                     )
                 }
-                // Совпадающий текст (белый и жирный)
                 Text(
                     text = text.substring(startIndex, endIndex),
                     color = Color.White,
                     style = MaterialTheme.typography.headlineMedium
                 )
-                // Текст после совпадения (серый)
                 if (endIndex < text.length) {
                     Text(
                         text = text.substring(endIndex),
@@ -149,7 +132,6 @@ fun CreateArticle(
                 }
             }
         } else {
-            // Если совпадений нет, показываем весь текст белым
             Text(
                 text = text,
                 color = Color.White,
@@ -236,7 +218,6 @@ fun CreateArticle(
         }
     }
 
-    // ✅ Функция поиска тегов
     fun searchTags(query: String) {
         if (query.isBlank()) {
             showSuggestions = false
@@ -245,29 +226,24 @@ fun CreateArticle(
 
         isLoading = true
 
-        // Простой поиск по подстроке (без учета регистра) исключая уже выбранные теги
         val filtered = tagNames.filter { tag ->
             tag.lowercase().contains(query.lowercase()) && !selectedTags.contains(tag)
         }.take(5)
 
         suggestions = filtered
         showSuggestions =
-            filtered.isNotEmpty() || query.length >= 2 // Показываем если есть предложения ИЛИ введено 2+ символа для нового тега
+            filtered.isNotEmpty() || query.length >= 2
         isLoading = false
     }
 
-    // ✅ Функция выбора тега
     fun selectTag(selectedTag: String) {
-        // Добавляем тег в список выбранных, если его там еще нет
         if (!selectedTags.contains(selectedTag)) {
             selectedTags = selectedTags + selectedTag
         }
-        // Очищаем поле ввода
         tagsInput = ""
         showSuggestions = false
     }
 
-    // Функция удаления тега
     fun removeTag(tagToRemove: String) {
         selectedTags = selectedTags.filter { it != tagToRemove }
     }
@@ -314,7 +290,6 @@ fun CreateArticle(
     val grayText = Color(red = 125, green = 125, blue = 125)
     val lightGrayText = Color(0xFFBBBBBB)
 
-    // Используем Scaffold для лучшей организации макета и правильных отступов
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -350,17 +325,13 @@ fun CreateArticle(
         }
     ) { innerPadding ->
 
-        // Основной контент с возможностью прокрутки
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                //.verticalScroll(scrollState)
                 .padding(horizontal = horizontalPadding)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Заголовок
             OutlinedTextField(
                 value = titleText,
                 onValueChange = { titleText = it },
@@ -381,15 +352,11 @@ fun CreateArticle(
                 textStyle = TextStyle(color = Color.White),
                 singleLine = true
             )
-
             HorizontalDivider(
                 thickness = 1.dp,
                 color = Color(red = 131, green = 131, blue = 131)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Содержание статьи - адаптивная высота
             OutlinedTextField(
                 value = contentText,
                 onValueChange = { contentText = it },
@@ -420,18 +387,13 @@ fun CreateArticle(
                 ),
                 textStyle = TextStyle(color = Color.White)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Теги
             Box {
                 OutlinedTextField(
                     value = tagsInput,
                     onValueChange = { newText ->
                         tagsInput = newText
-
-                        // Ищем теги по всему тексту в поле ввода
-                        if (newText.trim().length >= 2) { // Начинаем поиск с 2 символов
+                        if (newText.trim().length >= 2) {
                             scope.launch {
                                 searchTags(newText.trim())
                             }
@@ -469,8 +431,6 @@ fun CreateArticle(
                         }
                     }
                 )
-
-                // Dropdown с предложениями тегов
                 DropdownMenu(
                     expanded = showSuggestions,
                     onDismissRequest = { showSuggestions = false },
@@ -484,7 +444,6 @@ fun CreateArticle(
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp
                 ) {
-                    // Показываем найденные теги с подсветкой
                     suggestions.forEach { suggestion ->
                         DropdownMenuItem(
                             text = {
@@ -496,8 +455,6 @@ fun CreateArticle(
                                 .background(Color(0xFF232323))
                         )
                     }
-
-                    // Всегда показываем "Добавить новый тег" если введено 2+ символа
                     if (tagsInput.trim().length >= 2) {
                         DropdownMenuItem(
                             text = {
@@ -524,8 +481,6 @@ fun CreateArticle(
                     }
                 }
             }
-
-            // Показываем выбранные теги как чипы с кнопкой удаления
             if (selectedTags.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -559,7 +514,6 @@ fun CreateArticle(
                                         text = tag,
                                         style = MaterialTheme.typography.labelMedium
                                     )
-                                    // Кнопка удаления тега
                                     Image(
                                         painter = painterResource(id = R.drawable.x),
                                         modifier = Modifier
@@ -574,11 +528,7 @@ fun CreateArticle(
                     }
                 }
             }
-
-            // Эластичный разделитель для разных размеров экрана
             Spacer(modifier = Modifier.weight(1f))
-
-            // Кнопка публикации - адаптивное расположение
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -604,8 +554,6 @@ fun CreateArticle(
             }
         }
     }
-
-    // Диалог для добавления нового тега
     if (showNewTagDialog) {
         AlertDialog(
             onDismissRequest = {
@@ -693,65 +641,6 @@ fun CreateArticle(
             shape = RoundedCornerShape(52.dp),
             modifier = Modifier.padding(0.dp)
                 .fillMaxWidth(1f)
-        )
-    }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(
-    name = "Small screen (360x640)",
-    device = "spec:width=360dp,height=640dp",
-    backgroundColor = 10,
-    showSystemUi = true
-)
-@Composable
-fun CreateArticlePreviewSmall() {
-    UrfuLiveTheme {
-        CreateArticle(
-            onClose = {},
-            onPostSuccess = {},
-            onPostError = {},
-            viewModel = FakeCreateArticleViewModel(),
-            animationsEnabled = false
-        )
-    }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(
-    name = "Default screen",
-    showBackground = true,
-    showSystemUi = true,
-    backgroundColor = 10
-)
-@Composable
-fun CreateArticlePreviewDefault() {
-    UrfuLiveTheme {
-        CreateArticle(
-            onClose = {},
-            onPostSuccess = {},
-            onPostError = {},
-            viewModel = FakeCreateArticleViewModel(),
-            animationsEnabled = false
-        )
-    }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(
-    name = "Large screen (500x1000)",
-    device = "spec:width=500dp,height=1000dp",
-    showSystemUi = true
-)
-@Composable
-fun CreateArticlePreviewLarge() {
-    UrfuLiveTheme {
-        CreateArticle(
-            onClose = {},
-            onPostSuccess = {},
-            onPostError = {},
-            viewModel = FakeCreateArticleViewModel(),
-            animationsEnabled = false
         )
     }
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import live.urfu.frontend.data.manager.TokenManagerInstance
 
 data class PostColorPattern(
     val background: Color,

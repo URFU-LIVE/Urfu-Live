@@ -1,3 +1,4 @@
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +31,7 @@ import live.urfu.frontend.R
 import live.urfu.frontend.ui.main.PostViewModel
 
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
@@ -60,7 +62,7 @@ fun LoginScreen(
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
-    val screenHeight = configuration.screenHeightDp
+    val screenHeight = configuration.screenHeightDp //todo
     val isSmallScreen = screenWidth < 400
     val paddingBeforeGreeting = when {
         isSmallScreen -> 1.dp
@@ -100,7 +102,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Войдите или ",
+                text = "Войдите или ", //todo Странный пробел
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White
             )
@@ -147,7 +149,7 @@ fun LoginScreen(
             trailingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.eye),
-                    contentDescription = "Toggle password visibility",
+                    contentDescription = "Toggle password visibility", //todo
                     tint = Color.White,
                     modifier = Modifier
                         .size(24.dp)
@@ -180,7 +182,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback, postViewModel) },
+            onClick = { viewModel.onLoginClick(loginValue, passwordValue, loginCallback) },
             modifier = Modifier
                 .fillMaxWidth()
                 .systemBarsPadding()
@@ -195,57 +197,3 @@ fun LoginScreen(
         }
     }
 }
-
-//@Preview(
-//    name = "Small screen (360x640)",
-//    device = "spec:width=360dp,height=640dp",
-//    showSystemUi = true,
-//)
-//@Composable
-//fun LoginScreenPreviewSmall() {
-//    UrfuLiveTheme {
-//        LoginScreen(
-//            onRegisterClick = {},
-//            onLoginClick = {},
-//            onLoginSuccess = {},
-//            onLoginError = {},
-//            onRestorePasswordClick = {}
-//        )
-//    }
-//}
-//
-//@Preview(
-//    name = "Default screen",
-//    showBackground = true,
-//    showSystemUi = true
-//)
-//@Composable
-//fun LoginScreenPreviewDefault() {
-//    UrfuLiveTheme {
-//        LoginScreen(
-//            onRegisterClick = {},
-//            onLoginClick = {},
-//            onLoginSuccess = {},
-//            onLoginError = {},
-//            onRestorePasswordClick = {}
-//        )
-//    }
-//}
-//
-//@Preview(
-//    name = "Large screen (500x1000)",
-//    device = "spec:width=500dp,height=1000dp",
-//    showSystemUi = true,
-//)
-//@Composable
-//fun LoginScreenPreviewLarge() {
-//    UrfuLiveTheme {
-//        LoginScreen(
-//            onRegisterClick = {},
-//            onLoginClick = {},
-//            onLoginSuccess = {},
-//            onLoginError = {},
-//            onRestorePasswordClick = {}
-//        )
-//    }
-//}

@@ -52,7 +52,6 @@ class DtoManager {
     }
 
     fun UserDto.toUser(): User {
-        // Convert birthDate List<Int> to a formatted string (DD.MM.YYYY format)
         val dateString = try {
             val year = birthDate.getOrNull(0) ?: 0
             val month = birthDate.getOrNull(1) ?: 0
@@ -62,15 +61,13 @@ class DtoManager {
             "N/A"
         }
 
-        // Convert role string to UserRole enum
         val userRole = when (role) {
-            "MODERATOR" -> UserRole.ADMIN
+            "MODERATOR" -> UserRole.MODER
             "WRITER" -> UserRole.WRITER
             "ADMIN" -> UserRole.ADMIN
             else -> UserRole.USER
         }
 
-        // Get counts instead of full lists
         val followersCount = followers.size
         val followingCount = following.size
 
@@ -86,7 +83,6 @@ class DtoManager {
             followingCount = followingCount,
             description = this.description,
             followers = this.followers,
-            // todo Хардкод в проде надо поменять
             avatarUrl = this.avatar_url?.replace("localhost", "45.144.53.244"),
             backgroundUrl = this.background_url?.replace("localhost", "45.144.53.244")
         )
@@ -114,7 +110,6 @@ class DtoManager {
         )
     }
 
-    // Новый метод для преобразования CommentDto в Comment
     fun CommentDto.toComment(): Comment {
         val formattedTime = try {
             val year = createdAt.getOrNull(0) ?: 0

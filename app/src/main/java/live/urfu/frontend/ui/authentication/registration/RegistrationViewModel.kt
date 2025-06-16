@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import java.time.LocalDate
 
 class RegistrationViewModel : ViewModel() {
@@ -110,5 +111,4 @@ class RegistrationViewModel : ViewModel() {
             null
         }
     }
-
 }

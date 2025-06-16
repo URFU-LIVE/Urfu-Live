@@ -1,3 +1,5 @@
+package live.urfu.frontend.data.manager
+
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -9,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-// Create extension property for dataStore
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_preferences")
 
 object TokenManagerInstance {
@@ -23,7 +24,7 @@ object TokenManagerInstance {
     }
 
     fun getInstance(): TokenManager {
-        return instance ?: throw IllegalStateException("TokenManager not initialized")
+        return instance ?: throw IllegalStateException("live.urfu.frontend.data.manager.TokenManager not initialized")
     }
 }
 

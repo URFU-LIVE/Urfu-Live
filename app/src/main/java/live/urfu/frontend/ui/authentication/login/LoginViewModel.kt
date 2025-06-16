@@ -2,7 +2,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import live.urfu.frontend.data.DTOs.AuthResponse
 import live.urfu.frontend.data.api.UserApiService
-import live.urfu.frontend.ui.main.PostViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,18 +22,16 @@ class LoginViewModel : ViewModel() {
     private val _password = MutableStateFlow("")
     val password = _password.asStateFlow()
 
-    // Обработка изменения поля «Логин»
     fun onLoginChange(newValue: String) {
         _login.value = newValue
     }
 
-    // Обработка изменения поля «Пароль»
     fun onPasswordChange(newValue: String) {
         _password.value = newValue
     }
 
-    // Нажатие на кнопку «Войти»
-    fun onLoginClick(login: String, password: String, callback: LoginCallback, postViewModel: PostViewModel? = null) {
+    // todo Что-то сделать с логированием
+    fun onLoginClick(login: String, password: String, callback: LoginCallback) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 Log.d("LoginViewModel", "🔑 LOGIN ATTEMPT for user: $login")
@@ -56,6 +53,7 @@ class LoginViewModel : ViewModel() {
         }
     }
 
+    // todo Убрать уже проход
     // Нажатие на «Восстановить пароль»
     fun onRestorePasswordClick() {
         // Логика восстановления пароля (переход на экран восстановления, запрос к серверу и т.д.)

@@ -1,6 +1,6 @@
 package live.urfu.frontend.data.api
 
-import TokenManagerInstance
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import live.urfu.frontend.data.manager.InterestManagerInstance
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
@@ -53,6 +53,8 @@ abstract class BaseApiService {
     protected suspend fun getRefreshToken(): String? =
         TokenManagerInstance.getInstance().getRefreshTokenBlocking()
 
+
+    // todo
     protected suspend fun clearTokens() =
         TokenManagerInstance.getInstance().clearTokens()
 

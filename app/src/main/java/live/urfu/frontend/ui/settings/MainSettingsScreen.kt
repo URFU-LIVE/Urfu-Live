@@ -3,7 +3,7 @@ package live.urfu.frontend.ui.settings
 import NavbarCallbacks
 import ScreenSizeInfo
 import SettingsAdaptiveSizes.settingsItemIconSize
-import TokenManagerInstance
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import adaptiveTextStyle
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable

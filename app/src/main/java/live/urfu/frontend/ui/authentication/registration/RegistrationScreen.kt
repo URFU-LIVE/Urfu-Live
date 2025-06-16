@@ -1,3 +1,4 @@
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import live.urfu.frontend.R
 import live.urfu.frontend.data.DTOs.AuthResponse
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RegistrationScreen(
@@ -32,7 +35,7 @@ fun RegistrationScreen(
     onRegisterError: (Exception) -> Unit,
     viewModel: RegistrationViewModel = viewModel()
 ) {
-    var currentStep by remember { mutableStateOf(1) }
+    var currentStep by remember { mutableIntStateOf(1) }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPassword by remember { mutableStateOf("") }
 
@@ -92,7 +95,7 @@ fun RegistrationScreen(
                     onNextClick = {
                         if (loginValue.isNotBlank()) currentStep = 2
                     },
-                    onBackClick = null, // Первый шаг - нет кнопки назад
+                    onBackClick = null,
                     isSmallScreen = isSmallScreen
                 )
                 2 -> NameStep(
@@ -190,6 +193,7 @@ private fun UsernameStep(
     value: String,
     onValueChange: (String) -> Unit,
     onNextClick: () -> Unit,
+    // todo
     onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
@@ -204,7 +208,7 @@ private fun UsernameStep(
                     .fillMaxWidth()
                     .padding(end = 11.5.dp, start = 10.5.dp),
                 textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
@@ -243,7 +247,7 @@ private fun NameStep(
                     .fillMaxWidth()
                     .padding(end = 11.5.dp, start = 10.5.dp),
                 textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
@@ -283,7 +287,7 @@ private fun EmailStep(
                     .fillMaxWidth()
                     .padding(end = 11.5.dp, start = 10.5.dp),
                 textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
@@ -323,7 +327,7 @@ private fun BirthDateStep(
                     .fillMaxWidth()
                     .padding(end = 11.5.dp, start = 10.5.dp),
                 textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
@@ -372,7 +376,7 @@ private fun PasswordStep(
                     .fillMaxWidth()
                     .padding(end = 11.5.dp, start = 10.5.dp),
                 textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
@@ -385,7 +389,7 @@ private fun PasswordStep(
                 trailingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.eye),
-                        contentDescription = "Toggle password visibility",
+                        contentDescription = "Toggle password visibility", // todo
                         tint = Color.White,
                         modifier = Modifier
                             .size(30.dp)
@@ -405,7 +409,7 @@ private fun PasswordStep(
                     .fillMaxWidth()
                     .padding(end = 11.5.dp, start = 10.5.dp),
                 textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
+                style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
             OutlinedTextField(
@@ -446,6 +450,7 @@ private fun RegistrationStepTemplate(
     title: String,
     subtitle: String,
     content: @Composable ColumnScope.() -> Unit,
+    // todo
     buttonText: String,
     onButtonClick: () -> Unit,
     onBackClick: (() -> Unit)? = null,
@@ -463,7 +468,7 @@ private fun RegistrationStepTemplate(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = typography.titleMedium,
             color = Color.White,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth()
@@ -473,7 +478,7 @@ private fun RegistrationStepTemplate(
 
         Text(
             text = subtitle,
-            style = MaterialTheme.typography.bodyLarge,
+            style = typography.bodyLarge,
             color = Color.Gray,
             textAlign = TextAlign.Start,
             modifier = Modifier.fillMaxWidth()
@@ -487,6 +492,7 @@ private fun RegistrationStepTemplate(
 
 @Composable
 private fun RegistrationButtons(
+    // todo
     currentStep: Int,
     onBackClick: (() -> Unit)?,
     onNextClick: () -> Unit,
@@ -508,7 +514,6 @@ private fun RegistrationButtons(
         horizontalArrangement = if (onBackClick != null) Arrangement.spacedBy(12.dp) else Arrangement.End
     ) {
         if (onBackClick != null) {
-            // Кнопка "Назад"
             OutlinedButton(
                 onClick = onBackClick,
                 modifier = Modifier.weight(0.45f),
@@ -517,7 +522,10 @@ private fun RegistrationButtons(
                     contentColor = Color.White
                 )
             ) {
-                Text("Назад", style = MaterialTheme.typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize))
+                Text(
+                    "Назад",
+                    style = typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize)
+                )
             }
         }
 
@@ -536,7 +544,7 @@ private fun RegistrationButtons(
         ) {
             Text(
                 buttonText,
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize)
+                style = typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize)
             )
         }
     }
