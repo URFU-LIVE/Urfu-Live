@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.typography
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.*
@@ -316,6 +318,7 @@ private fun BirthDateStep(
     onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
+
     RegistrationStepTemplate(
         title = "Введите вашу дату рождения",
         subtitle = "Эта информация не будет показана другим пользователям",
@@ -330,6 +333,8 @@ private fun BirthDateStep(
                 style = typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(10.dp))
+
+            val keyboardController = LocalSoftwareKeyboardController.current
             OutlinedTextField(
                 value = value,
                 onValueChange = { newValue ->
@@ -341,7 +346,13 @@ private fun BirthDateStep(
                 shape = RoundedCornerShape(15.dp),
                 placeholder = { Text("ДД-ММ-ГГГГ", color = Color.Gray) },
                 colors = textFieldColors(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {keyboardController?.hide()}
+                ),
                 visualTransformation = DateTransformation()
             )
         },
@@ -430,7 +441,7 @@ private fun PasswordStep(
                 Text(
                     "Пароли не совпадают",
                     color = Color.Red,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = typography.bodySmall,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 11.5.dp)
