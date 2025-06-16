@@ -22,6 +22,7 @@ import live.urfu.frontend.ui.settings.SettingsScreen
 import live.urfu.frontend.ui.settings.account.AccountSettings
 import live.urfu.frontend.ui.settings.notification.NotificationsSettings
 import live.urfu.frontend.ui.settings.privacy.PrivacySettings
+import java.net.URLEncoder
 
 sealed class AuthState {
     object Loading : AuthState()
@@ -132,7 +133,7 @@ fun AppNavHost() {
                 onSavedClick = {
                     // Уже на экране сохраненных постов, ничего не делаем
                 },
-                onMessagesClick = {  },
+                onMessagesClick = { },
                 onPostClick = { post ->
                     // Навигация к развернутому посту
                 },
@@ -251,51 +252,75 @@ fun AppNavHost() {
             })
         ) { backStackEntry ->
             val selectedTag = backStackEntry.arguments?.getString("tag") ?: ""
+            val searchViewModel: SearchViewModel = viewModel(
+                viewModelStoreOwner = backStackEntry
+            )
             SearchScreen(
                 initialTag = selectedTag,
-                onClose = { navController.popBackStack() },
+                onClose = {
+                    println("🗺️ AppNavHost: SearchScreen onClose called")
+                    navController.popBackStack()
+                },
                 onPostClick = { post ->
-                    // Этот колбэк больше не используется, так как посты раскрываются внутри SearchScreen
+                    // Этот колбэк больше не используется
                 },
                 onAuthorClick = { authorId ->
-                    // Навигация к профилю автора
                     navController.navigate("profile/$authorId")
                 },
-                onCommentsClick = { postId ->
-                    // ✅ Навигация к экрану комментариев
-                    navController.navigate("comments/$postId")
+                onCommentsClick = { postId, tag ->
+                    val e = URLEncoder.encode(tag, "UTF-8")
+                    navController.navigate("comments/$postId?searchTag=$e")
                 },
-                viewModel = sharedSearchViewModel,
+                onTagSearch   = { tagToSearch ->
+                    val e = URLEncoder.encode(tagToSearch, "UTF-8")
+                    navController.navigate("search?tag=$e") {
+                        launchSingleTop = true
+                        restoreState     = true
+                    }
+                },
+                viewModel = searchViewModel,
                 enableAnimations = true,
                 postViewModel = sharedPostViewModel
             )
         }
 
         composable(
-            route = "author/{userId}",
-            arguments = listOf(navArgument("userId") { type = NavType.LongType })
+            route = "comments/{postId}?searchTag={searchTag}",
+            arguments = listOf(
+                navArgument("postId") { type = NavType.LongType },
+                navArgument("searchTag") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                }
+            )
         ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getLong("userId") ?: return@composable
-            val authorProfileViewModel: ProfileViewModel = viewModel()
+            val postId = backStackEntry.arguments?.getLong("postId") ?: 0
+            val searchTag = backStackEntry.arguments?.getString("searchTag") ?: ""
 
-            LaunchedEffect(userId) {
-                authorProfileViewModel.clearData()
-                authorProfileViewModel.fetchUserProfileById(userId)
-            }
-
-            ProfileScreen(
-                viewModel = authorProfileViewModel,
-                isOwnProfile = false,
-                onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
-                navbarCallbacks = commonNavbarCallbacks(navController),
-                currentScreen = "author",
-                onCloseOverlay = { navController.popBackStack() },
-                onCommentsClick = { postId ->
-                    navController.navigate("comments/$postId")
-                },
-                sharedPostViewModel = sharedPostViewModel
+            CommentsScreen(
+                postId = postId,
+                onClose = {
+                    if (searchTag.isNotEmpty()) {
+                        // Декодируем наш тег
+                        val decodedTag = java.net.URLDecoder.decode(
+                            searchTag,
+                            "UTF-8"
+                        )                // Просто "прыгаем" обратно к тому entry "search?tag=…", если он есть
+                        val targetRoute = "search?tag=$decodedTag"
+                        if (navController.popBackStack(targetRoute, /* inclusive = */ false)) {
+                            // успешно вернулись
+                        } else {
+                            // такого entry нет — просто назад
+                            navController.popBackStack()
+                        }
+                    } else {
+                        navController.popBackStack()
+                    }
+                }
             )
         }
+
     }
 }
 
@@ -303,7 +328,7 @@ fun AppNavHost() {
 fun MainScreenWithOverlays(
     navController: NavHostController,
     profileViewModel: ProfileViewModel, // todo
-    sharedPostViewModel: PostViewModel
+    sharedPostViewModel: PostViewModel,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         CarouselScreen(
@@ -314,7 +339,7 @@ fun MainScreenWithOverlays(
             onCommentsClick = { postId ->
                 navController.navigate("comments/$postId")
             },
-            onSavedPostsClick = {navController.navigate("savedPosts")},
+            onSavedPostsClick = { navController.navigate("savedPosts") },
             viewModel = sharedPostViewModel
         )
     }
@@ -339,5 +364,5 @@ data class NavbarCallbacks(
     val onSavedClick: () -> Unit,
     val onCreateArticleClick: () -> Unit,
     val onMessagesClick: () -> Unit,
-    val onProfileClick: () -> Unit
+    val onProfileClick: () -> Unit,
 )
