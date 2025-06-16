@@ -321,6 +321,54 @@ fun AppNavHost() {
             )
         }
 
+        composable(
+            route = "author/{authorId}",
+            arguments = listOf(navArgument("authorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val authorId = backStackEntry.arguments?.getString("authorId") ?: ""
+
+            // Создаем отдельную ViewModel для профиля автора
+            val authorProfileViewModel: ProfileViewModel = viewModel()
+
+            LaunchedEffect(authorId) {
+                try {
+                    val userId = authorId.toLongOrNull()
+                    if (userId != null) {
+                        authorProfileViewModel.clearData()
+                        authorProfileViewModel.fetchUserProfileById(userId)
+                    } else {
+                        navController.popBackStack()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthorProfile", "Error loading author profile", e)
+                    navController.popBackStack()
+                }
+            }
+
+            ProfileScreen(
+                viewModel = authorProfileViewModel,
+                isOwnProfile = false,
+                onHomeClick = {
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                },
+                onEditProfileClick = { },
+                navbarCallbacks = null,
+                currentScreen = "",
+                onSettingsClick = { },
+                onCloseOverlay = { navController.popBackStack() },
+                onSavedClick = { },
+                onMessagesClick = { },
+                onReportClick = {
+                    // TODO: Реализовать жалобу на пользователя
+                },
+                sharedPostViewModel = sharedPostViewModel,
+                onCommentsClick = { postId ->
+                    navController.navigate("comments/$postId")
+                }
+            )
+        }
     }
 }
 
