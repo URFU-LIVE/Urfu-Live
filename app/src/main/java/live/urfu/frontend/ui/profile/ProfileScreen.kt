@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -133,7 +134,8 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.5f),
+                        .weight(0.5f)
+                        .background(Color(0xFFFD8767)),
                     contentAlignment = Alignment.Center
                 ) {
                     // Ensure AsyncImage is first (background)
@@ -142,7 +144,8 @@ fun ProfileScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize(),
-                        contentScale = ContentScale.None
+                        contentScale = ContentScale.None,
+
                     )
                     if (isOwnProfile) {
                         Image(
