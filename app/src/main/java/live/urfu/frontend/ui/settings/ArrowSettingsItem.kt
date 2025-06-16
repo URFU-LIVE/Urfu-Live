@@ -68,7 +68,7 @@ fun ArrowSettingsItem(
                     contentDescription = "Arrow",
                     colorFilter = ColorFilter.tint(Color(0xFF8C8C8C)),
                     modifier = Modifier
-                        .clickable { }
+                        .clickable { onClick() }
                         .graphicsLayer(scaleX = -1f)
                         .size(24.dp),
                 )

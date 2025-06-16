@@ -53,7 +53,6 @@ abstract class BaseApiService {
     protected suspend fun getRefreshToken(): String? =
         TokenManagerInstance.getInstance().getRefreshTokenBlocking()
 
-
     // todo
     protected suspend fun clearTokens() =
         TokenManagerInstance.getInstance().clearTokens()

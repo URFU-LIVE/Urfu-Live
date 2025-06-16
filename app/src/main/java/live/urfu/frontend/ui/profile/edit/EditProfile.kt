@@ -1,4 +1,4 @@
-package live.urfu.frontend.ui.profile
+package live.urfu.frontend.ui.profile.edit
 
 import NavbarCallbacks
 import android.annotation.SuppressLint
@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -27,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 import live.urfu.frontend.R
 import live.urfu.frontend.ui.footer.BottomNavBar
 import live.urfu.frontend.ui.createarticle.CreateArticle
@@ -65,10 +68,24 @@ fun EditProfile(
         uri?.let { viewModel.onBackgroundImageSelected(context, it) }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    val showBackgroundSuccess by viewModel.showBackgroundSuccess.collectAsState()
+
+    LaunchedEffect(showBackgroundSuccess) {
+        if (showBackgroundSuccess) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Фоновое изображение успешно установлено")
+            }
+            viewModel.resetBackgroundSuccessFlag()
+        }
+    }
+
+
     if (showUsernameDialog) {
         EditTextDialog(
-            title = "Change username",
-            initialValue = "@username", // You should get this from viewModel
+            title = "Введите новое имя пользователя",
+            initialValue = userState?.username ?: "username",
             onDismiss = { showUsernameDialog = false },
             onConfirm = { newUsername ->
                 viewModel.updateUsername(newUsername)
@@ -79,8 +96,8 @@ fun EditProfile(
 
     if (showDescriptionDialog) {
         EditTextDialog(
-            title = "Change description",
-            initialValue = "", // You should get this from viewModel
+            title = "Введите новое описание",
+            initialValue = userState?.description ?: "",
             onDismiss = { showDescriptionDialog = false },
             onConfirm = { newDescription ->
                 viewModel.updateDescription(newDescription)
@@ -214,7 +231,7 @@ fun EditProfile(
 
                 ArrowSettingsItem(
                     title = "Имя пользователя",
-                    currentValue = if (userState != null) "@" + userState!!.username else "@username",
+                    currentValue =  userState?.username ?: "username",
                     onClick = { showUsernameDialog = true },
                 )
 
@@ -225,10 +242,18 @@ fun EditProfile(
 
                 ArrowSettingsItem(
                     title = "Изменить фон",
-                    onClick = { backgroundGalleryLauncher.launch("image/*") },
+                    onClick = {
+                        println("КЛИК!")
+                        backgroundGalleryLauncher.launch("image/*") },
                 )
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+        )
 
         BottomNavBar(
             onProfileClick = onClose,

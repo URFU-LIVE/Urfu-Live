@@ -12,7 +12,7 @@ import androidx.navigation.navArgument
 import live.urfu.frontend.data.api.UserApiService
 import live.urfu.frontend.ui.comments.CommentsScreen
 import live.urfu.frontend.ui.main.PostViewModel
-import live.urfu.frontend.ui.profile.EditProfile
+import live.urfu.frontend.ui.profile.edit.EditProfile
 import live.urfu.frontend.ui.profile.ProfileScreen
 import live.urfu.frontend.ui.profile.ProfileViewModel
 import urfu.live.frontend.ui.saved.SavedPostsScreen

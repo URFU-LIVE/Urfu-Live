@@ -1,4 +1,4 @@
-package live.urfu.frontend.ui.profile
+package live.urfu.frontend.ui.profile.edit
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -26,6 +26,10 @@ class EditProfileViewModel : BaseViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
+
+    private val _showBackgroundSuccess = MutableStateFlow(false)
+    val showBackgroundSuccess: StateFlow<Boolean> = _showBackgroundSuccess
+
 
     init {
         fetchUser()
@@ -57,9 +61,7 @@ class EditProfileViewModel : BaseViewModel() {
             tag = if (isAvatar) "UploadAvatar" else "UploadBackground",
             action = {
                 val bitmap = uri.toBitmap(context) ?: return@launchApiCall Result.failure(
-                    Exception(
-                        "Bitmap is null"
-                    )
+                    Exception("Bitmap is null")
                 )
                 if (isAvatar) {
                     userApiService.updateAvatar(bitmap)
@@ -68,13 +70,21 @@ class EditProfileViewModel : BaseViewModel() {
                 }
             },
             onSuccess = {
-                // Success UI hook
+                fetchUser() // <- чтобы обновить UI c новым аватаром
+                if (!isAvatar) {
+                    _showBackgroundSuccess.value = true
+                }
             },
             onError = {
                 it.printStackTrace()
             }
         )
     }
+
+    fun resetBackgroundSuccessFlag() {
+        _showBackgroundSuccess.value = false
+    }
+
 
     fun updateUsername(username: String) {
         launchApiCall(
