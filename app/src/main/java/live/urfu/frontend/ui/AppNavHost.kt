@@ -86,7 +86,7 @@ fun AppNavHost() {
                     }
                 },
                 onLoginError = {},
-                onRestorePasswordClick = { navController.navigate("main") },
+                onRestorePasswordClick = {  },
                 postViewModel = sharedPostViewModel
             )
         }

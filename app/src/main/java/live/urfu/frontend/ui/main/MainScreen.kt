@@ -944,34 +944,7 @@ fun CarouselScreen(
                         )
                     }
 
-                    // Адаптивные кнопки управления
-                    AnimatedVisibility(
-                        visible = (if (isClosing) 1f - closeAnimator.value else expansionProgress) > 0.7f,
-                        enter = fadeIn(animationSpec = tween(durationMillis = 200, easing = SmoothEasing)),
-                        exit = fadeOut(animationSpec = tween(durationMillis = 200, easing = SmoothEasing))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(if (screenInfo.isCompact) 12.dp else 16.dp)
-                                .size(if (screenInfo.isCompact) 28.dp else 32.dp)
-                                .background(Color.Gray.copy(alpha = 0.5f), CircleShape)
-                                .clickable {
-                                    if (!isClosing && !isAnimationInProgress) {
-                                        closeExpandedArticle()
-                                    }
-                                }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(if (screenInfo.isCompact) 14.dp else 16.dp),
-                                tint = Color.White
-                            )
-                        }
-                    }
+                        // TODO !!!!!!!!!!! СДЕЛАТЬ ОБРАТНЫЙ СВАЙП ДЛЯ ЗАКРТИЯ РАСКРЫТОЙ СТАТЬИ
 
                     // Индикатор свайпа
                     AnimatedVisibility(
