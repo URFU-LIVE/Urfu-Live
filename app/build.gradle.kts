@@ -45,12 +45,9 @@ android {
 dependencies {
     // Core
     implementation(libs.androidx.core.ktx)
-    //implementation(libs.androidx.core.ktx.v1150)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    //implementation(libs.androidx.lifecycle.runtime.ktx.v287)
-    //noinspection UseTomlInstead,GradleDependency
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     // Compose BOM (одна версия для всех)
@@ -60,18 +57,13 @@ dependencies {
 
     // Compose
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    //noinspection GradleDependency
-    //implementation(libs.androidx.ui.v178)
-    implementation(libs.androidx.ui.tooling.preview.v178)
     implementation(libs.androidx.material3.android)
 
     implementation(libs.coil.compose)
 
-    //noinspection GradleDependency
     debugImplementation(libs.androidx.ui.tooling.v178)
 
     // Navigation
@@ -86,8 +78,7 @@ dependencies {
 
     // DataStore
     implementation(libs.androidx.datastore.preferences.v116)
-    implementation(libs.androidx.datastore.preferences.core.v100)
-    //noinspection UseTomlInstead
+    implementation(libs.androidx.datastore.preferences.core)
     implementation(libs.androidx.datastore.core)
 
     // Ktor
@@ -100,10 +91,9 @@ dependencies {
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.json.v160)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
 
     // System UI
     implementation(libs.accompanist.systemuicontroller)
@@ -112,8 +102,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.ui.test.junit4) // Ensure this dependency is correct
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.0") // Add the missing dependency here
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
