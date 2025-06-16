@@ -30,6 +30,14 @@ class EditProfileViewModel : BaseViewModel() {
     private val _showBackgroundSuccess = MutableStateFlow(false)
     val showBackgroundSuccess: StateFlow<Boolean> = _showBackgroundSuccess
 
+    private val _showAvatarSuccess = MutableStateFlow(false)
+    val showAvatarSuccess: StateFlow<Boolean> = _showAvatarSuccess
+
+    private val _showUsernameSuccess = MutableStateFlow(false)
+    val showUsernameSuccess: StateFlow<Boolean> = _showUsernameSuccess
+
+    private val _showDescriptionSuccess = MutableStateFlow(false)
+    val showDescriptionSuccess: StateFlow<Boolean> = _showDescriptionSuccess
 
     init {
         fetchUser()
@@ -70,9 +78,11 @@ class EditProfileViewModel : BaseViewModel() {
                 }
             },
             onSuccess = {
-                fetchUser() // <- чтобы обновить UI c новым аватаром
+                fetchUser()
                 if (!isAvatar) {
                     _showBackgroundSuccess.value = true
+                } else {
+                    _showAvatarSuccess.value = true
                 }
             },
             onError = {
@@ -81,16 +91,20 @@ class EditProfileViewModel : BaseViewModel() {
         )
     }
 
-    fun resetBackgroundSuccessFlag() {
-        _showBackgroundSuccess.value = false
-    }
+    fun resetBackgroundSuccessFlag() { _showBackgroundSuccess.value = false }
+    fun resetAvatarSuccessFlag() { _showAvatarSuccess.value = false }
+    fun resetUsernameSuccessFlag() { _showUsernameSuccess.value = false }
+    fun resetDescriptionSuccessFlag() { _showDescriptionSuccess.value = false }
 
 
     fun updateUsername(username: String) {
         launchApiCall(
             tag = "EditProfileViewModel",
             action = { userApiService.updateUsername(username) },
-            onSuccess = { /* update state or notify */ },
+            onSuccess = {
+                fetchUser()
+                _showUsernameSuccess.value = true
+            },
             onError = { it.printStackTrace() }
         )
     }
@@ -99,7 +113,10 @@ class EditProfileViewModel : BaseViewModel() {
         launchApiCall(
             tag = "EditProfileViewModel",
             action = { userApiService.updateDescription(description) },
-            onSuccess = { /* update state or notify */ },
+            onSuccess = {
+                fetchUser()
+                _showDescriptionSuccess.value = true
+            },
             onError = { it.printStackTrace() }
         )
     }

@@ -54,6 +54,11 @@ fun EditProfile(
 
     val userState by viewModel.user.collectAsState()
 
+    val showBackgroundSuccess by viewModel.showBackgroundSuccess.collectAsState()
+    val showAvatarSuccess by viewModel.showAvatarSuccess.collectAsState()
+    val showUsernameSuccess by viewModel.showUsernameSuccess.collectAsState()
+    val showDescriptionSuccess by viewModel.showDescriptionSuccess.collectAsState()
+
     // Лаунчер для выбора аватарки
     val avatarGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -70,7 +75,6 @@ fun EditProfile(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    val showBackgroundSuccess by viewModel.showBackgroundSuccess.collectAsState()
 
     LaunchedEffect(showBackgroundSuccess) {
         if (showBackgroundSuccess) {
@@ -80,6 +84,34 @@ fun EditProfile(
             viewModel.resetBackgroundSuccessFlag()
         }
     }
+
+    LaunchedEffect(showAvatarSuccess) {
+        if (showAvatarSuccess) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Аватарка успешно обновлена")
+            }
+            viewModel.resetAvatarSuccessFlag()
+        }
+    }
+
+    LaunchedEffect(showUsernameSuccess) {
+        if (showUsernameSuccess) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Имя пользователя обновлено")
+            }
+            viewModel.resetUsernameSuccessFlag()
+        }
+    }
+
+    LaunchedEffect(showDescriptionSuccess) {
+        if (showDescriptionSuccess) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar("Описание обновлено")
+            }
+            viewModel.resetDescriptionSuccessFlag()
+        }
+    }
+
 
 
     if (showUsernameDialog) {
@@ -243,7 +275,6 @@ fun EditProfile(
                 ArrowSettingsItem(
                     title = "Изменить фон",
                     onClick = {
-                        println("КЛИК!")
                         backgroundGalleryLauncher.launch("image/*") },
                 )
             }

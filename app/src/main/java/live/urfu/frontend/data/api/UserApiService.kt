@@ -204,7 +204,7 @@ class UserApiService: BaseApiService() {
         }.also { file.delete() }
     }
 
-    suspend fun updateUsername(username: String): Result<DefaultResponse> {
+    suspend fun updateUsername(username: String): Result<UserDto> {
         val token = getToken()
         return authorizedRequest {
             client.patch("$baseUrl/users/me") {
@@ -215,7 +215,7 @@ class UserApiService: BaseApiService() {
         }
     }
 
-    suspend fun updateDescription(description: String): Result<DefaultResponse> {
+    suspend fun updateDescription(description: String): Result<UserDto> {
         val token = getToken()
         return authorizedRequest {
             client.patch("$baseUrl/users/me") {
