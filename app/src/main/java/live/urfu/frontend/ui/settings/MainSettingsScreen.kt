@@ -33,7 +33,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import live.urfu.frontend.R
-import urfu.live.frontend.components.BottomNavBar
+import live.urfu.frontend.ui.footer.BottomNavBar
 import live.urfu.frontend.ui.createarticle.CreateArticle
 import live.urfu.frontend.ui.createarticle.CreateArticleViewModel
 import kotlinx.coroutines.launch

@@ -7,6 +7,7 @@ import live.urfu.frontend.data.manager.InterestManagerInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import live.urfu.frontend.data.model.Interest
 
 class InterestsViewModel : ViewModel() {
 
@@ -26,7 +27,6 @@ class InterestsViewModel : ViewModel() {
 
     val allInterests: List<Interest> get() = interests
 
-
     private val _selectedInterests = MutableStateFlow(setOf<Interest>())
     val selectedInterests = _selectedInterests.asStateFlow()
 
@@ -42,10 +42,3 @@ class InterestsViewModel : ViewModel() {
         }
     }
 }
-
-data class Interest(
-    val nameRu: String,
-    val nameEn: String,
-    val color: Color,
-    val backgroundColor: Color
-)

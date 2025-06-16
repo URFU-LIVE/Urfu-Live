@@ -281,6 +281,7 @@ object SettingsAdaptiveSizes {
     }
 }
 
+// todo
 // Адаптивные стили текста для настроек
 @Composable
 fun adaptiveSettingsTextStyle(
@@ -302,6 +303,7 @@ fun adaptiveSettingsTextStyle(
 
 object SavedPostsAdaptiveSizes {
     @Composable
+    // todo
     fun searchIconSize(screenInfo: ScreenSizeInfo): Dp = when {
         screenInfo.isCompact -> 24.dp
         screenInfo.isMedium -> 28.dp

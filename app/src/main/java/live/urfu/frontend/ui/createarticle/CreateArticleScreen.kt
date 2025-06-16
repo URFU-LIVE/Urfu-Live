@@ -1,6 +1,5 @@
 package live.urfu.frontend.ui.createarticle
 
-import FakeCreateArticleViewModel
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
@@ -11,11 +10,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,14 +27,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import live.urfu.frontend.data.DTOs.DefaultResponse
 import live.urfu.frontend.data.model.UserRole
-import live.urfu.frontend.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.launch
 import live.urfu.frontend.R
 
@@ -159,7 +156,7 @@ fun CreateArticle(
                 Text(
                     text = "Для того, чтобы публиковать посты, подайте заявку на получение прав автора",
                     color = Color.LightGray,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(start = 28.5.dp, end = 28.5.dp),
                     textAlign = TextAlign.Center
                 )
@@ -176,7 +173,7 @@ fun CreateArticle(
                     ) {
                         Text(
                             text = "Отмена",
-                            style = MaterialTheme.typography.labelMedium.copy(
+                            style = typography.labelMedium.copy(
                                 fontSize = buttonFontSize,
                                 lineHeight = buttonFontSize
                             )
@@ -193,7 +190,7 @@ fun CreateArticle(
                     ) {
                         Text(
                             text = "Подать заявку",
-                            style = MaterialTheme.typography.labelMedium.copy(
+                            style = typography.labelMedium.copy(
                                 fontSize = buttonFontSize,
                                 lineHeight = buttonFontSize
                             )
@@ -205,6 +202,7 @@ fun CreateArticle(
         return
     }
 
+    // todo Вынести в ViewModel
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
             override fun onSuccess(user: DefaultResponse) {
@@ -307,7 +305,7 @@ fun CreateArticle(
                     Text(
                         text = "Создать пост",
                         color = Color.White,
-                        style = MaterialTheme.typography.headlineLarge
+                        style = typography.headlineLarge
                     )
                 },
                 navigationIcon = {
@@ -363,7 +361,7 @@ fun CreateArticle(
                 placeholder = {
                     Text(
                         "Напишите что-нибудь...",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = typography.bodyLarge,
                         color = grayText
                     )
                 },
@@ -405,7 +403,7 @@ fun CreateArticle(
                         Text(
                             "Введите тег и выберите из списка...",
                             color = grayText,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = typography.bodyLarge
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -512,7 +510,7 @@ fun CreateArticle(
                                 ) {
                                     Text(
                                         text = tag,
-                                        style = MaterialTheme.typography.labelMedium
+                                        style = typography.labelMedium
                                     )
                                     Image(
                                         painter = painterResource(id = R.drawable.x),
@@ -548,7 +546,7 @@ fun CreateArticle(
                 ) {
                     Text(
                         "Опубликовать",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = typography.bodyLarge
                     )
                 }
             }
@@ -569,7 +567,7 @@ fun CreateArticle(
                     Text(
                         text = "Добавление нового тега",
                         color = Color.LightGray,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        style = typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(start = 28.5.dp, end = 28.5.dp),
                         textAlign = TextAlign.Center
                     )
@@ -631,7 +629,7 @@ fun CreateArticle(
                     ) {
                         Text(
                             text = "Добавить",
-                            style = MaterialTheme.typography.labelMedium
+                            style = typography.labelMedium
                         )
                     }
                 }

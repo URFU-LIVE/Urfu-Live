@@ -1,4 +1,4 @@
-package urfu.live.frontend.components
+package live.urfu.frontend.ui.footer
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

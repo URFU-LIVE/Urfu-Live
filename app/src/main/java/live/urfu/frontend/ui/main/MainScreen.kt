@@ -57,6 +57,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -89,7 +91,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import live.urfu.frontend.R
-import urfu.live.frontend.components.BottomNavBar
+import live.urfu.frontend.ui.footer.BottomNavBar
 import live.urfu.frontend.data.model.Post
 import live.urfu.frontend.data.model.Tag
 import live.urfu.frontend.data.model.User
@@ -205,6 +207,8 @@ fun PostCard(
     val rememberedPost = remember(post) { post }
 
     val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+
+    //todo
     val likesCount = viewModel.getPostLikesCount(post.id)
     val isProcessing = viewModel.isPostProcessing(post.id)
 
@@ -499,7 +503,9 @@ fun HorizontalTagRow(tags: List<String>, color: Color, expandProgress: Float = 1
     }
 }
 
-@SuppressLint("ViewModelConstructorInComposable")
+@SuppressLint("ViewModelConstructorInComposable", "MutableCollectionMutableState",
+    "AutoboxingStateCreation"
+)
 @Composable
 fun CarouselScreen(
     navController: NavController,
@@ -513,7 +519,7 @@ fun CarouselScreen(
     val screenInfo = rememberScreenSizeInfo()
     val postsState by viewModel.posts.collectAsState()
     val pagerState = rememberPagerState(pageCount = { postsState.size })
-    var expandedIndex by remember { mutableStateOf(-1) }
+    var expandedIndex by remember { mutableIntStateOf(-1) }
 
     val cardTopPositions = remember { mutableStateOf(mutableMapOf<Int, Float>()) }
     val cardHeights = remember { mutableStateOf(mutableMapOf<Int, Float>()) }
@@ -528,10 +534,6 @@ fun CarouselScreen(
 
     val density = LocalDensity.current
     val screenWidth = screenInfo.screenWidthDp
-    val screenHeight = screenInfo.screenHeightDp + WindowInsets.systemBars
-        .only(WindowInsetsSides.Top)
-        .asPaddingValues()
-        .calculateTopPadding()
 
     // Адаптивные размеры карточек
     val initialCardWidth = AdaptiveSizes.cardWidth(screenInfo)
@@ -541,7 +543,7 @@ fun CarouselScreen(
     var shouldHideBottomNav by remember { mutableStateOf(false) }
     var isClosing by remember { mutableStateOf(false) }
     var previousCardCenter by remember { mutableStateOf(Offset.Zero) }
-    var dragOffset by remember { mutableStateOf(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
 
     val expanded = expandedIndex != -1
     val transition = updateTransition(targetState = expanded, label = "expandTransition")
