@@ -99,7 +99,6 @@ fun CreateArticle(
     val tags by viewModel.tags.collectAsState()
 
     val tagNames = tags
-        .filterNotNull()
         .map { it.name }
 
     @Composable
@@ -112,19 +111,19 @@ fun CreateArticle(
                     Text(
                         text = text.substring(0, startIndex),
                         color = Color.Gray,
-                        style = MaterialTheme.typography.headlineMedium
+                        style = typography.headlineMedium
                     )
                 }
                 Text(
                     text = text.substring(startIndex, endIndex),
                     color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium
+                    style = typography.headlineMedium
                 )
                 if (endIndex < text.length) {
                     Text(
                         text = text.substring(endIndex),
                         color = Color.Gray,
-                        style = MaterialTheme.typography.headlineMedium
+                        style = typography.headlineMedium
                     )
                 }
             }
@@ -137,7 +136,31 @@ fun CreateArticle(
         }
     }
 
-    if (userState != null && userState!!.role == UserRole.USER) {
+    if (userState == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.95f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(
+                    color = Color(0xFFEE7E56),
+                    strokeWidth = 4.dp,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Загрузка...",
+                    color = Color.White,
+                    style = typography.bodyLarge
+                )
+            }
+        }
+        return
+    }
+
+    if (userState!!.role == UserRole.USER) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -164,43 +187,28 @@ fun CreateArticle(
                 Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
                     Button(
                         onClick = { onClose() },
-                        colors = ButtonColors(
+                        colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF404040),
-                            contentColor = Color.White,
-                            disabledContainerColor = Color(0xFF404040),
-                            disabledContentColor = Color(0xFF404040)
+                            contentColor = Color.White
                         ),
                     ) {
-                        Text(
-                            text = "Отмена",
-                            style = typography.labelMedium.copy(
-                                fontSize = buttonFontSize,
-                                lineHeight = buttonFontSize
-                            )
-                        )
+                        Text("Отмена", style = typography.labelMedium.copy(fontSize = 14.sp))
                     }
                     Button(
                         onClick = { onClose() },
-                        colors = ButtonColors(
+                        colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF404040),
-                            contentColor = Color.White,
-                            disabledContainerColor = Color(0xFF404040),
-                            disabledContentColor = Color(0xFF404040)
+                            contentColor = Color.White
                         ),
                     ) {
-                        Text(
-                            text = "Подать заявку",
-                            style = typography.labelMedium.copy(
-                                fontSize = buttonFontSize,
-                                lineHeight = buttonFontSize
-                            )
-                        )
+                        Text("Подать заявку", style = typography.labelMedium.copy(fontSize = 14.sp))
                     }
                 }
             }
         }
         return
     }
+
 
     // todo Вынести в ViewModel
     val postCallBack = remember {
