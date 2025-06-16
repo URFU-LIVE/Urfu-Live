@@ -6,7 +6,6 @@ import SpacerType
 import TagChip
 import TagSizes
 import adaptiveTextStyle
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -80,10 +79,11 @@ fun SearchScreen(
     onClose: () -> Unit = {},
     onPostClick: (Post) -> Unit = {},
     onAuthorClick: (String) -> Unit = {},
-    onCommentsClick: (Long) -> Unit = {},
+    onCommentsClick: (postId: Long, searchQuery: String) -> Unit,
     viewModel: SearchViewModel = viewModel(),
     enableAnimations: Boolean = true,
     postViewModel: PostViewModel,
+    onTagSearch: (String) -> Unit
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
@@ -95,7 +95,6 @@ fun SearchScreen(
     val showSuggestions by viewModel.showSuggestions.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
     val hasSearched by viewModel.hasSearched.collectAsState()
-
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
     DisposableEffect(postViewModel, viewModel) {
         postViewModel.connectSearchViewModel(viewModel)
@@ -116,7 +115,7 @@ fun SearchScreen(
             ExpandedPostOverlay(
                 post = searchResults[index],
                 onClose = { expandedPostIndex = null },
-                onCommentsClick = { onCommentsClick(searchResults[index].id) },
+                onCommentsClick = { onCommentsClick(searchResults[index].id,searchQuery) },
                 viewModel = postViewModel
             )
         }
@@ -138,6 +137,7 @@ fun SearchScreen(
         if (initialTag.isNotBlank()) {
             viewModel.updateSearchQuery(initialTag)
             viewModel.searchByTag(initialTag)
+            viewModel.initializeWithTag(initialTag)
         }
     }
 
@@ -181,7 +181,7 @@ fun SearchScreen(
                 onClose = onClose,
                 onTagSelected = { tag ->
                     viewModel.selectSuggestion(tag)
-                    viewModel.searchByTag(tag)
+                    onTagSearch(tag)
                 },
                 screenInfo = screenInfo,
                 adapter = searchBarAdapter,
@@ -206,7 +206,8 @@ fun SearchScreen(
                         onAuthorClick = onAuthorClick,
                         onCommentsClick = onCommentsClick,
                         screenInfo = screenInfo,
-                        postViewModel = postViewModel
+                        postViewModel = postViewModel,
+                        searchQuery = searchQuery
                     )
                 }
 
@@ -452,9 +453,10 @@ private fun SearchResultsList(
     posts: List<Post>,
     onPostClick: (Int) -> Unit,
     onAuthorClick: (String) -> Unit,
-    onCommentsClick: (Long) -> Unit,
+    onCommentsClick: (postId: Long, searchQuery: String) -> Unit,
     screenInfo: ScreenSizeInfo,
     postViewModel: PostViewModel,
+    searchQuery: String
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -491,7 +493,8 @@ private fun SearchResultsList(
                 onAuthorClick = { onAuthorClick(post.author.id) },
                 onCommentsClick = onCommentsClick,
                 screenInfo = screenInfo,
-                postViewModel = postViewModel
+                postViewModel = postViewModel,
+                searchQuery = searchQuery
             )
         }
     }
@@ -503,9 +506,10 @@ private fun SearchPostCard(
     post: Post,
     onClick: () -> Unit,
     onAuthorClick: () -> Unit,
-    onCommentsClick: (Long) -> Unit,
+    onCommentsClick: (postId: Long, searchQuery: String) -> Unit,
     screenInfo: ScreenSizeInfo,
     postViewModel: PostViewModel,
+    searchQuery: String
 ) {
     val colorPatternIndex = post.id.rem(PostColorPatterns.size).toInt()
     val colorPattern = PostColorPatterns[colorPatternIndex]
@@ -696,7 +700,7 @@ private fun SearchPostCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.clickable {
-                        onCommentsClick(post.id)
+                        onCommentsClick(post.id, searchQuery)
                     }
                 ) {
                     Image(

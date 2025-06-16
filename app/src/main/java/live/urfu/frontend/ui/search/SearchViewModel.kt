@@ -55,7 +55,12 @@ class SearchViewModel : BaseViewModel() {
     init {
         fetchTags()
     }
-
+    fun initializeWithTag(tag: String) {
+        if (tag.isNotEmpty() && _searchQuery.value != tag) {
+            _searchQuery.value = tag
+            searchByTag(tag)
+        }
+    }
     private fun fetchTags() {
         launchApiCall(
             tag = "SearchViewModel",
@@ -113,7 +118,6 @@ class SearchViewModel : BaseViewModel() {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             _isLoading.value = true
-
             launchApiCall(
                 tag = "SearchViewModel",
                 action = { postApiService.searchByTag(tag) },
