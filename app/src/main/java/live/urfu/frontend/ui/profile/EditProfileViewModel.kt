@@ -7,36 +7,22 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import live.urfu.frontend.data.api.UserApiService
 import live.urfu.frontend.data.manager.DtoManager
 import live.urfu.frontend.data.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import live.urfu.frontend.data.api.BaseViewModel
 
-class EditProfileViewModel: ViewModel() {
+class EditProfileViewModel : BaseViewModel() {
 
-    val userApiService: UserApiService = UserApiService()
+    private val userApiService = UserApiService()
 
-    var selectedAvatarUri by mutableStateOf<Uri?>(null)
-        private set
+    private var selectedAvatarUri by mutableStateOf<Uri?>(null)
 
-    var selectedBackgroundUri by mutableStateOf<Uri?>(null)
-        private set
-
-    fun onAvatarImageSelected(context: Context, uri: Uri) {
-        selectedAvatarUri = uri
-        uploadAvatar(context, uri)
-    }
-
-    fun onBackgroundImageSelected(context: Context, uri: Uri) {
-        selectedBackgroundUri = uri
-        uploadBackground(context, uri)
-    }
+    private var selectedBackgroundUri by mutableStateOf<Uri?>(null)
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
@@ -45,83 +31,67 @@ class EditProfileViewModel: ViewModel() {
         fetchUser()
     }
 
-    fun fetchUser() {
-        viewModelScope.launch {
-            val result = userApiService.getUserProfile()
-            result.onSuccess { userDto ->
-                val dtoManager = DtoManager()
-                _user.value = dtoManager.run { userDto.toUser() }
-            }
-            result.onFailure {
-
-            }
-        }
+    fun onAvatarImageSelected(context: Context, uri: Uri) {
+        selectedAvatarUri = uri
+        uploadImage(context, uri, isAvatar = true)
     }
 
-    private fun uploadAvatar(context: Context, uri: Uri) {
-        viewModelScope.launch {
-            try {
-                val bitmap = withContext(Dispatchers.IO) {
-                    uri.toBitmap(context)
-                }
-                bitmap?.let {
-                    val result = userApiService.updateAvatar(it)
-                    result.onSuccess {
-                        // Обработка успешной загрузки
-                    }.onFailure {
-                        // Обработка ошибки
-                    }
-                }
-            } catch (e: Exception) {
-                // Ошибки игнорируем
-            }
-        }
+    fun onBackgroundImageSelected(context: Context, uri: Uri) {
+        selectedBackgroundUri = uri
+        uploadImage(context, uri, isAvatar = false)
     }
 
-    private fun uploadBackground(context: Context, uri: Uri) {
-        viewModelScope.launch {
-            try {
-                val bitmap = withContext(Dispatchers.IO) {
-                    uri.toBitmap(context)
+    private fun fetchUser() {
+        launchApiCall(
+            tag = "EditProfileViewModel",
+            action = { userApiService.getUserProfile() },
+            onSuccess = { userDto ->
+                _user.value = DtoManager().run { userDto.toUser() }
+            },
+            onError = { it.printStackTrace() }
+        )
+    }
+
+    private fun uploadImage(context: Context, uri: Uri, isAvatar: Boolean) {
+        launchApiCall(
+            tag = if (isAvatar) "UploadAvatar" else "UploadBackground",
+            action = {
+                val bitmap = uri.toBitmap(context) ?: return@launchApiCall Result.failure(
+                    Exception(
+                        "Bitmap is null"
+                    )
+                )
+                if (isAvatar) {
+                    userApiService.updateAvatar(bitmap)
+                } else {
+                    userApiService.updateBackground(bitmap)
                 }
-                bitmap?.let {
-                    val result = userApiService.updateBackground(it)
-                    result.onSuccess {
-                        // Обработка успешной загрузки
-                    }.onFailure {
-                        // Обработка ошибки
-                    }
-                }
-            } catch (e: Exception) {
-                // Ошибки игнорируем
+            },
+            onSuccess = {
+                // Success UI hook
+            },
+            onError = {
+                it.printStackTrace()
             }
-        }
+        )
     }
 
     fun updateUsername(username: String) {
-        viewModelScope.launch {
-            val result = userApiService.updateUsername(username)
-            result.onSuccess {
-
-            }
-
-            result.onFailure {
-                it.printStackTrace()
-            }
-        }
+        launchApiCall(
+            tag = "EditProfileViewModel",
+            action = { userApiService.updateUsername(username) },
+            onSuccess = { /* update state or notify */ },
+            onError = { it.printStackTrace() }
+        )
     }
 
     fun updateDescription(description: String) {
-        viewModelScope.launch {
-            val result = userApiService.updateDescription(description)
-            result.onSuccess {
-
-            }
-
-            result.onFailure {
-                it.printStackTrace()
-            }
-        }
+        launchApiCall(
+            tag = "EditProfileViewModel",
+            action = { userApiService.updateDescription(description) },
+            onSuccess = { /* update state or notify */ },
+            onError = { it.printStackTrace() }
+        )
     }
 
     private suspend fun Uri.toBitmap(context: Context): Bitmap? {

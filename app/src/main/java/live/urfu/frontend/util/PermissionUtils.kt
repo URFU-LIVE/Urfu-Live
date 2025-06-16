@@ -1,6 +1,6 @@
 //package urfu.live.frontend.util
 //
-//import LoginViewModel
+//import live.urfu.frontend.ui.authentication.login.LoginViewModel
 //import LoginScreen
 //import androidx.compose.runtime.Composable
 //import androidx.compose.runtime.collectAsState
@@ -8,7 +8,7 @@
 //import androidx.lifecycle.viewmodel.compose.viewModel
 //import urfu.live.frontend.data.auth.UserSession
 //import urfu.live.frontend.data.model.UserRole
-//import urfu.live.frontend.ui.login.LoginViewModel
+//import urfu.live.frontend.ui.login.live.urfu.frontend.ui.authentication.login.LoginViewModel
 //import urfu.live.frontend.ui.login.LoginUiState
 //
 ///**
@@ -33,7 +33,7 @@
 //    @Composable
 //    fun HasPermission(
 //        requiredRole: UserRole,
-//        loginViewModel: LoginViewModel = viewModel(),
+//        loginViewModel: live.urfu.frontend.ui.authentication.login.LoginViewModel = viewModel(),
 //        content: @Composable () -> Unit,
 //        fallback: @Composable () -> Unit = {}
 //    ) {

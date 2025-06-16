@@ -1,15 +1,13 @@
 package live.urfu.frontend.ui.settings
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import live.urfu.frontend.data.api.UserApiService
 import live.urfu.frontend.data.manager.DtoManager
 import live.urfu.frontend.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import live.urfu.frontend.data.api.BaseViewModel
 
-class MainSettingViewModel : ViewModel() {
+class MainSettingViewModel : BaseViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
@@ -20,16 +18,16 @@ class MainSettingViewModel : ViewModel() {
         fetchUser()
     }
 
-    fun fetchUser() {
-        viewModelScope.launch {
-            val result = userApiService.getUserProfile()
-            result.onSuccess { userDto ->
-                val dtoManager = DtoManager()
-                _user.value = dtoManager.run { userDto.toUser() }
+    private fun fetchUser() {
+        launchApiCall(
+            tag = "MainSettingViewModel",
+            action = { userApiService.getUserProfile() },
+            onSuccess = { userDto ->
+                _user.value = DtoManager().run { userDto.toUser() }
+            },
+            onError = {
+                // Обработка ошибок, если необходимо
             }
-            result.onFailure {
-
-            }
-        }
+        )
     }
 }

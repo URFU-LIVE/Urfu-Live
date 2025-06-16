@@ -1,25 +1,23 @@
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import live.urfu.frontend.data.DTOs.AuthResponse
 import live.urfu.frontend.data.api.UserApiService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import live.urfu.frontend.data.manager.TokenManagerInstance
+import live.urfu.frontend.data.api.BaseViewModel
 import java.time.LocalDate
 
-class RegistrationViewModel : ViewModel() {
+class RegistrationViewModel : BaseViewModel() {
+
     interface RegisterCallback {
         fun onSuccess(user: AuthResponse)
         fun onError(error: Exception)
     }
-    private val userApiService = UserApiService()
 
+    private val userApiService = UserApiService()
 
     private val _login = MutableStateFlow("")
     val login = _login.asStateFlow()
@@ -57,56 +55,61 @@ class RegistrationViewModel : ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun onRegisterClick(username: String, email: String, password: String, fio: String, birthDate: String, callback: RegisterCallback) {
+    fun onRegisterClick(
+        username: String,
+        email: String,
+        password: String,
+        fio: String,
+        birthDate: String,
+        callback: RegisterCallback
+    ) {
         val fioSplit = fio.split(" ")
         val formattedBirthDate = formatBirthDateForApi(birthDate)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val result = userApiService.register(
+        if (formattedBirthDate == null || fioSplit.size < 2) {
+            callback.onError(IllegalArgumentException("Неверный формат данных"))
+            return
+        }
+
+        launchApiCall(
+            tag = "RegistrationViewModel",
+            action = {
+                userApiService.register(
                     username,
                     email,
                     password,
                     fioSplit[0],
                     fioSplit[1],
-                    formattedBirthDate.toString()
+                    formattedBirthDate
                 )
-
-                withContext(Dispatchers.Main) {
-                    if (result.isSuccess) {
-                        val authResponse = result.getOrThrow()
-                        val userId = JwtParser.extractUserIdFromToken(authResponse.accessToken)
-
-
-                        if (userId != null) {
-                            TokenManagerInstance.getInstance().saveID(userId)
-                            Log.d("LoginViewModel", "✅ Saved User ID from JWT: $userId")
-                        } else {
-                            Log.e("LoginViewModel", "❌ Failed to extract User ID from JWT")
-                        }
-                    } else {
-                        callback.onError(Exception("Неизвестная ошибка"))
+            },
+            onSuccess = { authResponse ->
+                val userId = JwtParser.extractUserIdFromToken(authResponse.accessToken)
+                if (userId != null ){
+                    viewModelScope.launch {
+                        TokenManagerInstance.getInstance().saveID(userId)
                     }
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    callback.onError(e)
-                }
+                callback.onSuccess(authResponse)
             }
-        }
+,
+            onError = { error ->
+                callback.onError(error as Exception)
+            }
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun formatBirthDateForApi(raw: String): String? {
         return try {
-            if (raw.length != 8) return null // Некорректная длина
+            if (raw.length != 8) return null
 
             val day = raw.substring(0, 2)
             val month = raw.substring(2, 4)
             val year = raw.substring(4, 8)
 
             val localDate = LocalDate.of(year.toInt(), month.toInt(), day.toInt())
-            localDate.atStartOfDay().toString() // Вернет в формате "2000-01-01T00:00:00"
+            localDate.atStartOfDay().toString()
         } catch (e: Exception) {
             null
         }

@@ -1,12 +1,12 @@
 package live.urfu.frontend.ui.search
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import live.urfu.frontend.data.api.PostApiService
 import live.urfu.frontend.data.api.TagApiService
 import live.urfu.frontend.data.manager.DtoManager
 import live.urfu.frontend.data.model.Post
+import live.urfu.frontend.data.model.Tag
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import live.urfu.frontend.data.model.Tag
+import live.urfu.frontend.data.api.BaseViewModel
 
-class SearchViewModel : ViewModel() {
+class SearchViewModel : BaseViewModel() {
 
     private val postApiService = PostApiService()
     private val tagApiService = TagApiService()
@@ -50,24 +50,23 @@ class SearchViewModel : ViewModel() {
     private var suggestionJob: Job? = null
 
     private val _tags = MutableStateFlow<List<Tag?>>(emptyList())
-    val tags: StateFlow<List<Tag?>> get() = _tags;
+    val tags: StateFlow<List<Tag?>> get() = _tags
 
     init {
         fetchTags()
     }
 
     private fun fetchTags() {
-        viewModelScope.launch {
-            tagApiService.getAll().onSuccess { tags ->
-                _tags.value = tags
-            }
-        }
+        launchApiCall(
+            tag = "SearchViewModel",
+            action = { tagApiService.getAll() },
+            onSuccess = { _tags.value = it },
+            onError = { it.printStackTrace() }
+        )
     }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-
-        // Показываем подсказки только если есть текст
         if (query.isNotBlank()) {
             loadTagSuggestions(query)
             _showSuggestions.value = true
@@ -80,16 +79,13 @@ class SearchViewModel : ViewModel() {
     private fun loadTagSuggestions(query: String) {
         suggestionJob?.cancel()
         suggestionJob = viewModelScope.launch {
-            delay(300) // Debounce
+            delay(300) // debounce
 
             val trimmedQuery = query.lowercase().trim()
-
             val filtered = tags.value
                 .asSequence()
                 .filterNotNull()
-                .filter { tag ->
-                    tag.name.lowercase().contains(trimmedQuery)
-                }
+                .filter { tag -> tag.name.lowercase().contains(trimmedQuery) }
                 .sortedBy { tag ->
                     val name = tag.name.lowercase()
                     when {
@@ -109,10 +105,7 @@ class SearchViewModel : ViewModel() {
     fun searchByTag(tag: String) {
         if (tag.isBlank()) return
 
-        // Добавляем в недавние поиски
         addToRecentSearches(tag)
-
-        // Обновляем запрос и скрываем подсказки
         _searchQuery.value = tag
         _showSuggestions.value = false
         _hasSearched.value = true
@@ -121,18 +114,18 @@ class SearchViewModel : ViewModel() {
         searchJob = viewModelScope.launch {
             _isLoading.value = true
 
-            try {
-                val result = postApiService.searchByTag(tag)
-                result.onSuccess { postDtos ->
-                    _searchResults.value = postDtos.map { dtoManager.run { it.toPost() } }
-                }.onFailure {
+            launchApiCall(
+                tag = "SearchViewModel",
+                action = { postApiService.searchByTag(tag) },
+                onSuccess = { dtoList ->
+                    _searchResults.value = dtoList.map { dtoManager.run { it.toPost() } }
+                },
+                onError = {
                     _searchResults.value = emptyList()
                 }
-            } catch (e: Exception) {
-                _searchResults.value = emptyList()
-            } finally {
-                _isLoading.value = false
-            }
+            )
+
+            _isLoading.value = false
         }
     }
 
@@ -142,9 +135,9 @@ class SearchViewModel : ViewModel() {
 
     private fun addToRecentSearches(search: String) {
         val current = _recentSearches.value.toMutableList()
-        current.remove(search) // Удаляем если уже есть
-        current.add(0, search) // Добавляем в начало
-        _recentSearches.value = current.take(5) // Ограничиваем до 5 элементов
+        current.remove(search)
+        current.add(0, search)
+        _recentSearches.value = current.take(5)
     }
 
     fun clearSearch() {
@@ -161,24 +154,14 @@ class SearchViewModel : ViewModel() {
     class SearchBarAdapter(
         private val searchViewModel: SearchViewModel
     ) {
-        // Пробрасываем состояния
         val searchQuery = searchViewModel.searchQuery
         val tagSuggestions = searchViewModel.tagSuggestions
         val isLoading = searchViewModel.isLoading
         val showSuggestions = searchViewModel.showSuggestions
 
-        // Пробрасываем методы
-        fun updateSearchQuery(query: String) {
-            searchViewModel.updateSearchQuery(query)
-        }
-
-        fun hideSuggestions() {
-            searchViewModel.hideSuggestions()
-        }
-
-        fun selectSuggestion(suggestion: String) {
-            searchViewModel.selectSuggestion(suggestion)
-        }
+        fun updateSearchQuery(query: String) = searchViewModel.updateSearchQuery(query)
+        fun hideSuggestions() = searchViewModel.hideSuggestions()
+        fun selectSuggestion(suggestion: String) = searchViewModel.selectSuggestion(suggestion)
     }
 
     suspend fun updatePostInSearchResults(updatedPost: Post) {
@@ -189,9 +172,8 @@ class SearchViewModel : ViewModel() {
                 currentResults[index] = updatedPost
                 _searchResults.value = currentResults
                 Log.d("SearchViewModel", "🔄 Updated post ${updatedPost.id} in search results")
-                Log.d("SearchViewModel", "   New likes: ${updatedPost.likes}, likedBy: ${updatedPost.likedBy}")
             } else {
-                Log.w("SearchViewModel", "⚠️ Post ${updatedPost.id} not found in search results for update")
+                Log.w("SearchViewModel", "⚠️ Post ${updatedPost.id} not found in search results")
             }
         }
     }

@@ -7,10 +7,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import live.urfu.frontend.ui.interests.Interest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import live.urfu.frontend.data.model.Interest
 
 private val Context.interestDataStore: DataStore<Preferences> by preferencesDataStore(name = "interest_preferences")
 

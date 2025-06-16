@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import live.urfu.frontend.R
-import live.urfu.frontend.ui.interests.InterestsViewModel
 import live.urfu.frontend.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

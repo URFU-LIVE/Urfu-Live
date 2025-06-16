@@ -1,19 +1,21 @@
 package live.urfu.frontend.ui.profile
 
-import live.urfu.frontend.data.manager.TokenManagerInstance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import live.urfu.frontend.data.api.BaseViewModel
 import live.urfu.frontend.data.api.UserApiService
 import live.urfu.frontend.data.manager.DtoManager
+import live.urfu.frontend.data.manager.TokenManagerInstance
 import live.urfu.frontend.data.model.Post
 import live.urfu.frontend.data.model.User
-import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel : BaseViewModel() {
+
     private val userApiService = UserApiService()
+    private val dtoManager = DtoManager()
 
     var user by mutableStateOf<User?>(null)
         private set
@@ -31,50 +33,45 @@ class ProfileViewModel : ViewModel() {
     private fun fetchCurrentUserId() {
         viewModelScope.launch {
             val userId = TokenManagerInstance.getInstance().getUserIdBlocking()
-            if (userId != null) {
-                currentUserId = userId.toInt();
-            } else {
-                // todo Сделать какую-нибудь заглушку
-            }
+            currentUserId = userId?.toInt()
         }
     }
 
     fun fetchProfile() {
-        viewModelScope.launch {
-            val result = userApiService.getUserProfile()
-            result.onSuccess { userData ->
-                val dtoManager = DtoManager()
-                user = dtoManager.run { userData.toUser() }
-                fetchUserPosts(userData.id)
-            }.onFailure {
-                it.printStackTrace()
-            }
-        }
-    }
-
-    private fun fetchUserPosts(id: Long) {
-        viewModelScope.launch {
-            val result = userApiService.getUserPostsByID(id)
-            result.onSuccess { postList ->
-                val dtoManager = DtoManager()
-                posts = postList.map { dtoManager.run { it.toPost() } }
-            }.onFailure {
-                posts = emptyList();
-            }
-        }
+        launchApiCall(
+            tag = "ProfileViewModel",
+            action = { userApiService.getUserProfile() },
+            onSuccess = { userDto ->
+                user = dtoManager.run { userDto.toUser() }
+                fetchUserPosts(userDto.id)
+            },
+            onError = { it.printStackTrace() }
+        )
     }
 
     fun fetchUserProfileById(userId: Long) {
-        viewModelScope.launch {
-            val result = userApiService.getUserProfileByID(userId)
-            result.onSuccess { userData ->
-                val dtoManager = DtoManager()
-                user = dtoManager.run { userData.toUser() }
-                fetchUserPosts(userData.id)
-            }.onFailure {
-                it.printStackTrace()
+        launchApiCall(
+            tag = "ProfileViewModel",
+            action = { userApiService.getUserProfileByID(userId) },
+            onSuccess = { userDto ->
+                user = dtoManager.run { userDto.toUser() }
+                fetchUserPosts(userDto.id)
+            },
+            onError = { it.printStackTrace() }
+        )
+    }
+
+    private fun fetchUserPosts(id: Long) {
+        launchApiCall(
+            tag = "ProfileViewModel",
+            action = { userApiService.getUserPostsByID(id) },
+            onSuccess = { postsDto ->
+                posts = postsDto.map { dtoManager.run { it.toPost() } }
+            },
+            onError = {
+                posts = emptyList()
             }
-        }
+        )
     }
 
     fun clearData() {
