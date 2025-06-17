@@ -45,6 +45,7 @@ fun SettingsScreen(
     onAccountClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
+    onInterestsClick : () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
@@ -217,6 +218,14 @@ fun SettingsScreen(
                     image = R.drawable.eye,
                     screenInfo = screenInfo
                 )
+
+                SettingsItem(
+                    title = "Изменить интересы",
+                    onClick = onInterestsClick,
+                    image = R.drawable.edit,
+                    screenInfo = screenInfo
+                )
+
 
                 SettingsItem(
                     title = "Выйти из аккаунта",

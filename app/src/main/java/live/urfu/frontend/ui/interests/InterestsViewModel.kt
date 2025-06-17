@@ -1,4 +1,5 @@
-import androidx.compose.ui.graphics.Color
+package live.urfu.frontend.ui.interests
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -6,36 +7,62 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import live.urfu.frontend.data.manager.InterestManagerInstance
 import live.urfu.frontend.data.model.Interest
+import live.urfu.frontend.data.repository.InterestsRepository
 
 class InterestsViewModel : ViewModel() {
 
-    private val inactiveColor = Color(0xFFC2C2C2)
-
-    private val defaultInterests = listOf(
-        Interest("Учёба", "Study", Color(118, 182, 254), inactiveColor),
-        Interest("Здоровье", "Health", Color(169, 214, 117), inactiveColor),
-        Interest("Спорт", "Sport", Color(238, 126, 86), inactiveColor),
-        Interest("Юмор", "Humor", Color(186, 85, 211), inactiveColor),
-        Interest("Внеучебная деятельность", "Extracurricular", Color(242, 209, 77), inactiveColor),
-        Interest("Стажировка", "Internship", Color(238, 126, 86), inactiveColor),
-        Interest("Знакомства", "Dating", Color(118, 182, 254), inactiveColor),
-        Interest("Работа", "Work", Color(169, 214, 117), inactiveColor),
-        Interest("Волонтёрство", "Volunteer", Color(186, 85, 211), inactiveColor),
-        Interest("Новости", "News", Color(242, 209, 77), inactiveColor)
-    )
-    val allInterests: List<Interest> get() = defaultInterests
+    val allInterests: List<Interest> get() = InterestsRepository.ALL_INTERESTS
 
     private val _selectedInterests = MutableStateFlow(setOf<Interest>())
     val selectedInterests = _selectedInterests.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    private var isInitialized = false
+
+    init {
+        loadSavedInterests()
+    }
+
+    private fun loadSavedInterests() {
+        if (isInitialized) return
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val interestManager = InterestManagerInstance.getInstance()
+
+                interestManager.migrateOldData()
+
+                val savedInterestNames = interestManager.getSelectedInterestsBlocking()
+                val savedInterests = InterestsRepository.fromNameEnSet(savedInterestNames)
+                _selectedInterests.value = savedInterests
+
+                isInitialized = true
+
+            } catch (e: Exception) {
+                _selectedInterests.value = emptySet()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun onToggleInterest(interest: Interest) {
         val current = _selectedInterests.value
-        _selectedInterests.value = if (current.contains(interest)) current - interest else current + interest
+        val newSelection = if (current.contains(interest)) current - interest else current + interest
+
+        _selectedInterests.value = newSelection
     }
 
     fun saveInterests() {
         viewModelScope.launch {
-            InterestManagerInstance.getInstance().saveSelectedInterests(_selectedInterests.value)
+            try {
+                InterestManagerInstance.getInstance().saveSelectedInterests(_selectedInterests.value)
+            } catch (e: Exception) {
+                println("❌ live.urfu.frontend.ui.interests.InterestsViewModel: Ошибка сохранения интересов: ${e.message}")
+            }
         }
     }
 }

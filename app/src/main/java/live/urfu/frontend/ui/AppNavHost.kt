@@ -20,6 +20,7 @@ import live.urfu.frontend.ui.search.SearchScreen
 import live.urfu.frontend.ui.search.SearchViewModel
 import live.urfu.frontend.ui.settings.SettingsScreen
 import live.urfu.frontend.ui.settings.account.AccountSettings
+import live.urfu.frontend.ui.settings.interests.EditInterestsScreen
 import live.urfu.frontend.ui.settings.notification.NotificationsSettings
 import live.urfu.frontend.ui.settings.privacy.PrivacySettings
 import java.net.URLEncoder
@@ -111,6 +112,15 @@ fun AppNavHost() {
             )
         }
 
+        composable("editInterests") {
+            EditInterestsScreen(
+                onBackClick = { navController.navigate("settings?showAnimation=false") },
+                onInterestsSaved = {
+                    // Опционально: показать уведомление об успешном сохранении
+                }
+            )
+        }
+
         composable("main") {
             MainScreenWithOverlays(
                 navController = navController,
@@ -170,10 +180,11 @@ fun AppNavHost() {
                 onAccountClick = { navController.navigate("accountSettings") },
                 onNotificationsClick = { navController.navigate("notificationsSettings") },
                 onPrivacyClick = { navController.navigate("privacySettings") },
+                onInterestsClick = { navController.navigate("editInterests") },
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
                 navbarCallbacks = commonNavbarCallbacks(navController),
                 onLeave = { navController.navigate("login") { popUpTo(0) { inclusive = true } } },
-                enableAnimation = showAnimation
+                enableAnimation = showAnimation,
             )
         }
 

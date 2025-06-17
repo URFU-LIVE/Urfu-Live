@@ -32,30 +32,69 @@ object InterestManagerInstance {
 class InterestManager(context: Context) {
     private val dataStore = context.interestDataStore
 
-    companion object {
-        private val INTERESTS_KEY = stringSetPreferencesKey("selected_interests")
-    }
+    private suspend fun getInterestsKey(): Preferences.Key<Set<String>> {
+        val userId = try {
+            TokenManagerInstance.getInstance().getUserIdBlocking()
+        } catch (e: Exception) {
+            null
+        }
 
-    // Сохраняем выбранные интересы
-    suspend fun saveSelectedInterests(interests: Set<Interest>) {
-        dataStore.edit { prefs ->
-            prefs[INTERESTS_KEY] = interests.map { it.nameEn }.toSet()
+        return if (userId != null) {
+            stringSetPreferencesKey("interests_$userId")
+        } else {
+            stringSetPreferencesKey("interests_anonymous")
         }
     }
 
-    // Получаем интересы (блокирующая версия)
-    suspend fun getSelectedInterestsBlocking(): Set<String> {
-        return dataStore.data.first()[INTERESTS_KEY] ?: emptySet()
+    suspend fun saveSelectedInterests(interests: Set<Interest>) {
+        val key = getInterestsKey()
+        dataStore.edit { prefs ->
+            prefs[key] = interests.map { it.nameEn }.toSet()
+        }
     }
 
-    // Поток с интересами (для использования с Compose/Flow)
-    val selectedInterests: Flow<Set<String>> = dataStore.data
-        .map { prefs -> prefs[INTERESTS_KEY] ?: emptySet() }
+    suspend fun getSelectedInterestsBlocking(): Set<String> {
+        val key = getInterestsKey()
+        return dataStore.data.first()[key] ?: emptySet()
+    }
 
-    // Очистка интересов
+    val selectedInterests: Flow<Set<String>> = dataStore.data
+        .map { prefs ->
+            val key = try {
+                getInterestsKey()
+            } catch (e: Exception) {
+                stringSetPreferencesKey("interests_anonymous")
+            }
+            prefs[key] ?: emptySet()
+        }
+
     suspend fun clearSelectedInterests() {
+        val key = getInterestsKey()
         dataStore.edit { prefs ->
-            prefs.remove(INTERESTS_KEY)
+            prefs.remove(key)
+        }
+    }
+
+    suspend fun migrateOldData() {
+        val oldKey = stringSetPreferencesKey("selected_interests")
+        val userId = try {
+            TokenManagerInstance.getInstance().getUserIdBlocking()
+        } catch (e: Exception) {
+            return
+        }
+
+        if (userId == null) return
+
+        val prefs = dataStore.data.first()
+        val oldInterests = prefs[oldKey]
+
+        if (!oldInterests.isNullOrEmpty()) {
+            val newKey = stringSetPreferencesKey("interests_$userId")
+
+            dataStore.edit { editPrefs ->
+                editPrefs[newKey] = oldInterests
+                editPrefs.remove(oldKey)
+            }
         }
     }
 }
