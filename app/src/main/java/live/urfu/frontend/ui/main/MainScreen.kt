@@ -47,10 +47,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -539,7 +536,7 @@ fun CarouselScreen(
     val initialCardWidth = AdaptiveSizes.cardWidth(screenInfo)
     val initialCardHeight = AdaptiveSizes.cardHeight(screenInfo)
 
-    var isFullyExpanded by remember { mutableStateOf(false) }
+    var articleState by remember { mutableStateOf(ArticleState.PARTIAL) }
     var shouldHideBottomNav by remember { mutableStateOf(false) }
     var isClosing by remember { mutableStateOf(false) }
     var previousCardCenter by remember { mutableStateOf(Offset.Zero) }
@@ -547,7 +544,10 @@ fun CarouselScreen(
 
     val expanded = expandedIndex != -1
     val transition = updateTransition(targetState = expanded, label = "expandTransition")
-    val fullExpansionTransition = updateTransition(targetState = isFullyExpanded, label = "fullExpansionTransition")
+    val fullExpansionTransition = updateTransition(
+        targetState = articleState == ArticleState.FULL || articleState == ArticleState.EXPANDING_FULL,
+        label = "fullExpansionTransition"
+    )
     val closeAnimator = remember { Animatable(0f) }
     val SmoothEasing = CubicBezierEasing(0.05f, 0.0f, 0.15f, 1.0f)
 
@@ -589,7 +589,7 @@ fun CarouselScreen(
                 expandedIndex = -1
                 lastCloseTime = System.currentTimeMillis()
                 lastActionTime = System.currentTimeMillis()
-                isFullyExpanded = false
+                articleState = ArticleState.PARTIAL
                 shouldHideBottomNav = false
                 dragOffset = 0f
                 isClosing = false
@@ -597,7 +597,7 @@ fun CarouselScreen(
             } catch (e: Exception) {
                 expandedIndex = -1
                 isClosing = false
-                isFullyExpanded = false
+                articleState = ArticleState.PARTIAL
                 shouldHideBottomNav = false
             } finally {
                 delay(100)
@@ -662,7 +662,7 @@ fun CarouselScreen(
         isClosing -> cardTopPositions.value[expandedIndex] ?: 0f
         expandedIndex != -1 -> {
             val startPos = cardTopPositions.value[expandedIndex] ?: 0f
-            if (isFullyExpanded || fullExpansionProgress > 0f) {
+            if (articleState == ArticleState.FULL || articleState == ArticleState.EXPANDING_FULL || fullExpansionProgress > 0f) {
                 lerp(startPos, fullExpandTopY, fullExpansionProgress) + dragOffset
             } else {
                 startPos + dragOffset
@@ -671,30 +671,49 @@ fun CarouselScreen(
         else -> 0f
     }
 
-    val closeExpandedArticle = {
+    val toggleFullExpansion = {
         val currentTime = System.currentTimeMillis()
-        if (!isClosing && !isAnimationInProgress && (currentTime - lastActionTime > minActionInterval)) {
-            isClosing = true
-            isAnimationInProgress = true
+        if (!isClosing && (currentTime - lastActionTime > 500L)) {
+
             lastActionTime = currentTime
-            shouldHideBottomNav = false
-            previousCardCenter = selectedCardCenter
+
+            when (articleState) {
+                ArticleState.PARTIAL -> {
+                    articleState = ArticleState.EXPANDING_FULL
+                    shouldHideBottomNav = true
+                    dragOffset = 0f
+
+                    scope.launch {
+                        delay(fullExpandDuration.toLong())
+                        articleState = ArticleState.FULL
+                    }
+                }
+                ArticleState.FULL -> {
+                    articleState = ArticleState.COLLAPSING_PARTIAL
+                    shouldHideBottomNav = false
+                    dragOffset = 0f
+
+                    scope.launch {
+                        delay(fullExpandDuration.toLong())
+                        articleState = ArticleState.PARTIAL
+                    }
+                }
+                else -> {
+                    // Во время анимаций - игнорируем
+                }
+            }
         }
     }
 
-    val toggleFullExpansion = {
+    val closeExpandedArticle = {
         val currentTime = System.currentTimeMillis()
-        if (!isClosing && !isAnimationInProgress && (currentTime - lastActionTime > minActionInterval)) {
-            isFullyExpanded = !isFullyExpanded
-            lastActionTime = currentTime
-            shouldHideBottomNav = isFullyExpanded
-            dragOffset = 0f
+        if (!isClosing && (currentTime - lastActionTime > 500L)) {
 
-            scope.launch {
-                isAnimationInProgress = true
-                delay(fullExpandDuration.toLong() + 50)
-                isAnimationInProgress = false
-            }
+            isClosing = true
+            articleState = ArticleState.CLOSING
+            lastActionTime = currentTime
+            shouldHideBottomNav = false
+            previousCardCenter = selectedCardCenter
         }
     }
 
@@ -771,7 +790,7 @@ fun CarouselScreen(
                                     isAnimationInProgress = true
                                     delay(16)
                                     expandedIndex = page
-                                    isFullyExpanded = false
+                                    articleState = ArticleState.PARTIAL
 
                                     try {
                                         delay(fixedOpenDuration.toLong())
@@ -912,7 +931,11 @@ fun CarouselScreen(
                     .graphicsLayer {
                         this.translationX = currentLeftX
                         this.translationY = currentTopY
-                        this.clip = !isFullyExpanded
+                        this.clip = when (articleState) {
+                            ArticleState.FULL -> false
+                            ArticleState.EXPANDING_FULL -> fullExpansionProgress < 0.9f
+                            else -> true
+                        }
                     }
                     .width(currentWidth)
                     .height(currentHeight)
@@ -937,14 +960,14 @@ fun CarouselScreen(
                         ExpandedPostContent(
                             post = postsState[expandedIndex],
                             expandProgress = if (isClosing) 1f - closeAnimator.value else expansionProgress,
+                            articleState = articleState,
                             onHeaderSwipe = { toggleFullExpansion() },
+                            onCloseSwipe = {closeExpandedArticle()},
                             onAuthorClick = onAuthorClick,
                             viewModel = viewModel,
                             onCommentsClick = onCommentsClick
                         )
                     }
-
-                        // TODO !!!!!!!!!!! СДЕЛАТЬ ОБРАТНЫЙ СВАЙП ДЛЯ ЗАКРТИЯ РАСКРЫТОЙ СТАТЬИ
 
                     // Индикатор свайпа
                     AnimatedVisibility(
@@ -972,7 +995,9 @@ fun CarouselScreen(
 fun ExpandedPostContent(
     post: Post,
     expandProgress: Float,
+    articleState: ArticleState,
     onHeaderSwipe: () -> Unit,
+    onCloseSwipe: () -> Unit,
     onAuthorClick: (String) -> Unit = {},
     viewModel: PostViewModel = viewModel(),
     onCommentsClick: (Long) -> Unit
@@ -987,16 +1012,11 @@ fun ExpandedPostContent(
     var isLoading by remember(post.author.id) { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
-    val likesCount = viewModel.getPostLikesCount(post.id)
-    val isProcessing = viewModel.isPostProcessing(post.id)
-
     var isHeaderVisible by remember { mutableStateOf(true) }
     LaunchedEffect(scrollState.value) {
         isHeaderVisible = scrollState.value < 100
     }
 
-    // Используем те же отступы, что и в PostCard для консистентности
     val cardPadding = AdaptiveSizes.cardPadding(screenInfo)
     val avatarSize = AdaptiveSizes.authorAvatarSize(screenInfo)
     val buttonPadding = AdaptiveSizes.buttonPadding(screenInfo)
@@ -1011,20 +1031,11 @@ fun ExpandedPostContent(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            // Используем точно такой же верхний отступ, как в PostCard
             Spacer(modifier = Modifier.height(cardPadding.calculateTopPadding()))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pointerInput(Unit) {
-                        detectVerticalDragGestures { change, dragAmount ->
-                            if (isHeaderVisible && scrollState.value == 0) {
-                                change.consume()
-                                onHeaderSwipe()
-                            }
-                        }
-                    }
             ) {
                 Column(
                     modifier = Modifier
@@ -1032,17 +1043,56 @@ fun ExpandedPostContent(
                             start = cardPadding.calculateLeftPadding(LayoutDirection.Ltr),
                             end = cardPadding.calculateRightPadding(LayoutDirection.Ltr)
                         )
-                        .pointerInput(Unit) {
+                        .pointerInput(articleState) {
+                            var totalDragY = 0f
+                            val dragThreshold = 50f
+                            var gestureStartTime = 0L
+                            val minGestureDuration = 50L
+
                             detectVerticalDragGestures(
-                                onDragStart = { },
-                                onDragEnd = { },
-                                onDragCancel = { },
+                                onDragStart = {
+                                    totalDragY = 0f
+                                    gestureStartTime = System.currentTimeMillis()
+                                },
+                                onDragEnd = {
+                                    val gestureDuration = System.currentTimeMillis() - gestureStartTime
+
+                                    if (kotlin.math.abs(totalDragY) > dragThreshold &&
+                                        gestureDuration > minGestureDuration &&
+                                        isHeaderVisible &&
+                                        scrollState.value == 0) {
+
+                                        when (articleState) {
+                                            ArticleState.PARTIAL -> {
+                                                if (totalDragY < 0) {
+                                                    onHeaderSwipe()
+                                                } else if (totalDragY > 0) {
+                                                    onCloseSwipe()
+                                                }
+                                            }
+                                            ArticleState.FULL -> {
+                                                if (totalDragY > 0) {
+                                                    onHeaderSwipe()
+                                                }
+                                                // Свайп вверх игнорируем - уже полностью развернуто
+                                            }
+
+                                            ArticleState.EXPANDING_FULL,
+                                            ArticleState.COLLAPSING_PARTIAL,
+                                            ArticleState.CLOSING -> {
+                                                // Ничего не делаем - анимация в процессе
+                                            }
+                                        }
+                                    }
+                                },
+                                onDragCancel = {
+                                    totalDragY = 0f
+                                },
                                 onVerticalDrag = { change, dragAmount ->
                                     change.consume()
-                                    if (dragAmount < 0) {
-                                        onHeaderSwipe()
-                                    } else if (dragAmount > 0) {
-                                        onHeaderSwipe()
+
+                                    if (articleState == ArticleState.PARTIAL || articleState == ArticleState.FULL) {
+                                        totalDragY += dragAmount
                                     }
                                 }
                             )
@@ -1313,4 +1363,11 @@ fun AdaptiveReactionPanel(
             )
         }
     }
+}
+enum class ArticleState {
+    PARTIAL,
+    EXPANDING_FULL,
+    FULL,
+    COLLAPSING_PARTIAL,
+    CLOSING
 }
