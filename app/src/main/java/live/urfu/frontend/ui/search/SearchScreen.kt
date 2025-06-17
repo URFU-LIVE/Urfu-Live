@@ -17,7 +17,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -36,8 +35,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -72,7 +69,6 @@ import live.urfu.frontend.ui.profile.ExpandedPostOverlay
 import kotlinx.coroutines.launch
 import rememberScreenSizeInfo
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(
     initialTag: String = "",
@@ -90,9 +86,7 @@ fun SearchScreen(
 
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
-    val tagSuggestions by viewModel.tagSuggestions.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val showSuggestions by viewModel.showSuggestions.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
     val hasSearched by viewModel.hasSearched.collectAsState()
     var expandedPostIndex by remember { mutableStateOf<Int?>(null) }
@@ -116,6 +110,9 @@ fun SearchScreen(
                 post = searchResults[index],
                 onClose = { expandedPostIndex = null },
                 onCommentsClick = { onCommentsClick(searchResults[index].id,searchQuery) },
+                onAuthorClick = { authorId ->
+                    onAuthorClick(authorId)
+                },
                 viewModel = postViewModel
             )
         }
@@ -199,11 +196,13 @@ fun SearchScreen(
                     EmptySearchResults(searchQuery, screenInfo)
                 }
 
-                hasSearched && searchResults.isNotEmpty() -> {
+                hasSearched -> {
                     SearchResultsList(
                         posts = searchResults,
                         onPostClick = { index -> expandedPostIndex = index },
-                        onAuthorClick = onAuthorClick,
+                        onAuthorClick = { authorId ->
+                            onAuthorClick(authorId)
+                        },
                         onCommentsClick = onCommentsClick,
                         screenInfo = screenInfo,
                         postViewModel = postViewModel,
@@ -219,80 +218,6 @@ fun SearchScreen(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SearchHeader(
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
-    onSearchSubmit: (String) -> Unit,
-    onClose: () -> Unit,
-    screenInfo: ScreenSizeInfo,
-    isLoading: Boolean,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = if (screenInfo.isCompact) 16.dp else 24.dp)
-            .padding(top = 16.dp, bottom = 8.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.chevron_left),
-                contentDescription = "Назад",
-                modifier = Modifier
-                    .clickable { onClose() }
-                    .size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChange,
-                placeholder = {
-                    Text(
-                        "Поиск по тегам...",
-                        color = Color.Gray,
-                        style = adaptiveTextStyle(MaterialTheme.typography.bodyMedium, screenInfo)
-                    )
-                },
-                modifier = Modifier.weight(1f),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color(0xFF292929),
-                    unfocusedContainerColor = Color(0xFF292929),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.White
-                ),
-                shape = RoundedCornerShape(52.dp),
-                singleLine = true,
-                trailingIcon = {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = Color(0xFFEE7E56),
-                            strokeWidth = 2.dp
-                        )
-                    } else if (searchQuery.isNotEmpty()) {
-                        Image(
-                            painter = painterResource(id = R.drawable.search),
-                            contentDescription = "Поиск",
-                            modifier = Modifier
-                                .clickable { onSearchSubmit(searchQuery) }
-                                .size(20.dp),
-                            colorFilter = ColorFilter.tint(Color.White)
-                        )
-                    }
-                }
-            )
         }
     }
 }
@@ -364,7 +289,6 @@ private fun EmptySearchResults(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DefaultSearchContent(
     recentSearches: List<String>,
@@ -500,7 +424,6 @@ private fun SearchResultsList(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SearchPostCard(
     post: Post,
@@ -535,7 +458,6 @@ private fun SearchPostCard(
                     vertical = if (screenInfo.isCompact) 12.dp else 16.dp
                 )
         ) {
-            // Заголовок
             Text(
                 text = post.title,
                 style = adaptiveTextStyle(
@@ -589,7 +511,8 @@ private fun SearchPostCard(
                         style = adaptiveTextStyle(MaterialTheme.typography.titleLarge, screenInfo),
                         color = colorPattern.textColor,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.clickable { onAuthorClick() }
                     )
                 }
 

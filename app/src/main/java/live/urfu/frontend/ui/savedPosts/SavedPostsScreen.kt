@@ -142,6 +142,10 @@ fun SavedPostsScreen(
                     onCommentsClick(postId)
                     expandedPost = null
                 },
+                onAuthorClick = { authorId ->
+                    onAuthorClick(authorId)
+                    expandedPost = null
+                },
                 viewModel = sharedPostViewModel
             )
         }

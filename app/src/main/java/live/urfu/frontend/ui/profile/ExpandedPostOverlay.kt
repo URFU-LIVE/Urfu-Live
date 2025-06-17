@@ -28,6 +28,7 @@ import live.urfu.frontend.data.model.Post
 import live.urfu.frontend.ui.main.PostColorPatterns
 import TagChip
 import TagSizes
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,6 +44,7 @@ fun ExpandedPostOverlay(
     post: Post,
     onClose: () -> Unit,
     onCommentsClick: (Long) -> Unit = {},
+    onAuthorClick: (String) -> Unit = {},
     viewModel: PostViewModel,
 ) {
     val scrollState = rememberScrollState()
@@ -66,6 +68,10 @@ fun ExpandedPostOverlay(
     DisposableEffect(Unit) {
         systemUiController.setStatusBarColor(Color.Black)
         onDispose { systemUiController.setStatusBarColor(Color.Transparent) }
+    }
+
+    BackHandler {
+        onClose()
     }
 
     Box(
@@ -143,7 +149,7 @@ fun ExpandedPostOverlay(
                             .size(50.dp)
                             .clip(CircleShape)
                             .border(2.dp, Color.White, CircleShape)
-                            .clickable { },
+                            .clickable { onAuthorClick(post.author.id) },
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.ava),
                         error = painterResource(R.drawable.ava)
@@ -158,12 +164,12 @@ fun ExpandedPostOverlay(
                             color = Color.Black
                         )
                         Text(
-                            text = post.author.username ?: post.author.name
-                            ?: "Неизвестный автор",
+                            text = post.author.username,
                             style = MaterialTheme.typography.titleLarge,
                             color = pattern.textColor,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.clickable { onAuthorClick(post.author.id) },
                         )
                     }
                     if (isLoading) {

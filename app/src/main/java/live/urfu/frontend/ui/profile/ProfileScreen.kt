@@ -60,7 +60,8 @@ fun ProfileScreen(
     onSubscribeClick: () -> Unit = {},
     onCommentsClick: (Long) -> Unit = {},
     sharedPostViewModel: PostViewModel,
-    onNotificationsClick: () -> Unit = {}
+    onNotificationsClick: () -> Unit = {},
+    onAuthorClick: (String) -> Unit
 ) {
     val user = viewModel.user
     val posts = viewModel.posts
@@ -91,6 +92,10 @@ fun ProfileScreen(
                 onClose = { expandedPostIndex = null },
                 onCommentsClick = { postId ->
                     onCommentsClick(postId)
+                },
+                onAuthorClick = { authorId ->
+                    onAuthorClick(authorId)
+                    expandedPostIndex = null
                 },
                 viewModel = sharedPostViewModel
             )

@@ -239,7 +239,10 @@ fun AppNavHost() {
                 onCommentsClick = { postId ->
                     navController.navigate("comments/$postId")
                 },
-                sharedPostViewModel = sharedPostViewModel
+                sharedPostViewModel = sharedPostViewModel,
+                onAuthorClick = { authorId ->
+                    navController.navigate("author/$authorId")
+                },
             )
         }
 
@@ -265,7 +268,7 @@ fun AppNavHost() {
                     // Этот колбэк больше не используется
                 },
                 onAuthorClick = { authorId ->
-                    navController.navigate("profile/$authorId")
+                    navController.navigate("author/$authorId")
                 },
                 onCommentsClick = { postId, tag ->
                     val e = URLEncoder.encode(tag, "UTF-8")
@@ -366,7 +369,10 @@ fun AppNavHost() {
                 sharedPostViewModel = sharedPostViewModel,
                 onCommentsClick = { postId ->
                     navController.navigate("comments/$postId")
-                }
+                },
+                onAuthorClick = {
+                    navController.navigate("author/$authorId")
+                },
             )
         }
     }
