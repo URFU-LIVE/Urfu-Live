@@ -216,7 +216,11 @@ fun AppNavHost() {
             val postId = backStackEntry.arguments?.getLong("postId") ?: 0
             CommentsScreen(
                 postId = postId,
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStack() },
+                onProfileClick = { authorId ->
+                    navController.navigate("author/$authorId")
+                }
+
             )
         }
 
@@ -320,6 +324,9 @@ fun AppNavHost() {
                     } else {
                         navController.popBackStack()
                     }
+                },
+                onProfileClick = { authorId ->
+                    navController.navigate("author/$authorId")
                 }
             )
         }

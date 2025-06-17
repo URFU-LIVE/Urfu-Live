@@ -94,38 +94,22 @@ fun RegistrationScreen(
                 1 -> UsernameStep(
                     value = loginValue,
                     onValueChange = { viewModel.onLoginChange(it) },
-                    onNextClick = {
-                        if (loginValue.isNotBlank()) currentStep = 2
-                    },
-                    onBackClick = null,
                     isSmallScreen = isSmallScreen
                 )
                 2 -> NameStep(
                     value = nameValue,
                     onValueChange = { viewModel.onNameChange(it) },
-                    onNextClick = {
-                        if (nameValue.isNotBlank()) currentStep = 3
-                    },
-                    onBackClick = { currentStep = 1 },
                     isSmallScreen = isSmallScreen
 
                 )
                 3 -> EmailStep(
                     value = mailValue,
                     onValueChange = { viewModel.onMailChange(it) },
-                    onNextClick = {
-                        if (mailValue.isNotBlank()) currentStep = 4
-                    },
-                    onBackClick = { currentStep = 2 },
                     isSmallScreen = isSmallScreen
                 )
                 4 -> BirthDateStep(
                     value = birthDateValue,
                     onValueChange = { viewModel.onBirthDateChange(it) },
-                    onNextClick = {
-                        if (birthDateValue.isNotBlank()) currentStep = 5
-                    },
-                    onBackClick = { currentStep = 3 },
                     isSmallScreen = isSmallScreen
                 )
                 5 -> PasswordStep(
@@ -135,31 +119,28 @@ fun RegistrationScreen(
                     onConfirmValueChange = { confirmPassword = it },
                     passwordVisible = passwordVisible,
                     onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
-                    onRegisterClick = {
-                        if (passwordValue.isNotBlank() && passwordValue == confirmPassword) {
-                            viewModel.onRegisterClick(
-                                loginValue,
-                                mailValue,
-                                passwordValue,
-                                nameValue,
-                                birthDateValue,
-                                registerCallback
-                            )
-                        }
-                    },
-                    onBackClick = { currentStep = 4 },
                     isSmallScreen = isSmallScreen
                 )
             }
         }
         RegistrationButtons(
-            currentStep = currentStep,
             onBackClick = if (currentStep > 1) { { currentStep -= 1 } } else null,
             onNextClick = {
                 when (currentStep) {
-                    1 -> if (loginValue.isNotBlank()) currentStep = 2
+                    1 -> if (loginValue.isNotBlank()) {
+                        // todo Добавить уводмления: 1) Если ник должен быть от 3 до 20 символов 2) Ник должен быть уникальным
+                        viewModel.checkUsername(loginValue) { isAvailable ->
+                            currentStep = if (isAvailable) 2 else 1
+                        }
+                    }
                     2 -> if (nameValue.isNotBlank()) currentStep = 3
-                    3 -> if (mailValue.isNotBlank()) currentStep = 4
+                    3 -> if (mailValue.isNotBlank()) {
+                        // todo Добавить уводмления: 1) Сначала добавить проверку (например регуляркой) почта ли это и если нет выслать уведомление 2) Почта должна быть уникальная
+                        viewModel.checkEmail(loginValue) { isAvailable ->
+                            currentStep = if (isAvailable) 4 else 3
+                        }
+                    }
+                    // todo Добавить проверку реальности даты!
                     4 -> if (birthDateValue.isNotBlank()) currentStep = 5
                     5 -> if (passwordValue.isNotBlank() && passwordValue == confirmPassword) {
                         viewModel.onRegisterClick(
@@ -194,9 +175,6 @@ fun RegistrationScreen(
 private fun UsernameStep(
     value: String,
     onValueChange: (String) -> Unit,
-    onNextClick: () -> Unit,
-    // todo
-    onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
@@ -222,10 +200,6 @@ private fun UsernameStep(
                 colors = textFieldColors()
             )
         },
-        buttonText = "Далее",
-        onButtonClick = onNextClick,
-        onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank(),
         isSmallScreen = isSmallScreen
     )
 }
@@ -234,8 +208,6 @@ private fun UsernameStep(
 private fun NameStep(
     value: String,
     onValueChange: (String) -> Unit,
-    onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
@@ -262,10 +234,6 @@ private fun NameStep(
                 colors = textFieldColors()
             )
         },
-        buttonText = "Далее",
-        onButtonClick = onNextClick,
-        onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank(),
         isSmallScreen = isSmallScreen
     )
 }
@@ -274,8 +242,6 @@ private fun NameStep(
 private fun EmailStep(
     value: String,
     onValueChange: (String) -> Unit,
-    onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
@@ -302,10 +268,6 @@ private fun EmailStep(
                 colors = textFieldColors()
             )
         },
-        buttonText = "Далее",
-        onButtonClick = onNextClick,
-        onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank(),
         isSmallScreen = isSmallScreen
     )
 }
@@ -314,8 +276,6 @@ private fun EmailStep(
 private fun BirthDateStep(
     value: String,
     onValueChange: (String) -> Unit,
-    onNextClick: () -> Unit,
-    onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
 
@@ -356,10 +316,6 @@ private fun BirthDateStep(
                 visualTransformation = DateTransformation()
             )
         },
-        buttonText = "Далее",
-        onButtonClick = onNextClick,
-        onBackClick = onBackClick,
-        isButtonEnabled = value.length >= 8,
         isSmallScreen = isSmallScreen
     )
 }
@@ -372,8 +328,6 @@ private fun PasswordStep(
     onConfirmValueChange: (String) -> Unit,
     passwordVisible: Boolean,
     onPasswordVisibilityToggle: () -> Unit,
-    onRegisterClick: () -> Unit,
-    onBackClick: (() -> Unit)?,
     isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
@@ -400,7 +354,7 @@ private fun PasswordStep(
                 trailingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.eye),
-                        contentDescription = "Toggle password visibility", // todo
+                        contentDescription = "Включить отобржаение пароля",
                         tint = Color.White,
                         modifier = Modifier
                             .size(30.dp)
@@ -448,10 +402,6 @@ private fun PasswordStep(
                 )
             }
         },
-        buttonText = "Зарегистрироваться",
-        onButtonClick = onRegisterClick,
-        onBackClick = onBackClick,
-        isButtonEnabled = value.isNotBlank() && confirmValue.isNotBlank() && value == confirmValue,
         isSmallScreen = isSmallScreen
     )
 }
@@ -461,11 +411,6 @@ private fun RegistrationStepTemplate(
     title: String,
     subtitle: String,
     content: @Composable ColumnScope.() -> Unit,
-    // todo
-    buttonText: String,
-    onButtonClick: () -> Unit,
-    onBackClick: (() -> Unit)? = null,
-    isButtonEnabled: Boolean = true,
     isSmallScreen: Boolean
 ) {
     val paddingBeforeContent = when {
@@ -503,8 +448,6 @@ private fun RegistrationStepTemplate(
 
 @Composable
 private fun RegistrationButtons(
-    // todo
-    currentStep: Int,
     onBackClick: (() -> Unit)?,
     onNextClick: () -> Unit,
     isEnabled: Boolean,
@@ -563,7 +506,6 @@ private fun RegistrationButtons(
 }
 
 
-// Класс DateTransformation остается тем же
 class DateTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val trimmed = text.text.take(8)

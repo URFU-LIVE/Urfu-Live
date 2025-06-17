@@ -40,8 +40,8 @@ class DtoManager {
                 },
                 followers = author.followers,
                 // todo Хардкод в проде надо поменять
-                avatarUrl = author.avatar_url?.replace("localhost", "45.144.53.244"),
-                backgroundUrl = author.background_url?.replace("localhost", "45.144.53.244")
+                avatarUrl = author.avatarUrl?.replace("localhost", "45.144.53.244"),
+                backgroundUrl = author.backgroundUrl?.replace("localhost", "45.144.53.244")
             ),
             tags = this.tags.map { Tag(it.id, it.name) },
             time = formattedTime,
@@ -83,8 +83,8 @@ class DtoManager {
             followingCount = followingCount,
             description = this.description,
             followers = this.followers,
-            avatarUrl = this.avatar_url?.replace("localhost", "45.144.53.244"),
-            backgroundUrl = this.background_url?.replace("localhost", "45.144.53.244")
+            avatarUrl = this.avatarUrl?.replace("localhost", "45.144.53.244"),
+            backgroundUrl = this.backgroundUrl?.replace("localhost", "45.144.53.244")
         )
     }
 
@@ -127,7 +127,7 @@ class DtoManager {
             id = this.id,
             text = this.text,
             createdAt = formattedTime,
-            postId = this.post_id,
+            postId = this.postId,
             author = User(
                 id = this.userDto.id.toString(),
                 username = this.userDto.username,
@@ -139,8 +139,8 @@ class DtoManager {
                 },
                 followers = this.userDto.followers,
                 // todo Хардкод в проде надо поменять
-                avatarUrl = this.userDto.avatar_url?.replace("localhost", "45.144.53.244"),
-                backgroundUrl = this.userDto.background_url?.replace("localhost", "45.144.53.244")
+                avatarUrl = this.userDto.avatarUrl?.replace("localhost", "45.144.53.244"),
+                backgroundUrl = this.userDto.backgroundUrl?.replace("localhost", "45.144.53.244")
             )
         )
     }

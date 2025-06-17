@@ -8,7 +8,8 @@ data class CommentDto(
     val id: Long,
     val text: String,
     val createdAt: List<Int>,
-    val post_id: Long,
+    @SerialName("post_id")
+    val postId: Long,
 
     @SerialName("author")
     val userDto: UserDto

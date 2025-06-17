@@ -62,7 +62,6 @@ fun LoginScreen(
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
-    val screenHeight = configuration.screenHeightDp //todo
     val isSmallScreen = screenWidth < 400
     val paddingBeforeGreeting = when {
         isSmallScreen -> 1.dp
@@ -76,7 +75,7 @@ fun LoginScreen(
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(30.dp)) //todo Тут надо поменять
+        Spacer(modifier = Modifier.height(30.dp)) //todo Тут надо поменять - задачка для Артема
 
         Image(
             painter = painterResource(id = R.drawable.loginlogo),
@@ -102,10 +101,11 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Войдите или ", //todo Странный пробел
+                text = "Войдите или",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White
             )
+            Spacer(modifier = Modifier.width(5.dp))
             Text(
                 text = "Зарегистрируйтесь",
                 color = Color(0xFF76B6FE),
@@ -149,7 +149,7 @@ fun LoginScreen(
             trailingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.eye),
-                    contentDescription = "Toggle password visibility", //todo
+                    contentDescription = "Включить отобржаение пароля",
                     tint = Color.White,
                     modifier = Modifier
                         .size(24.dp)
