@@ -37,7 +37,6 @@ class PostViewModel : BaseViewModel() {
     val subscriptions: StateFlow<Set<String>> = _subscriptions
 
     private val _postsUiState = mutableStateOf<Map<Long, PostUiState>>(emptyMap())
-    val postsUiState: Map<Long, PostUiState> by _postsUiState
 
     init {
         viewModelScope.launch {
@@ -233,8 +232,6 @@ class PostViewModel : BaseViewModel() {
 
     fun isPostProcessing(postId: Long): Boolean = _postsUiState.value[postId]?.isProcessing ?: false
 
-    fun isSubscriptionLoading(postId: Long): Boolean = _postsUiState.value[postId]?.isSubscriptionLoading ?: false
-
     fun connectSearchViewModel(searchViewModel: SearchViewModel) {
         connectedSearchViewModels.add(searchViewModel)
     }
@@ -266,13 +263,6 @@ class PostViewModel : BaseViewModel() {
         initializeUiStates(posts)
         initSubscriptions(posts)
     }
-
-    fun isUserSubscribed(post: Post): Boolean {
-        val currentUserId = _currentUserId.value?.toInt() ?: return false
-        return post.author.followers.contains(currentUserId)
-    }
-
-    fun isUserSubscribe(post: Post): Boolean = isUserSubscribed(post)
 
     fun savePost(post: Post) {
         viewModelScope.launch {

@@ -64,9 +64,7 @@ fun RegistrationScreen(
         }
     }
 
-    BackHandler(enabled = currentStep > 1) {
-        currentStep -= 1
-    }
+    BackHandler(enabled = currentStep > 1) { currentStep -= 1 }
 
     Box(
         modifier = Modifier
@@ -123,6 +121,7 @@ fun RegistrationScreen(
                 )
             }
         }
+
         RegistrationButtons(
             onBackClick = if (currentStep > 1) { { currentStep -= 1 } } else null,
             onNextClick = {
@@ -223,7 +222,9 @@ private fun NameStep(
                 textAlign = TextAlign.Start,
                 style = typography.bodyMedium
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
                 value = value,
                 singleLine = true,
@@ -257,7 +258,9 @@ private fun EmailStep(
                 textAlign = TextAlign.Start,
                 style = typography.bodyMedium
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
                 value = value,
                 singleLine = true,
@@ -292,6 +295,7 @@ private fun BirthDateStep(
                 textAlign = TextAlign.Start,
                 style = typography.bodyMedium
             )
+
             Spacer(modifier = Modifier.height(10.dp))
 
             val keyboardController = LocalSoftwareKeyboardController.current
@@ -343,7 +347,9 @@ private fun PasswordStep(
                 textAlign = TextAlign.Start,
                 style = typography.bodyMedium
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
                 value = value,
                 singleLine = true,
@@ -376,7 +382,9 @@ private fun PasswordStep(
                 textAlign = TextAlign.Start,
                 style = typography.bodyMedium
             )
+
             Spacer(modifier = Modifier.height(10.dp))
+
             OutlinedTextField(
                 value = confirmValue,
                 singleLine = true,
@@ -389,7 +397,6 @@ private fun PasswordStep(
                 isError = confirmValue.isNotEmpty() && value != confirmValue
             )
 
-            // Показываем ошибку если пароли не совпадают
             if (confirmValue.isNotEmpty() && value != confirmValue) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -477,13 +484,11 @@ private fun RegistrationButtons(
                 )
             ) {
                 Text(
-                    "Назад",
-                    style = typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize)
+                    "Назад", style = typography.headlineMedium.copy(fontSize = fontSize, lineHeight = fontSize)
                 )
             }
         }
 
-        // Основная кнопка
         Button(
             onClick = onNextClick,
             modifier = if (onBackClick != null) Modifier.weight(1f) else Modifier.width(150.dp),

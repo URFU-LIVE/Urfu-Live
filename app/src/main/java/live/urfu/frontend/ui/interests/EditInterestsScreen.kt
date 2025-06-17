@@ -1,7 +1,6 @@
-package live.urfu.frontend.ui.settings.interests
+package live.urfu.frontend.ui.interests
 
 import InterestsScreen
-import live.urfu.frontend.ui.interests.InterestsViewModel
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding

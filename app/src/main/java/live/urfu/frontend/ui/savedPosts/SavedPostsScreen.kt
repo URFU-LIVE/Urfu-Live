@@ -1,10 +1,10 @@
-package urfu.live.frontend.ui.saved
+package live.urfu.frontend.ui.savedPosts
 
 import AdaptiveSizes.authorAvatarSize
 import SavedPostsAdaptiveSizes
 import ScreenSizeInfo
-import TagChip
-import TagSizes
+import live.urfu.frontend.ui.main.TagChip
+import live.urfu.frontend.ui.main.TagSizes
 import adaptiveSafeAreaPadding
 import adaptiveTextStyle
 import android.annotation.SuppressLint
@@ -38,22 +38,17 @@ import live.urfu.frontend.ui.createarticle.CreateArticle
 import live.urfu.frontend.ui.createarticle.CreateArticleViewModel
 import live.urfu.frontend.ui.main.PostViewModel
 import live.urfu.frontend.ui.profile.ExpandedPostOverlay
-import live.urfu.frontend.ui.savedPosts.SavedPostsViewModel
 import rememberScreenSizeInfo
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
-//@Preview
 fun SavedPostsScreen(
     viewModel: SavedPostsViewModel = viewModel(),
     onProfileClick: () -> Unit = {},
-    onCreateArticleClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
-    onPostClick: (Post) -> Unit = {},
     onSearchClick: () -> Unit = {},
-    onRemoveFromSaved: (Post) -> Unit = {},
     onAuthorClick: (String) -> Unit,
     onCommentsClick: (Long) -> Unit,
     currentScreen: String = "saved",
@@ -95,13 +90,10 @@ fun SavedPostsScreen(
                 .fillMaxSize()
                 .background(Color(0xFF131313))
         ) {
-            // Топбар
             SavedPostsTopBar(
                 screenInfo = screenInfo,
                 onSearchClick = onSearchClick
             )
-
-            // Список сохраненных постов
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
@@ -125,8 +117,6 @@ fun SavedPostsScreen(
                         onRemoveFromSaved = { viewModel.removeFromSaved(post) }
                     )
                 }
-
-                // Если нет сохраненных постов
                 if (savedPosts.isEmpty()) {
                     item {
                         EmptyStateMessage(screenInfo = screenInfo)
@@ -215,7 +205,6 @@ fun SavedPostCard(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Заголовок поста
                 Text(
                     text = post.title,
                     style = MaterialTheme.typography.labelMedium.copy(
@@ -224,12 +213,11 @@ fun SavedPostCard(
                     color = Color.Black,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.85f) // Оставляем место для иконки закладки
+                    modifier = Modifier.fillMaxWidth(0.85f)
                 )
 
                 Spacer(modifier = Modifier.height(SavedPostsAdaptiveSizes.contentSpacing(screenInfo)))
 
-                // Автор
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -271,7 +259,6 @@ fun SavedPostCard(
 
                 Spacer(modifier = Modifier.height(SavedPostsAdaptiveSizes.contentSpacing(screenInfo)))
 
-                // Теги
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
                         SavedPostsAdaptiveSizes.tagSpacing(
@@ -290,7 +277,6 @@ fun SavedPostCard(
                 }
             }
 
-            // Иконка закладки
             IconButton(
                 onClick =  onRemoveFromSaved,
                 modifier = Modifier

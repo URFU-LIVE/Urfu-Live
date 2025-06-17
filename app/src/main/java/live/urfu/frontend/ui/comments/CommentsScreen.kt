@@ -129,7 +129,6 @@ fun CommentsScreen(
 fun CommentsItem(
     comment: Comment,
     onReplyClick: (Comment) -> Unit,
-    // todo
     onProfileClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -200,7 +199,8 @@ fun CommentsItem(
     }
 }
 
-// todo ЮЗЛЕС!
+/*
+// todo БУДУЩАЯ ФИЧА!
 @Composable
 fun CommentReplyItem(
     comment: Comment,
@@ -247,7 +247,7 @@ fun CommentReplyItem(
                         colorFilter = ColorFilter.tint(Color.White),
                         modifier = Modifier
                             .size(16.dp)
-                            .clickable { /* Report comment */ } // todo
+                            .clickable { /* Report comment */ }
                     )
                 }
                 Row(
@@ -274,6 +274,7 @@ fun CommentReplyItem(
         }
     }
 }
+*/
 
 @Composable
 fun CommentInputField(

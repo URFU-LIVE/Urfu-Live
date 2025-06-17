@@ -1,8 +1,8 @@
 package live.urfu.frontend.ui.profile
 
 import NavbarCallbacks
-import TagChip
-import TagSizes
+import live.urfu.frontend.ui.main.TagChip
+import live.urfu.frontend.ui.main.TagSizes
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -20,13 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,14 +38,12 @@ import live.urfu.frontend.ui.main.PostViewModel
 import live.urfu.frontend.ui.notifiaction.NotificationsScreen
 
 
-@SuppressLint("ViewModelConstructorInComposable")
+@SuppressLint("ViewModelConstructorInComposable", "ConfigurationScreenWidthHeight")
 @Composable
-@Preview
 fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     isOwnProfile: Boolean = true,
     onProfileClick: () -> Unit = {},
-    onCreateArticleClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
@@ -60,7 +56,6 @@ fun ProfileScreen(
     onSubscribeClick: () -> Unit = {},
     onCommentsClick: (Long) -> Unit = {},
     sharedPostViewModel: PostViewModel,
-    onNotificationsClick: () -> Unit = {},
     onAuthorClick: (String) -> Unit
 ) {
     val user = viewModel.user
@@ -102,10 +97,7 @@ fun ProfileScreen(
         }
     }
 
-    // Handle back press when post is expanded
-    BackHandler(enabled = expandedPostIndex != null) {
-        expandedPostIndex = null
-    }
+    BackHandler(enabled = expandedPostIndex != null) { expandedPostIndex = null }
 
     if (showCreateArticle) {
         CreateArticle(
@@ -116,10 +108,8 @@ fun ProfileScreen(
         )
     }
 
-    // Используем Scaffold для правильного размещения контента и навигационной панели
     Scaffold(
         bottomBar = {
-            // Добавляем нижнюю панель навигации только для своего профиля
             if (isOwnProfile) {
                 BottomNavBar(
                     onProfileClick = navbarCallbacks?.onProfileClick ?: onProfileClick,
@@ -132,19 +122,15 @@ fun ProfileScreen(
             }
         }
     ) { paddingValues ->
-        // Основное содержимое с учетом отступов для навигационной панели
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Верхняя часть профиля - не изменяется
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(0.5f)
                         .background(Color(0xFFFD8767)),
                     contentAlignment = Alignment.Center
-                ) {
-                    // Ensure AsyncImage is first (background)
-                    AsyncImage(
+                ) { AsyncImage(
                         model = user?.backgroundUrl,
                         contentDescription = null,
                         modifier = Modifier
@@ -202,7 +188,6 @@ fun ProfileScreen(
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // Блок аватарки
                         AsyncImage(
                             model = user?.avatarUrl,
                             contentDescription = "Аватар пользователя",
@@ -295,11 +280,9 @@ fun ProfileScreen(
 
                     Spacer(modifier = if (isOwnProfile) Modifier.height(16.dp) else Modifier.height(9.dp))
 
-                    // Убираем дополнительный Box и лишние отступы
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        // Правильно настраиваем contentPadding для нижней панели
                         contentPadding = PaddingValues(
                             bottom = paddingValues.calculateBottomPadding()
                         ),
@@ -379,12 +362,10 @@ fun ProfileScreen(
                 )
             }
 
-            // Модальное окно жалобы
             if (showReportDialog) {
                 ReportDialog(
                     onDismiss = { showReportDialog = false },
-                    onSubmit = { reason ->
-                        // Здесь вызываем callback для отправки жалобы
+                    onSubmit = {
                         onReportClick()
                         showReportDialog = false
                     }
@@ -412,7 +393,7 @@ fun ReportDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(32.dp)
-                .clickable(enabled = false) { }, // Предотвращаем закрытие при клике на карту
+                .clickable(enabled = false) { },
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color(0xFF2A2A2A)

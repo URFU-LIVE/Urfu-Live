@@ -1,3 +1,10 @@
+package live.urfu.frontend.ui.main
+
+import AdaptiveSizes
+import ScreenSizeInfo
+import SpacerType
+import adaptiveSafeAreaPadding
+import adaptiveTextStyle
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -24,7 +31,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -86,6 +92,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import calculateAdaptiveExpandSizes
 import coil.compose.AsyncImage
 import live.urfu.frontend.R
 import live.urfu.frontend.ui.footer.BottomNavBar
@@ -95,14 +102,12 @@ import live.urfu.frontend.data.model.User
 import live.urfu.frontend.data.model.UserRole
 import live.urfu.frontend.ui.createarticle.CreateArticle
 import live.urfu.frontend.ui.createarticle.CreateArticleViewModel
-import live.urfu.frontend.ui.main.PostColorPattern
-import live.urfu.frontend.ui.main.PostColorPatterns
-import live.urfu.frontend.ui.main.PostViewModel
 import live.urfu.frontend.ui.notifiaction.NotificationsScreen
 import live.urfu.frontend.ui.search.SearchBar
 import live.urfu.frontend.ui.search.SearchViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import rememberScreenSizeInfo
 import kotlin.math.absoluteValue
 
 enum class TagSizes {
@@ -188,7 +193,7 @@ fun TagChip(
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
+@SuppressLint("ConfigurationScreenWidthHeight", "AutoboxingStateCreation")
 @Composable
 fun PostCard(
     post: Post,
@@ -204,10 +209,6 @@ fun PostCard(
     val rememberedPost = remember(post) { post }
 
     val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
-
-    //todo
-    val likesCount = viewModel.getPostLikesCount(post.id)
-    val isProcessing = viewModel.isPostProcessing(post.id)
 
     val likeScale by remember { mutableStateOf(1f) }
     val animatedLikeScale by animateFloatAsState(
@@ -229,7 +230,7 @@ fun PostCard(
 
     val userId = viewModel.currentUserId;
 
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(
@@ -240,7 +241,6 @@ fun PostCard(
             .background(pattern.background, shape = RoundedCornerShape(52.dp))
             .padding(cardPadding)
     ) {
-        val spacing = maxHeight * 0.025f //todo
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -253,7 +253,12 @@ fun PostCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
+                Spacer(modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Large
+                    )
+                ))
 
                 Text(
                     text = rememberedPost.title,
@@ -266,7 +271,12 @@ fun PostCard(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Medium)))
+                Spacer(modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Medium
+                    )
+                ))
 
                 Column {
                     Text(
@@ -275,7 +285,12 @@ fun PostCard(
                         color = Color.Black
                     )
 
-                    Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Small)))
+                    Spacer(modifier = Modifier.height(
+                        AdaptiveSizes.spacerHeight(
+                            screenInfo,
+                            SpacerType.Small
+                        )
+                    ))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -299,12 +314,18 @@ fun PostCard(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Автор:",
-                                style = adaptiveTextStyle(MaterialTheme.typography.titleLarge, screenInfo),
+                                style = adaptiveTextStyle(
+                                    MaterialTheme.typography.titleLarge,
+                                    screenInfo
+                                ),
                                 color = Color.Black
                             )
                             Text(
                                 text = rememberedPost.author.username,
-                                style = adaptiveTextStyle(MaterialTheme.typography.titleLarge, screenInfo),
+                                style = adaptiveTextStyle(
+                                    MaterialTheme.typography.titleLarge,
+                                    screenInfo
+                                ),
                                 color = pattern.textColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -342,13 +363,21 @@ fun PostCard(
                                     )
                                     .padding(buttonPadding),
                                 color = pattern.textColor,
-                                style = adaptiveTextStyle(MaterialTheme.typography.displaySmall, screenInfo)
+                                style = adaptiveTextStyle(
+                                    MaterialTheme.typography.displaySmall,
+                                    screenInfo
+                                )
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
+                Spacer(modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Large
+                    )
+                ))
 
                 Text(
                     text = rememberedPost.text,
@@ -361,7 +390,6 @@ fun PostCard(
 
             val animatedAlpha = (1f - (expansionProgress * 1f)).coerceIn(0f, 1f)
 
-            // Адаптивная панель реакций
             Row(
                 horizontalArrangement = Arrangement.spacedBy(if (screenInfo.isCompact) 4.dp else 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -431,8 +459,8 @@ fun PostCard(
 }
 
 @Composable
-fun TopBar(onNotificationsClick: () -> Unit, // todo
-           onSearchClick: () -> Unit) {
+fun TopBar(onSearchClick: () -> Unit) {
+
     val screenInfo = rememberScreenSizeInfo()
     val safeAreaPadding = adaptiveSafeAreaPadding(screenInfo)
 
@@ -454,7 +482,9 @@ fun TopBar(onNotificationsClick: () -> Unit, // todo
                 modifier = Modifier
                     .padding(start = if (screenInfo.isCompact) 20.dp else 32.dp)
             )
+
             Spacer(modifier = Modifier.weight(1f))
+
             Image(
                 painter = painterResource(id = R.drawable.search),
                 contentDescription = "Поиск",
@@ -532,7 +562,6 @@ fun CarouselScreen(
     val density = LocalDensity.current
     val screenWidth = screenInfo.screenWidthDp
 
-    // Адаптивные размеры карточек
     val initialCardWidth = AdaptiveSizes.cardWidth(screenInfo)
     val initialCardHeight = AdaptiveSizes.cardHeight(screenInfo)
 
@@ -549,11 +578,9 @@ fun CarouselScreen(
         label = "fullExpansionTransition"
     )
     val closeAnimator = remember { Animatable(0f) }
-    val SmoothEasing = CubicBezierEasing(0.05f, 0.0f, 0.15f, 1.0f)
+    val smoothEasing = CubicBezierEasing(0.05f, 0.0f, 0.15f, 1.0f)
 
-    // Адаптивные длительности анимаций
     val fixedOpenDuration = if (screenInfo.isCompact) 600 else 750
-    val fixedSwipeDuration = if (screenInfo.isCompact) 250 else 300
     val fullExpandDuration = if (screenInfo.isCompact) 350 else 400
 
     var showSearchBar by remember { mutableStateOf(false) }
@@ -582,7 +609,7 @@ fun CarouselScreen(
                     targetValue = 1f,
                     animationSpec = tween(
                         durationMillis = fixedCloseDuration,
-                        easing = SmoothEasing
+                        easing = smoothEasing
                     )
                 )
 
@@ -608,7 +635,7 @@ fun CarouselScreen(
 
     val animSpec = tween<Float>(
         durationMillis = fixedOpenDuration,
-        easing = SmoothEasing,
+        easing = smoothEasing,
         delayMillis = 30
     )
 
@@ -633,12 +660,11 @@ fun CarouselScreen(
     }
 
     val closingProgressTransformed = if (isClosing) {
-        SmoothEasing.transform(closeAnimator.value)
+        smoothEasing.transform(closeAnimator.value)
     } else {
         0f
     }
 
-    // Адаптивные расчеты размеров с анимацией
     val (currentWidth, currentHeight) = calculateAdaptiveExpandSizes(
         screenInfo = screenInfo,
         initialCardSize = selectedCardSize,
@@ -646,8 +672,6 @@ fun CarouselScreen(
         fullExpansionProgress = fullExpansionProgress
     )
 
-    val cardCenterX = selectedCardCenter.x
-    val initialLeftX = cardCenterX - with(density) { initialCardWidth.toPx() / 2 }
     val currentLeftX = with(density) { (screenWidth / 2).toPx() } - (with(density) { currentWidth.toPx() } / 2)
 
     val statusBarHeight = WindowInsets.systemBars
@@ -698,9 +722,7 @@ fun CarouselScreen(
                         articleState = ArticleState.PARTIAL
                     }
                 }
-                else -> {
-                    // Во время анимаций - игнорируем
-                }
+                else -> {}
             }
         }
     }
@@ -722,11 +744,9 @@ fun CarouselScreen(
             .fillMaxSize()
             .background(Color(0xFF0D0D0D))
     ) {
-        // Горизонтальный пейджер с адаптивными отступами
         HorizontalPager(
             state = pagerState,
             contentPadding = PaddingValues(horizontal = (screenWidth - initialCardWidth) / 2),
-            pageSpacing = 0.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .height(initialCardHeight),
@@ -761,7 +781,6 @@ fun CarouselScreen(
                         val pageOffset = ((pagerState.currentPage - page) +
                                 pagerState.currentPageOffsetFraction).absoluteValue
 
-                        // Адаптивное масштабирование
                         val minScale = if (screenInfo.isCompact) 0.8f else 0.85f
                         scaleX = lerp(minScale, 1f, 1f - pageOffset.coerceIn(0f, 1f))
                         scaleY = lerp(minScale, 1f, 1f - pageOffset.coerceIn(0f, 1f))
@@ -813,12 +832,11 @@ fun CarouselScreen(
             }
         }
 
-        // Навигационная панель
         var showCreateArticle by remember { mutableStateOf(false) }
         AnimatedVisibility(
             visible = !shouldHideBottomNav && showNavBar,
-            enter = fadeIn(animationSpec = tween(durationMillis = 300, easing = SmoothEasing)),
-            exit = fadeOut(animationSpec = tween(durationMillis = 300, easing = SmoothEasing)),
+            enter = fadeIn(animationSpec = tween(durationMillis = 300, easing = smoothEasing)),
+            exit = fadeOut(animationSpec = tween(durationMillis = 300, easing = smoothEasing)),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -842,7 +860,6 @@ fun CarouselScreen(
             )
         }
 
-        // Верхняя панель
         var showNotificationsOverlay by remember { mutableStateOf(false) }
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -852,8 +869,7 @@ fun CarouselScreen(
                     .align(Alignment.TopCenter)
                     .zIndex(if (showNotificationsOverlay) 0f else 1f)
             ) {
-                TopBar(onNotificationsClick = { showNotificationsOverlay = true },
-                    onSearchClick = { showSearchBar = true })
+                TopBar(onSearchClick = { showSearchBar = true })
             }
 
             if (showNotificationsOverlay) {
@@ -866,17 +882,11 @@ fun CarouselScreen(
                         .fillMaxSize()
                         .zIndex(300f)
                         .pointerInput(Unit) {
-                            // Перехватываем все касания на уровне экрана
                             detectTapGestures(
-                                onTap = { offset ->
-                                    // Здесь можно добавить логику для определения
-                                    // попадания в область SearchBar, если нужно
-                                    showSearchBar = false
-                                }
+                                onTap = { showSearchBar = false }
                             )
                         }
                 ) {
-                    // SearchBar
                     val quickSearchViewModel: SearchViewModel = viewModel()
                     val searchBarAdapter = remember(quickSearchViewModel) {
                         SearchViewModel.SearchBarAdapter(quickSearchViewModel)
@@ -888,9 +898,8 @@ fun CarouselScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .pointerInput(Unit) {
-                                    // Предотвращаем закрытие при клике на SearchBar
                                     detectTapGestures(
-                                        onTap = { /* Ничего не делаем - блокируем событие */ }
+                                        onTap = { }
                                     )
                                 }
                         ) {
@@ -910,7 +919,6 @@ fun CarouselScreen(
             }
         }
 
-        // Развернутая карточка с адаптивными размерами
         if (expandedIndex != -1 || isClosing) {
             Box(
                 modifier = Modifier
@@ -969,12 +977,11 @@ fun CarouselScreen(
                         )
                     }
 
-                    // Индикатор свайпа
                     AnimatedVisibility(
                         visible = (if (isClosing) 1f - closeAnimator.value else expansionProgress) > 0.9f &&
                                 (if (isClosing) 0f else fullExpansionProgress) < 0.1f,
-                        enter = fadeIn(animationSpec = tween(durationMillis = 200, easing = SmoothEasing)),
-                        exit = fadeOut(animationSpec = tween(durationMillis = 200, easing = SmoothEasing)),
+                        enter = fadeIn(animationSpec = tween(durationMillis = 200, easing = smoothEasing)),
+                        exit = fadeOut(animationSpec = tween(durationMillis = 200, easing = smoothEasing)),
                         modifier = Modifier.align(Alignment.TopCenter)
                     ) {
                         Box(
@@ -1074,14 +1081,11 @@ fun ExpandedPostContent(
                                                 if (totalDragY > 0) {
                                                     onHeaderSwipe()
                                                 }
-                                                // Свайп вверх игнорируем - уже полностью развернуто
                                             }
 
                                             ArticleState.EXPANDING_FULL,
                                             ArticleState.COLLAPSING_PARTIAL,
-                                            ArticleState.CLOSING -> {
-                                                // Ничего не делаем - анимация в процессе
-                                            }
+                                            ArticleState.CLOSING -> { }
                                         }
                                     }
                                 },
@@ -1107,7 +1111,12 @@ fun ExpandedPostContent(
                         screenInfo = screenInfo
                     )
 
-                    Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
+                    Spacer(modifier = Modifier.height(
+                        AdaptiveSizes.spacerHeight(
+                            screenInfo,
+                            SpacerType.Large
+                        )
+                    ))
 
                     Text(
                         text = post.title,
@@ -1120,7 +1129,12 @@ fun ExpandedPostContent(
                         )
                     )
 
-                    Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Medium)))
+                    Spacer(modifier = Modifier.height(
+                        AdaptiveSizes.spacerHeight(
+                            screenInfo,
+                            SpacerType.Medium
+                        )
+                    ))
 
                     Text(
                         text = "Опубликовано: ${post.time.substring(0, 10)}",
@@ -1128,7 +1142,12 @@ fun ExpandedPostContent(
                         color = Color.Black
                     )
 
-                    Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Small)))
+                    Spacer(modifier = Modifier.height(
+                        AdaptiveSizes.spacerHeight(
+                            screenInfo,
+                            SpacerType.Small
+                        )
+                    ))
 
                     Column {
                         Row(
@@ -1153,12 +1172,18 @@ fun ExpandedPostContent(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Автор:",
-                                    style = adaptiveTextStyle(MaterialTheme.typography.titleLarge, screenInfo),
+                                    style = adaptiveTextStyle(
+                                        MaterialTheme.typography.titleLarge,
+                                        screenInfo
+                                    ),
                                     color = Color.Black
                                 )
                                 Text(
                                     text = post.author.username,
-                                    style = adaptiveTextStyle(MaterialTheme.typography.titleLarge, screenInfo),
+                                    style = adaptiveTextStyle(
+                                        MaterialTheme.typography.titleLarge,
+                                        screenInfo
+                                    ),
                                     color = pattern.textColor,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -1195,7 +1220,10 @@ fun ExpandedPostContent(
                                         )
                                         .padding(buttonPadding),
                                     color = pattern.textColor,
-                                    style = adaptiveTextStyle(MaterialTheme.typography.displaySmall, screenInfo)
+                                    style = adaptiveTextStyle(
+                                        MaterialTheme.typography.displaySmall,
+                                        screenInfo
+                                    )
                                 )
                             }
                         }
@@ -1212,7 +1240,12 @@ fun ExpandedPostContent(
                         bottom = cardPadding.calculateBottomPadding()
                     )
             ) {
-                Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
+                Spacer(modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Large
+                    )
+                ))
 
                 Text(
                     text = post.text,
@@ -1220,7 +1253,12 @@ fun ExpandedPostContent(
                     color = pattern.textColor
                 )
 
-                Spacer(modifier = Modifier.height(AdaptiveSizes.spacerHeight(screenInfo, SpacerType.Large)))
+                Spacer(modifier = Modifier.height(
+                    AdaptiveSizes.spacerHeight(
+                        screenInfo,
+                        SpacerType.Large
+                    )
+                ))
 
                 AdaptiveReactionPanel(
                     post = post,
@@ -1260,12 +1298,9 @@ fun AdaptiveReactionPanel(
     )
 
     val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
-    val likesCount = viewModel.getPostLikesCount(post.id)
-    val isProcessing = viewModel.isPostProcessing(post.id)
 
-    // Адаптивные размеры иконок
     val iconSizes = when {
-        screenInfo.isCompact -> Triple(28.dp, 30.dp, 25.dp) // like, comment, bookmark
+        screenInfo.isCompact -> Triple(28.dp, 30.dp, 25.dp)
         screenInfo.isMedium -> Triple(30.dp, 33.dp, 28.dp)
         else -> Triple(33.dp, 35.dp, 30.dp)
     }
@@ -1288,7 +1323,6 @@ fun AdaptiveReactionPanel(
                 .fillMaxWidth()
                 .padding(vertical = if (screenInfo.isCompact) 6.dp else 8.dp)
         ) {
-            // Like button
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -1303,7 +1337,6 @@ fun AdaptiveReactionPanel(
                         modifier = Modifier.size(likeFillingSize)
                     )
                 }
-
                 Image(
                     painter = painterResource(id = R.drawable.likebottom),
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
@@ -1317,8 +1350,6 @@ fun AdaptiveReactionPanel(
                 color = Color.Black,
                 style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo),
             )
-
-            // Comment button
             Image(
                 painter = painterResource(id = R.drawable.commentbottom),
                 colorFilter = ColorFilter.tint(pattern.reactionColor),
@@ -1327,14 +1358,11 @@ fun AdaptiveReactionPanel(
                     .clickable { onCommentsClick(post.id) }
                     .size(iconSizes.second),
             )
-
             Text(
                 text = post.comments.toString(),
                 color = Color.Black,
                 style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo),
             )
-
-            // Bookmark button
             Image(
                 painter = painterResource(id = R.drawable.bookmarkbottom1),
                 contentDescription = "Bookmark",
@@ -1343,7 +1371,6 @@ fun AdaptiveReactionPanel(
                     .clickable { /* TODO */ }
                     .size(iconSizes.third),
             )
-
             Text(
                 text = "0",
                 color = Color.Black,
@@ -1352,7 +1379,6 @@ fun AdaptiveReactionPanel(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Flag button
             Image(
                 painter = painterResource(id = R.drawable.flag),
                 contentDescription = "Report",

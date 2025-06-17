@@ -39,14 +39,12 @@ fun HighlightedText(
         var startIndex = lowerCaseText.indexOf(lowerCaseQuery, lastIndex)
 
         while (startIndex != -1) {
-            // Добавляем текст до найденного совпадения
             if (startIndex > lastIndex) {
                 withStyle(style = SpanStyle(color = normalColor)) {
                     append(text.substring(lastIndex, startIndex))
                 }
             }
 
-            // Добавляем найденное совпадение с подсветкой
             withStyle(
                 style = SpanStyle(
                     color = highlightColor,
@@ -59,7 +57,6 @@ fun HighlightedText(
             startIndex = lowerCaseText.indexOf(lowerCaseQuery, lastIndex)
         }
 
-        // Добавляем оставшуюся часть текста
         if (lastIndex < text.length) {
             withStyle(style = SpanStyle(color = normalColor)) {
                 append(text.substring(lastIndex))

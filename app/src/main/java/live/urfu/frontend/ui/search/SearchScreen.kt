@@ -3,9 +3,10 @@ package live.urfu.frontend.ui.search
 import AdaptiveSizes
 import ScreenSizeInfo
 import SpacerType
-import TagChip
-import TagSizes
+import live.urfu.frontend.ui.main.TagChip
+import live.urfu.frontend.ui.main.TagSizes
 import adaptiveTextStyle
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -69,11 +70,11 @@ import live.urfu.frontend.ui.profile.ExpandedPostOverlay
 import kotlinx.coroutines.launch
 import rememberScreenSizeInfo
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun SearchScreen(
     initialTag: String = "",
     onClose: () -> Unit = {},
-    onPostClick: (Post) -> Unit = {},
     onAuthorClick: (String) -> Unit = {},
     onCommentsClick: (postId: Long, searchQuery: String) -> Unit,
     viewModel: SearchViewModel = viewModel(),
@@ -138,7 +139,6 @@ fun SearchScreen(
         }
     }
 
-    // Анимации
     val animatedAlpha = remember { Animatable(if (enableAnimations) 0f else 1f) }
     val animatedOffset = remember { Animatable(if (enableAnimations) screenHeight.value else 0f) }
 
@@ -186,7 +186,6 @@ fun SearchScreen(
                 showBackButton = true
             )
 
-            // Контент
             when {
                 isLoading -> {
                     LoadingContent(screenInfo)
@@ -480,7 +479,6 @@ private fun SearchPostCard(
                 )
             )
 
-            // Автор
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -532,7 +530,6 @@ private fun SearchPostCard(
                 )
             )
 
-            // Теги
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -555,7 +552,6 @@ private fun SearchPostCard(
                 )
             )
 
-            // Превью текста
             Text(
                 text = post.text,
                 style = adaptiveTextStyle(MaterialTheme.typography.displayMedium, screenInfo),
@@ -573,7 +569,6 @@ private fun SearchPostCard(
                 )
             )
 
-            // Статистика
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically

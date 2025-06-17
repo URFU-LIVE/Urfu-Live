@@ -1,16 +1,10 @@
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -21,8 +15,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
+import live.urfu.frontend.ui.main.TagSizes
 
-// 1. Создайте класс для управления размерами экрана
 data class ScreenSizeInfo(
     val screenWidthDp: Dp,
     val screenHeightDp: Dp,
@@ -32,6 +26,7 @@ data class ScreenSizeInfo(
     val isExpanded: Boolean
 )
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun rememberScreenSizeInfo(): ScreenSizeInfo {
     val configuration = LocalConfiguration.current
@@ -52,7 +47,6 @@ fun rememberScreenSizeInfo(): ScreenSizeInfo {
     }
 }
 
-// 2. Создайте адаптивные размеры
 object AdaptiveSizes {
     @Composable
     fun cardWidth(screenInfo: ScreenSizeInfo): Dp = when {
@@ -138,7 +132,6 @@ enum class SpacerType {
     Small, Medium, Large
 }
 
-// 3. Создайте адаптивные стили текста
 @Composable
 fun adaptiveTextStyle(
     baseStyle: TextStyle,
@@ -156,46 +149,6 @@ fun adaptiveTextStyle(
     }
 )
 
-// 4. Создайте адаптивный модификатор для анимаций
-@Composable
-fun Modifier.adaptiveAnimatedSize(
-    screenInfo: ScreenSizeInfo,
-    baseWidth: Dp,
-    baseHeight: Dp,
-    animationProgress: Float = 0f
-): Modifier {
-    val targetWidth = when {
-        screenInfo.isCompact -> baseWidth * 0.9f
-        else -> baseWidth
-    }
-
-    val targetHeight = when {
-        screenInfo.isCompact -> baseHeight * 0.9f
-        else -> baseHeight
-    }
-
-    val animatedWidth by animateDpAsState(
-        targetValue = lerp(targetWidth * 0.9f, targetWidth, animationProgress),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        )
-    )
-
-    val animatedHeight by animateDpAsState(
-        targetValue = lerp(targetHeight * 0.9f, targetHeight, animationProgress),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        )
-    )
-
-    return this
-        .width(animatedWidth)
-        .height(animatedHeight)
-}
-
-// 5. Адаптивные расчеты для анимаций развертывания
 @Composable
 fun calculateAdaptiveExpandSizes(
     screenInfo: ScreenSizeInfo,
@@ -205,7 +158,6 @@ fun calculateAdaptiveExpandSizes(
 ): Pair<Dp, Dp> {
     val density = screenInfo.density
 
-    // Базовые размеры с учетом типа экрана
     val partialExpandMultiplier = when {
         screenInfo.isCompact -> 1f
         screenInfo.isMedium -> 1f
@@ -233,7 +185,6 @@ fun calculateAdaptiveExpandSizes(
     }
 }
 
-// 6. Вспомогательная функция для безопасных отступов
 @Composable
 fun adaptiveSafeAreaPadding(screenInfo: ScreenSizeInfo): PaddingValues {
     val systemBars = WindowInsets.systemBars.asPaddingValues()
@@ -249,7 +200,6 @@ fun adaptiveSafeAreaPadding(screenInfo: ScreenSizeInfo): PaddingValues {
     )
 }
 
-// Адаптивные размеры для экрана настроек
 object SettingsAdaptiveSizes {
     @Composable
     fun avatarSize(screenInfo: ScreenSizeInfo): Dp = when {
@@ -280,36 +230,7 @@ object SettingsAdaptiveSizes {
         else -> 48.dp
     }
 }
-
-// todo
-// Адаптивные стили текста для настроек
-@Composable
-fun adaptiveSettingsTextStyle(
-    baseStyle: TextStyle,
-    screenInfo: ScreenSizeInfo,
-    scaleFactor: Float = 1f
-): TextStyle = baseStyle.copy(
-    fontSize = when {
-        screenInfo.isCompact -> baseStyle.fontSize * 0.85f * scaleFactor
-        screenInfo.isMedium -> baseStyle.fontSize * 0.95f * scaleFactor
-        else -> baseStyle.fontSize * scaleFactor
-    },
-    lineHeight = when {
-        screenInfo.isCompact -> baseStyle.lineHeight * 0.85f * scaleFactor
-        screenInfo.isMedium -> baseStyle.lineHeight * 0.95f * scaleFactor
-        else -> baseStyle.lineHeight * scaleFactor
-    }
-)
-
 object SavedPostsAdaptiveSizes {
-    @Composable
-    // todo
-    fun searchIconSize(screenInfo: ScreenSizeInfo): Dp = when {
-        screenInfo.isCompact -> 24.dp
-        screenInfo.isMedium -> 28.dp
-        else -> 32.dp
-    }
-
     @Composable
     fun postCardPadding(screenInfo: ScreenSizeInfo): PaddingValues = when {
         screenInfo.isCompact -> PaddingValues(

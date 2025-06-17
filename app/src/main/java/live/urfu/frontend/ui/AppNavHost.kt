@@ -15,12 +15,13 @@ import live.urfu.frontend.ui.main.PostViewModel
 import live.urfu.frontend.ui.profile.edit.EditProfile
 import live.urfu.frontend.ui.profile.ProfileScreen
 import live.urfu.frontend.ui.profile.ProfileViewModel
-import urfu.live.frontend.ui.saved.SavedPostsScreen
+import live.urfu.frontend.ui.savedPosts.SavedPostsScreen
 import live.urfu.frontend.ui.search.SearchScreen
 import live.urfu.frontend.ui.search.SearchViewModel
 import live.urfu.frontend.ui.settings.SettingsScreen
 import live.urfu.frontend.ui.settings.account.AccountSettings
-import live.urfu.frontend.ui.settings.interests.EditInterestsScreen
+import live.urfu.frontend.ui.interests.EditInterestsScreen
+import live.urfu.frontend.ui.main.CarouselScreen
 import live.urfu.frontend.ui.settings.notification.NotificationsSettings
 import live.urfu.frontend.ui.settings.privacy.PrivacySettings
 import java.net.URLEncoder
@@ -81,14 +82,13 @@ fun AppNavHost() {
                         popUpTo("login") { inclusive = true }
                     }
                 },
+                onRestorePasswordClick = {  },
                 onLoginSuccess = {
                     navController.navigate("main") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onLoginError = {},
-                onRestorePasswordClick = {  },
-                postViewModel = sharedPostViewModel
+                onLoginError = {}
             )
         }
 
@@ -132,9 +132,6 @@ fun AppNavHost() {
         composable("savedPosts") {
             SavedPostsScreen(
                 onProfileClick = { navController.navigate("profile") },
-                onCreateArticleClick = {
-                    // Implement article creation navigation
-                },
                 onHomeClick = {
                     navController.navigate("main") {
                         popUpTo("main") { inclusive = true }
@@ -144,14 +141,8 @@ fun AppNavHost() {
                     // Уже на экране сохраненных постов, ничего не делаем
                 },
                 onMessagesClick = { },
-                onPostClick = { post ->
-                    // Навигация к развернутому посту
-                },
                 onSearchClick = {
                     // TODO: Implement search functionality
-                },
-                onRemoveFromSaved = { post ->
-                    // TODO: Implement remove from saved functionality
                 },
                 onAuthorClick = { authorId ->
                     navController.navigate("author/$authorId")
@@ -242,15 +233,15 @@ fun AppNavHost() {
 
             ProfileScreen(
                 viewModel = profileViewModel,
+                isOwnProfile = true,
                 onHomeClick = { navController.navigate("main") { popUpTo("main") { inclusive = true } } },
-                onEditProfileClick = { navController.navigate("editProfile") },
-                navbarCallbacks = commonNavbarCallbacks(navController),
-                currentScreen = "profile",
+                onSavedClick = { navController.navigate("savedPosts") },
                 onSettingsClick = {
                     navController.navigate("settings?showAnimation=true")
                 },
-                isOwnProfile = true,
-                onSavedClick = { navController.navigate("savedPosts") },
+                currentScreen = "profile",
+                navbarCallbacks = commonNavbarCallbacks(navController),
+                onEditProfileClick = { navController.navigate("editProfile") },
                 onCommentsClick = { postId ->
                     navController.navigate("comments/$postId")
                 },
@@ -279,9 +270,6 @@ fun AppNavHost() {
                     println("🗺️ AppNavHost: SearchScreen onClose called")
                     navController.popBackStack()
                 },
-                onPostClick = { post ->
-                    // Этот колбэк больше не используется
-                },
                 onAuthorClick = { authorId ->
                     navController.navigate("author/$authorId")
                 },
@@ -289,16 +277,16 @@ fun AppNavHost() {
                     val e = URLEncoder.encode(tag, "UTF-8")
                     navController.navigate("comments/$postId?searchTag=$e")
                 },
+                viewModel = searchViewModel,
+                enableAnimations = true,
+                postViewModel = sharedPostViewModel,
                 onTagSearch   = { tagToSearch ->
                     val e = URLEncoder.encode(tagToSearch, "UTF-8")
                     navController.navigate("search?tag=$e") {
                         launchSingleTop = true
                         restoreState     = true
                     }
-                },
-                viewModel = searchViewModel,
-                enableAnimations = true,
-                postViewModel = sharedPostViewModel
+                }
             )
         }
 
@@ -374,20 +362,20 @@ fun AppNavHost() {
                         popUpTo("main") { inclusive = true }
                     }
                 },
-                onEditProfileClick = { },
-                navbarCallbacks = null,
-                currentScreen = "",
-                onSettingsClick = { },
-                onCloseOverlay = { navController.popBackStack() },
                 onSavedClick = { },
                 onMessagesClick = { },
                 onReportClick = {
                     // TODO: Реализовать жалобу на пользователя
                 },
-                sharedPostViewModel = sharedPostViewModel,
+                onSettingsClick = { },
+                currentScreen = "",
+                navbarCallbacks = null,
+                onCloseOverlay = { navController.popBackStack() },
+                onEditProfileClick = { },
                 onCommentsClick = { postId ->
                     navController.navigate("comments/$postId")
                 },
+                sharedPostViewModel = sharedPostViewModel,
                 onAuthorClick = {
                     navController.navigate("author/$authorId")
                 },

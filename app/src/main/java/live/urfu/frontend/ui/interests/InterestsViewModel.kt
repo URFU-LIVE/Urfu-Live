@@ -1,15 +1,14 @@
 package live.urfu.frontend.ui.interests
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import live.urfu.frontend.data.api.BaseViewModel
 import live.urfu.frontend.data.manager.InterestManagerInstance
 import live.urfu.frontend.data.model.Interest
-import live.urfu.frontend.data.repository.InterestsRepository
 
-class InterestsViewModel : ViewModel() {
+class InterestsViewModel : BaseViewModel() {
 
     val allInterests: List<Interest> get() = InterestsRepository.ALL_INTERESTS
 
@@ -28,41 +27,49 @@ class InterestsViewModel : ViewModel() {
     private fun loadSavedInterests() {
         if (isInitialized) return
 
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
+        _isLoading.value = true
+
+        launchApiCall(
+            tag = "InterestsViewModel",
+            action = {
                 val interestManager = InterestManagerInstance.getInstance()
-
                 interestManager.migrateOldData()
-
-                val savedInterestNames = interestManager.getSelectedInterestsBlocking()
+                runCatching { interestManager.getSelectedInterestsBlocking() }
+            },
+            onSuccess = { savedInterestNames ->
                 val savedInterests = InterestsRepository.fromNameEnSet(savedInterestNames)
                 _selectedInterests.value = savedInterests
-
                 isInitialized = true
-
-            } catch (e: Exception) {
+                _isLoading.value = false
+            },
+            onError = {
                 _selectedInterests.value = emptySet()
-            } finally {
                 _isLoading.value = false
             }
-        }
+        )
     }
+
 
     fun onToggleInterest(interest: Interest) {
         val current = _selectedInterests.value
         val newSelection = if (current.contains(interest)) current - interest else current + interest
-
         _selectedInterests.value = newSelection
     }
 
     fun saveInterests() {
-        viewModelScope.launch {
-            try {
-                InterestManagerInstance.getInstance().saveSelectedInterests(_selectedInterests.value)
-            } catch (e: Exception) {
+        launchApiCall(
+            tag = "InterestsViewModel",
+            action = {
+                runCatching {
+                    InterestManagerInstance.getInstance().saveSelectedInterests(_selectedInterests.value)
+                }
+            },
+            onSuccess = {
+                // optionally handle success
+            },
+            onError = { e ->
                 println("❌ live.urfu.frontend.ui.interests.InterestsViewModel: Ошибка сохранения интересов: ${e.message}")
             }
-        }
+        )
     }
 }

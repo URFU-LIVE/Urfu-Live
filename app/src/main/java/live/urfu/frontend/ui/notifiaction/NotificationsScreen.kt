@@ -28,12 +28,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import live.urfu.frontend.data.model.Notification
-import live.urfu.frontend.ui.theme.UrfuLiveTheme
 import kotlinx.coroutines.launch
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun NotificationsScreen(
     onClose: () -> Unit,
@@ -42,7 +41,6 @@ fun NotificationsScreen(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    // Инициализация анимаций только если они включены
     val animatedAlpha = remember { Animatable(0f) }
     val animatedOffset = remember { Animatable(screenHeight.value) }
 
@@ -65,7 +63,6 @@ fun NotificationsScreen(
         }
     }
 
-    // Фон и область контейнера
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -92,7 +89,6 @@ fun NotificationsScreen(
                         .clickable { onClose() }
                         .padding(start = 15.dp)
                 )
-
                 Text(
                     text = "Уведомления",
                     color = Color.White,
@@ -102,8 +98,6 @@ fun NotificationsScreen(
                         .padding(start = 67.dp)
                 )
             }
-
-            // Список уведомлений
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -161,7 +155,6 @@ fun NotificationItemEnhanced(
             .padding(vertical = 20.dp, horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Аватар или иконка уведомления
         Box(
             modifier = Modifier
                 .size(52.dp),

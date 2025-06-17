@@ -48,7 +48,6 @@ fun SearchBar(
     val showSuggestions by adapter.showSuggestions.collectAsState()
     val hasSuggestions = tagSuggestions.isNotEmpty()
 
-    // Анимации
     val animatedAlpha = remember {
         Animatable(if (enableAnimations) SearchTheme.Animation.INITIAL_ALPHA else SearchTheme.Animation.FINAL_ALPHA)
     }
@@ -137,7 +136,6 @@ fun SearchBar(
                     modifier = Modifier.fillMaxWidth().padding(start = if (showBackButton) SearchTheme.Dimensions.BackButtonOffset else 0.dp)
                 )
             }
-
             SearchSuggestions(
                 visible = showSuggestions && tagSuggestions.isNotEmpty(),
                 suggestions = tagSuggestions,
@@ -182,7 +180,6 @@ private fun SearchInputRow(
 
             Spacer(modifier = Modifier.width(12.dp))
         }
-
         SearchTextField(
             value = searchQuery,
             onValueChange = onQueryChange,

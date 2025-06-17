@@ -59,14 +59,12 @@ fun EditProfile(
     val showUsernameSuccess by viewModel.showUsernameSuccess.collectAsState()
     val showDescriptionSuccess by viewModel.showDescriptionSuccess.collectAsState()
 
-    // Лаунчер для выбора аватарки
     val avatarGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.onAvatarImageSelected(context, it) }
     }
 
-    // Лаунчер для выбора фона
     val backgroundGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -111,8 +109,6 @@ fun EditProfile(
             viewModel.resetDescriptionSuccessFlag()
         }
     }
-
-
 
     if (showUsernameDialog) {
         EditTextDialog(
@@ -164,7 +160,6 @@ fun EditProfile(
                 .fillMaxSize()
                 .systemBarsPadding()
         ) {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -191,13 +186,10 @@ fun EditProfile(
                     )
                 }
             }
-
-            // Content
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Блок аватарки
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -206,53 +198,29 @@ fun EditProfile(
                             avatarGalleryLauncher.launch("image/*")
                         }
                 ) {
-                    if (userState != null) {
-                        AsyncImage(
-                            model = userState!!.avatarUrl,
-                            contentDescription = "Аватар пользователя",
-                            modifier = Modifier
-                                .size(84.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, Color.White, CircleShape)
-                                .clickable { avatarGalleryLauncher.launch("image/*") },
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(R.drawable.ava),
-                            error = painterResource(R.drawable.ava)
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.8f))
-                                .size(110.dp),
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.camera),
-                            contentDescription = "Значок камеры",
-                            modifier = Modifier.size(48.dp)
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.ava),
-                            contentDescription = "Аватар по умолчанию",
-                            modifier = Modifier
-                                .size(110.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, Color.White, CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.8f))
-                                .size(110.dp),
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.camera),
-                            contentDescription = "Значок камеры",
-                            modifier = Modifier.size(48.dp)
-                        )
-                    }
+                    AsyncImage(
+                        model = userState?.avatarUrl,
+                        contentDescription = "Аватар пользователя",
+                        modifier = Modifier
+                            .size(84.dp)
+                            .clip(CircleShape)
+                            .border(2.dp, Color.White, CircleShape)
+                            .clickable { avatarGalleryLauncher.launch("image/*") },
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.ava),
+                        error = painterResource(R.drawable.ava)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.8f))
+                            .size(110.dp),
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.camera),
+                        contentDescription = "Значок камеры",
+                        modifier = Modifier.size(48.dp)
+                    )
                 }
 
                 Text(

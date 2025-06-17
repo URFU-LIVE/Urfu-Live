@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.ui.platform.LocalConfiguration
 import live.urfu.frontend.R
-import live.urfu.frontend.ui.main.PostViewModel
 
 
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -39,7 +38,6 @@ fun LoginScreen(
     onRestorePasswordClick: () -> Unit,
     onLoginSuccess: (AuthResponse) -> Unit,
     onLoginError: (Exception) -> Unit,
-    postViewModel: PostViewModel,
     viewModel: LoginViewModel = viewModel()
 ) {
     val loginValue by viewModel.login.collectAsState()
@@ -105,7 +103,9 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White
             )
+
             Spacer(modifier = Modifier.width(5.dp))
+
             Text(
                 text = "Зарегистрируйтесь",
                 color = Color(0xFF76B6FE),
@@ -117,7 +117,9 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(36.dp))
 
         Text("Логин:", color = Color.White, style = MaterialTheme.typography.bodySmall, modifier = Modifier.align(Alignment.Start))
+
         Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = loginValue,
             onValueChange = { viewModel.onLoginChange(it) },
@@ -138,7 +140,9 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text("Пароль:", color = Color.White, style = MaterialTheme.typography.bodySmall, modifier = Modifier.align(Alignment.Start))
+
         Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = passwordValue,
             onValueChange = { viewModel.onPasswordChange(it) },

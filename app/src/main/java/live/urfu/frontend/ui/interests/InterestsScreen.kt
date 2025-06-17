@@ -1,9 +1,3 @@
-import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,12 +18,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import live.urfu.frontend.R
-import live.urfu.frontend.ui.theme.UrfuLiveTheme
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import live.urfu.frontend.data.model.Interest
 import live.urfu.frontend.ui.interests.InterestsViewModel
@@ -47,7 +37,6 @@ fun InterestsScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    var showError by remember { mutableStateOf(false) }
 
     val hasEnough = interests.size > 2
 
@@ -55,25 +44,20 @@ fun InterestsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-
-        // todo - ХУЙ
-        TopSnackbar(
-            message = "Выберите хотя бы 3 интереса",
-            visible = showError,
-            onDismiss = { showError = false }
-        )
-
         Scaffold(
             snackbarHost = {
-                SnackbarHost(hostState = snackbarHostState) { data ->
-                    Snackbar(
-                        containerColor = Color(0xFFB00020),
-                        contentColor = Color.White,
-                        shape = RoundedCornerShape(12.dp),
-                        snackbarData = data
-                    )
-                }
-            },
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                ) { data -> Snackbar(
+                            containerColor = Color(0xFFB00020),
+                            contentColor = Color.White,
+                            shape = RoundedCornerShape(12.dp),
+                            snackbarData = data
+                        )
+                    }
+                },
             bottomBar = {
                 Row(
                     modifier = Modifier
@@ -88,9 +72,8 @@ fun InterestsScreen(
                                 viewModel.saveInterests()
                                 onNextClick()
                             } else {
-                                showError = true // верхняя ошибка
                                 coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Выберите хотя бы 3 интереса") // нижняя ошибка
+                                    snackbarHostState.showSnackbar("Выберите хотя бы 3 интереса")
                                 }
                             }
                         },
@@ -137,7 +120,6 @@ fun InterestsScreen(
                                 .clickable { onBackClick() }
                                 .padding(start = 15.dp)
                         )
-
                         Text(
                             text = "Изменить интересы",
                             color = Color.White,
@@ -173,7 +155,9 @@ fun InterestsScreen(
                         color = Color.White,
                         modifier = Modifier.padding(start = 6.dp)
                     )
+
                     Spacer(Modifier.height(30.dp))
+
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -198,8 +182,6 @@ fun InterestsScreen(
                         ) {
                             CircularProgressIndicator(color = Color(0xFFFF6B3B))
                         }
-                    } else {
-
                     }
                 }
             }
@@ -230,87 +212,5 @@ fun InterestChip(
             color = textColor,
             style = MaterialTheme.typography.labelSmall
         )
-    }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(
-    name = "Small screen (360x640)",
-    device = "spec:width=360dp,height=640dp",
-    backgroundColor = 10,
-    showSystemUi = true
-)
-@Composable
-fun InterestsPreviewSmall() {
-    UrfuLiveTheme {
-        InterestsScreen(
-            onLogoClick = {},
-            onNextClick = {},
-        )
-    }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(
-    name = "Default screen",
-    showBackground = true,
-    showSystemUi = true,
-    backgroundColor = 10
-)
-@Composable
-fun InterestsPreviewDefault() {
-    UrfuLiveTheme {
-        InterestsScreen(
-            onLogoClick = {},
-            onNextClick = {},
-        )
-    }
-}
-
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(
-    name = "Large screen (500x1000)",
-    device = "spec:width=500dp,height=1000dp",
-    showSystemUi = true
-)
-@Composable
-fun InterestsPreviewLarge() {
-    UrfuLiveTheme {
-        InterestsScreen(
-            onLogoClick = {},
-            onNextClick = {},
-        )
-    }
-}
-
-@Composable
-fun TopSnackbar(
-    message: String,
-    visible: Boolean,
-    onDismiss: () -> Unit,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFB00020))
-                .padding(16.dp)
-        ) {
-            Text(
-                text = message,
-                color = Color.White,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        // Автоматически скрыть через 2 сек
-        LaunchedEffect(Unit) {
-            delay(2000)
-            onDismiss()
-        }
     }
 }

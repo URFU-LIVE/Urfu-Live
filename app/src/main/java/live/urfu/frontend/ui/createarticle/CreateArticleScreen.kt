@@ -69,14 +69,6 @@ fun CreateArticle(
         screenHeight.times(percentHeight)
     }
 
-    val configuration = LocalConfiguration.current
-    val screenWidthOther = configuration.screenWidthDp
-    val isSmallScreen = screenWidthOther < 400
-    val buttonFontSize = when {
-        isSmallScreen -> 12.sp
-        else -> 14.sp
-    }
-
     var isClosing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val tagsScrollState = rememberScrollState()
@@ -98,8 +90,7 @@ fun CreateArticle(
 
     val tags by viewModel.tags.collectAsState()
 
-    val tagNames = tags
-        .map { it.name }
+    val tagNames = tags.map { it.name }
 
     @Composable
     fun HighlightedText(text: String, query: String) {
@@ -149,7 +140,9 @@ fun CreateArticle(
                     strokeWidth = 4.dp,
                     modifier = Modifier.size(48.dp)
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Загрузка...",
                     color = Color.White,
@@ -176,6 +169,7 @@ fun CreateArticle(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(28.5.dp))
+
                 Text(
                     text = "Для того, чтобы публиковать посты, подайте заявку на получение прав автора",
                     color = Color.LightGray,
@@ -183,7 +177,9 @@ fun CreateArticle(
                     modifier = Modifier.padding(start = 28.5.dp, end = 28.5.dp),
                     textAlign = TextAlign.Center
                 )
+
                 Spacer(modifier = Modifier.height(28.5.dp))
+
                 Row(horizontalArrangement = Arrangement.spacedBy(40.dp)) {
                     Button(
                         onClick = { onClose() },
@@ -338,6 +334,7 @@ fun CreateArticle(
                 .padding(horizontal = horizontalPadding)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = titleText,
                 onValueChange = { titleText = it },
@@ -362,7 +359,9 @@ fun CreateArticle(
                 thickness = 1.dp,
                 color = Color(red = 131, green = 131, blue = 131)
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = contentText,
                 onValueChange = { contentText = it },
@@ -393,7 +392,9 @@ fun CreateArticle(
                 ),
                 textStyle = TextStyle(color = Color.White)
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Box {
                 OutlinedTextField(
                     value = tagsInput,
