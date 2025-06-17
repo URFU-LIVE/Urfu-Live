@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import live.urfu.frontend.data.api.BaseViewModel
+import live.urfu.frontend.data.api.CheckerApiService
 import java.time.LocalDate
 
 class RegistrationViewModel : BaseViewModel() {
@@ -18,6 +19,7 @@ class RegistrationViewModel : BaseViewModel() {
     }
 
     private val userApiService = UserApiService()
+    private val checkerApiService = CheckerApiService()
 
     private val _login = MutableStateFlow("")
     val login = _login.asStateFlow()
@@ -113,5 +115,27 @@ class RegistrationViewModel : BaseViewModel() {
         } catch (e: Exception) {
             null
         }
+    }
+
+    fun checkUsername(username: String, callback: (Boolean) -> Unit) {
+        launchApiCall(
+            tag = "RegistrationViewModel",
+            action = {
+                checkerApiService.checkUsername(username)
+            },
+            onSuccess = { callback(it.available) },
+            onError = { println(it.message) }
+        )
+    }
+
+    fun checkEmail(email: String, callback: (Boolean) -> Unit) {
+        launchApiCall(
+            tag = "RegistrationViewModel",
+            action = {
+                checkerApiService.checkEmail(email)
+            },
+            onSuccess = { callback(it.available) },
+            onError = { println(it.message) }
+        )
     }
 }

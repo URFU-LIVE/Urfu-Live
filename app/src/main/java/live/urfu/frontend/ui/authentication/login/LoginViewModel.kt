@@ -37,10 +37,7 @@ class LoginViewModel : BaseViewModel() {
     }
 
     fun onRestorePasswordClick() {
-        // TODO: Реализовать переход на восстановление пароля
+        // TODO: Реализовать переход на восстановление пароля - Сделать заглушка пока
     }
 
-    fun onRegisterClick() {
-        // TODO: Реализовать переход на экран регистрации
-    }
 }

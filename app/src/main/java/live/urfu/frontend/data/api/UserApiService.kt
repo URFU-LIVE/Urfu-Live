@@ -32,14 +32,11 @@ class UserApiService: BaseApiService() {
                 setBody(mapOf("username" to username, "password" to password))
             }
         }.onSuccess { authResponse ->
-            // 1. Сначала сохраняем токены
-            saveTokens(authResponse.accessToken, authResponse.refreshToken)
+            setTokens(authResponse.accessToken, authResponse.refreshToken)
 
-            // 2. Теперь можем получить профиль пользователя (токены уже есть)
             try {
                 val userProfile = getUserProfile().getOrNull()
                 if (userProfile != null) {
-                    // Используем live.urfu.frontend.data.manager.TokenManagerInstance напрямую
                     TokenManagerInstance.getInstance().saveID(userProfile.id.toString())
                     android.util.Log.d("UserApiService", "✅ Saved User ID: ${userProfile.id}")
                 } else {
@@ -68,14 +65,15 @@ class UserApiService: BaseApiService() {
                 )
             }
         }.onSuccess { authResponse ->
-            // Аналогично для регистрации
-            saveTokens(authResponse.accessToken, authResponse.refreshToken)
+            setTokens(authResponse.accessToken, authResponse.refreshToken)
 
             try {
                 val userProfile = getUserProfile().getOrNull()
                 if (userProfile != null) {
                     TokenManagerInstance.getInstance().saveID(userProfile.id.toString())
                     android.util.Log.d("UserApiService", "✅ Registration: Saved User ID: ${userProfile.id}")
+                } else {
+                    android.util.Log.e("UserApiService", "❌ Failed to get user profile")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("UserApiService", "❌ Registration: Failed to get user profile: ${e.message}")

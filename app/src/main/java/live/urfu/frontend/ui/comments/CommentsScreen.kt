@@ -39,6 +39,7 @@ import live.urfu.frontend.R
 fun CommentsScreen(
     postId: Long,
     onClose: () -> Unit = {},
+    onProfileClick: (String) -> Unit,
     viewModel: CommentsViewModel = viewModel(factory = CommentsViewModelFactory(postId))
 ) {
     val comments by viewModel.comments.collectAsState()
@@ -47,7 +48,6 @@ fun CommentsScreen(
     val coroutineScope = rememberCoroutineScope()
     val previousSize = remember { mutableIntStateOf(0) }
 
-    // Скролл вниз при добавлении нового комментария
     LaunchedEffect(comments.size) {
         if (comments.size > previousSize.intValue) {
             coroutineScope.launch {
@@ -101,8 +101,7 @@ fun CommentsScreen(
                     CommentsItem(
                         comment = comment,
                         onReplyClick = { /* TODO */ },
-                        onLikeClick = { /* TODO */ },
-                        onProfileClick = { /* TODO */ }
+                        onProfileClick = { onProfileClick(comment.author.id) }
                     )
                 }
             }
@@ -131,7 +130,6 @@ fun CommentsItem(
     comment: Comment,
     onReplyClick: (Comment) -> Unit,
     // todo
-    onLikeClick: (Comment) -> Unit,
     onProfileClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -149,7 +147,8 @@ fun CommentsItem(
                     contentDescription = null,
                     modifier = Modifier
                         .size(50.dp)
-                        .clip(CircleShape),
+                        .clip(CircleShape)
+                        .clickable { onProfileClick(comment.author.id) },
                     contentScale = ContentScale.FillBounds,
                     placeholder = painterResource(R.drawable.ava),
                     error = painterResource(R.drawable.ava)
@@ -158,7 +157,8 @@ fun CommentsItem(
                     Text(
                         text = comment.author.username,
                         color = Color.White,
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.clickable {onProfileClick(comment.author.id)}
                     )
                     Text(
                         text = comment.text,
@@ -173,7 +173,7 @@ fun CommentsItem(
                     colorFilter = ColorFilter.tint(Color.White),
                     modifier = Modifier
                         .size(18.dp)
-                        .clickable { /* Report comment */  } //todo
+                        .clickable { /* TODO */ }
                 )
             }
             Row(

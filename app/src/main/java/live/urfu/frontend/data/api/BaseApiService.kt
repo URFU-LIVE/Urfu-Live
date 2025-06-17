@@ -53,16 +53,19 @@ abstract class BaseApiService {
     protected suspend fun getRefreshToken(): String? =
         TokenManagerInstance.getInstance().getRefreshTokenBlocking()
 
-    // todo
-    protected suspend fun clearTokens() =
-        TokenManagerInstance.getInstance().clearTokens()
-
-    protected suspend fun saveTokens(access: String, refresh: String) =
-        TokenManagerInstance.getInstance().saveTokens(access, refresh)
-
     protected suspend fun saveAccess(access: String) =
         TokenManagerInstance.getInstance().saveAccessToken(access)
 
     protected suspend fun getInterest(): Set<String> =
         InterestManagerInstance.getInstance().getSelectedInterestsBlocking()
+
+    protected suspend fun setTokens(access: String, refresh: String) {
+        clearTokens()
+        saveTokens(access, refresh)
+    }
+    private suspend fun clearTokens() =
+        TokenManagerInstance.getInstance().clearTokens()
+
+    private suspend fun saveTokens(access: String, refresh: String) =
+        TokenManagerInstance.getInstance().saveTokens(access, refresh)
 }
