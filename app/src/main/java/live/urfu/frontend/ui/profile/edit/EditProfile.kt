@@ -1,10 +1,13 @@
 package live.urfu.frontend.ui.profile.edit
 
 import NavbarCallbacks
+import live.urfu.frontend.ui.snackBar.TopSnackBarWithDismiss
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,8 +16,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -29,13 +30,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
 import live.urfu.frontend.R
 import live.urfu.frontend.ui.footer.BottomNavBar
 import live.urfu.frontend.ui.createarticle.CreateArticle
 import live.urfu.frontend.ui.createarticle.CreateArticleViewModel
 import live.urfu.frontend.ui.settings.ArrowSettingsItem
+import live.urfu.frontend.ui.snackBar.SnackBarManager
+import live.urfu.frontend.ui.snackBar.SnackBarMessage
+import live.urfu.frontend.ui.snackBar.SnackBarType
 
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun EditProfile(
@@ -59,6 +63,9 @@ fun EditProfile(
     val showUsernameSuccess by viewModel.showUsernameSuccess.collectAsState()
     val showDescriptionSuccess by viewModel.showDescriptionSuccess.collectAsState()
 
+    val snackBarManager = remember { SnackBarManager() }
+    val currentSnackBar by snackBarManager.currentMessage.collectAsState()
+
     val avatarGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -71,44 +78,55 @@ fun EditProfile(
         uri?.let { viewModel.onBackgroundImageSelected(context, it) }
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
-
     LaunchedEffect(showBackgroundSuccess) {
         if (showBackgroundSuccess) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar("Фоновое изображение успешно установлено")
-            }
+            snackBarManager.showMessage(
+                SnackBarMessage(
+                    "Фоновое изображение успешно установлено",
+                    SnackBarType.SUCCESS
+                )
+            )
             viewModel.resetBackgroundSuccessFlag()
         }
     }
 
     LaunchedEffect(showAvatarSuccess) {
         if (showAvatarSuccess) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar("Аватарка успешно обновлена")
-            }
+            snackBarManager.showMessage(
+                SnackBarMessage(
+                    "Аватарка успешно обновлена",
+                    SnackBarType.SUCCESS
+                )
+            )
             viewModel.resetAvatarSuccessFlag()
         }
     }
 
     LaunchedEffect(showUsernameSuccess) {
         if (showUsernameSuccess) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar("Имя пользователя обновлено")
-            }
+            snackBarManager.showMessage(
+                SnackBarMessage(
+                    "Имя пользователя обновлено",
+                    SnackBarType.SUCCESS
+                )
+            )
             viewModel.resetUsernameSuccessFlag()
         }
     }
 
     LaunchedEffect(showDescriptionSuccess) {
         if (showDescriptionSuccess) {
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar("Описание обновлено")
-            }
+            snackBarManager.showMessage(
+                SnackBarMessage(
+                    "Описание обновлено",
+                    SnackBarType.SUCCESS
+                )
+            )
             viewModel.resetDescriptionSuccessFlag()
         }
     }
+
+
 
     if (showUsernameDialog) {
         EditTextDialog(
@@ -160,6 +178,7 @@ fun EditProfile(
                 .fillMaxSize()
                 .systemBarsPadding()
         ) {
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -186,10 +205,13 @@ fun EditProfile(
                     )
                 }
             }
+
+            // Content
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Блок аватарки
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -198,29 +220,53 @@ fun EditProfile(
                             avatarGalleryLauncher.launch("image/*")
                         }
                 ) {
-                    AsyncImage(
-                        model = userState?.avatarUrl,
-                        contentDescription = "Аватар пользователя",
-                        modifier = Modifier
-                            .size(84.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape)
-                            .clickable { avatarGalleryLauncher.launch("image/*") },
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.ava),
-                        error = painterResource(R.drawable.ava)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.8f))
-                            .size(110.dp),
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.camera),
-                        contentDescription = "Значок камеры",
-                        modifier = Modifier.size(48.dp)
-                    )
+                    if (userState != null) {
+                        AsyncImage(
+                            model = userState!!.avatarUrl,
+                            contentDescription = "Аватар пользователя",
+                            modifier = Modifier
+                                .size(84.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape)
+                                .clickable { avatarGalleryLauncher.launch("image/*") },
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.ava),
+                            error = painterResource(R.drawable.ava)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.8f))
+                                .size(110.dp),
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.camera),
+                            contentDescription = "Значок камеры",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.ava),
+                            contentDescription = "Аватар по умолчанию",
+                            modifier = Modifier
+                                .size(110.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.8f))
+                                .size(110.dp),
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.camera),
+                            contentDescription = "Значок камеры",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 }
 
                 Text(
@@ -248,11 +294,20 @@ fun EditProfile(
             }
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-        )
+        currentSnackBar?.let { snackBar ->
+            TopSnackBarWithDismiss(
+                message = snackBar.message,
+                visible = true,
+                onDismiss = { snackBarManager.dismissCurrent() },
+                backgroundColor = when (snackBar.type) {
+                    SnackBarType.SUCCESS -> Color(0xFF4CAF50)
+                    SnackBarType.ERROR -> Color(0xFFB00020)
+                    SnackBarType.INFO -> Color(0xFF2196F3)
+                },
+                autoHideDuration = snackBar.duration,
+            )
+        }
+
 
         BottomNavBar(
             onProfileClick = onClose,
