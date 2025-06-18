@@ -11,6 +11,7 @@ import live.urfu.frontend.data.manager.DtoManager
 import live.urfu.frontend.data.manager.TokenManagerInstance
 import live.urfu.frontend.data.model.Post
 import live.urfu.frontend.data.model.User
+import live.urfu.frontend.ui.main.PostViewModel
 
 class ProfileViewModel : BaseViewModel() {
 
@@ -25,6 +26,9 @@ class ProfileViewModel : BaseViewModel() {
 
     var currentUserId by mutableStateOf<Int?>(null)
         private set
+
+    private var isSubscriptionLoading by mutableStateOf(false)
+    private var subscriptionError by mutableStateOf<String?>(null)
 
     init {
         fetchCurrentUserId()
@@ -70,6 +74,73 @@ class ProfileViewModel : BaseViewModel() {
             },
             onError = {
                 posts = emptyList()
+            }
+        )
+    }
+
+    fun toggleSubscription(targetUserId: Long) {
+        val currentUser = user ?: return
+        val currentUserIdInt = currentUserId ?: return
+
+        if (currentUserIdInt.toLong() == targetUserId) {
+            subscriptionError = "Нельзя подписаться на самого себя"
+            return
+        }
+
+        if (isSubscriptionLoading) {
+            return
+        }
+
+        subscriptionError = null
+        isSubscriptionLoading = true
+
+        val isCurrentlySubscribed = currentUser.followers.contains(currentUserIdInt)
+
+        val updatedFollowers = if (isCurrentlySubscribed) {
+            currentUser.followers.filter { it != currentUserIdInt }
+        } else {
+            currentUser.followers + currentUserIdInt
+        }
+
+        val updatedUser = currentUser.copy(
+            followers = updatedFollowers,
+            followersCount = updatedFollowers.size
+        )
+        user = updatedUser
+
+        viewModelScope.launch {
+            try {
+                val result = if (isCurrentlySubscribed) {
+                    userApiService.unsubscribe(targetUserId)
+                } else {
+                    userApiService.subscribe(targetUserId)
+                }
+
+                result.onSuccess {
+                    refreshUserData(targetUserId)
+                }.onFailure { error ->
+                    user = currentUser
+                    android.util.Log.e("ProfileViewModel", "Subscription failed", error)
+                }
+            } catch (e: Exception) {
+                user = currentUser
+                subscriptionError = "Произошла неожиданная ошибка"
+                android.util.Log.e("ProfileViewModel", "Unexpected error in toggleSubscription", e)
+            } finally {
+                isSubscriptionLoading = false
+            }
+        }
+    }
+
+    private fun refreshUserData(userId: Long) {
+        launchApiCall(
+            tag = "ProfileViewModel_Refresh",
+            action = { userApiService.getUserProfileByID(userId) },
+            onSuccess = { userDto ->
+                user = dtoManager.run { userDto.toUser() }
+            },
+            onError = {
+                it.printStackTrace()
             }
         )
     }

@@ -151,7 +151,8 @@ fun AppNavHost() {
                     navController.navigate("comments/$postId")
                 },
                 currentScreen = "saved",
-                sharedPostViewModel = sharedPostViewModel
+                sharedPostViewModel = sharedPostViewModel,
+                navController = navController
             )
         }
 
@@ -378,6 +379,16 @@ fun AppNavHost() {
                 sharedPostViewModel = sharedPostViewModel,
                 onAuthorClick = {
                     navController.navigate("author/$authorId")
+                },
+                onSubscriptionChanged = { targetAuthorId, isSubscribed ->
+                    val currentUserIdInt = sharedPostViewModel.currentUserId.value?.toIntOrNull()
+                    if (currentUserIdInt != null) {
+                        sharedPostViewModel.updateAuthorSubscriptionState(
+                            authorId = targetAuthorId,
+                            currentUserId = currentUserIdInt,
+                            isSubscribed = isSubscribed
+                        )
+                    }
                 },
             )
         }

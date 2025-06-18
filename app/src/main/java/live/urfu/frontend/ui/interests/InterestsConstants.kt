@@ -3,7 +3,7 @@ package live.urfu.frontend.ui.interests
 import androidx.compose.ui.graphics.Color
 import live.urfu.frontend.data.model.Interest
 
-object InterestsRepository {
+object InterestsConstants {
 
     private val inactiveColor = Color(0xFFC2C2C2)
 

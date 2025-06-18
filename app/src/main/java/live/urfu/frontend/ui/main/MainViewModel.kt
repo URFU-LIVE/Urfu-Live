@@ -1,6 +1,5 @@
 package live.urfu.frontend.ui.main
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewModelScope
@@ -18,6 +17,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import live.urfu.frontend.data.api.BaseViewModel
+import live.urfu.frontend.ui.interests.InterestsChangeEvent
+import live.urfu.frontend.ui.interests.InterestsStateRepository
 
 class PostViewModel : BaseViewModel() {
 
@@ -38,6 +39,8 @@ class PostViewModel : BaseViewModel() {
 
     private val _postsUiState = mutableStateOf<Map<Long, PostUiState>>(emptyMap())
 
+    private val interestsStateRepository = InterestsStateRepository.getInstance()
+
     init {
         viewModelScope.launch {
             TokenManagerInstance.getInstance().userId.collect { userId ->
@@ -50,6 +53,8 @@ class PostViewModel : BaseViewModel() {
                 }
             }
         }
+
+        observeInterestsChanges()
     }
 
     private fun fetchPosts() {
@@ -222,6 +227,53 @@ class PostViewModel : BaseViewModel() {
         }
     }
 
+
+
+    fun updateAuthorSubscriptionState(authorId: String, currentUserId: Int, isSubscribed: Boolean) {
+        viewModelScope.launch {
+            postsUpdateMutex.withLock {
+                val currentPosts = _posts.value.toMutableList()
+                var hasUpdates = false
+
+                currentPosts.forEachIndexed { index, post ->
+                    if (post.author.id == authorId) {
+                        val currentFollowers = post.author.followers.toMutableList()
+
+                        if (isSubscribed && !currentFollowers.contains(currentUserId)) {
+                            currentFollowers.add(currentUserId)
+                            hasUpdates = true
+                        } else if (!isSubscribed && currentFollowers.contains(currentUserId)) {
+                            currentFollowers.remove(currentUserId)
+                            hasUpdates = true
+                        }
+
+                        if (hasUpdates) {
+                            val updatedAuthor = post.author.copy(
+                                followers = currentFollowers,
+                                followersCount = currentFollowers.size
+                            )
+                            currentPosts[index] = post.copy(author = updatedAuthor)
+                        }
+                    }
+                }
+
+                if (hasUpdates) {
+                    _posts.value = currentPosts
+
+                    val authorIds = currentPosts.filter { it.author.followers.contains(currentUserId) }
+                        .map { it.author.id }.toSet()
+                    _subscriptions.value = authorIds
+
+                    connectedSearchViewModels.forEach { searchViewModel ->
+                        currentPosts.filter { it.author.id == authorId }.forEach { updatedPost ->
+                            searchViewModel.updatePostInSearchResults(updatedPost)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun isPostLikedByCurrentUser(postId: Long): Boolean {
         val userId = _currentUserId.value?.toInt() ?: return false
         val post = _posts.value.find { it.id == postId } ?: return false
@@ -262,6 +314,21 @@ class PostViewModel : BaseViewModel() {
     fun reinitializeStates(posts: List<Post>) {
         initializeUiStates(posts)
         initSubscriptions(posts)
+    }
+
+    private fun observeInterestsChanges() {
+        viewModelScope.launch {
+            interestsStateRepository.interestsChanged.collect { event ->
+                when (event) {
+                    is InterestsChangeEvent.Updated -> {
+
+                        if (event.oldInterests != event.newInterests) {
+                            fetchPosts()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun savePost(post: Post) {

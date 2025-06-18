@@ -13,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,11 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import live.urfu.frontend.R
 import live.urfu.frontend.ui.footer.BottomNavBar
@@ -38,6 +42,7 @@ import live.urfu.frontend.ui.createarticle.CreateArticle
 import live.urfu.frontend.ui.createarticle.CreateArticleViewModel
 import live.urfu.frontend.ui.main.PostViewModel
 import live.urfu.frontend.ui.profile.ExpandedPostOverlay
+import live.urfu.frontend.ui.search.SearchViewModel
 import rememberScreenSizeInfo
 
 @SuppressLint("ViewModelConstructorInComposable")
@@ -52,13 +57,15 @@ fun SavedPostsScreen(
     onAuthorClick: (String) -> Unit,
     onCommentsClick: (Long) -> Unit,
     currentScreen: String = "saved",
-    sharedPostViewModel: PostViewModel
+    sharedPostViewModel: PostViewModel,
+    navController: NavController
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val savedPosts = viewModel.savedPosts
 
     var expandedPost by remember { mutableStateOf<Post?>(null) }
 
+    var showSearchBar by remember { mutableStateOf(false) }
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
         CreateArticle(
@@ -68,6 +75,48 @@ fun SavedPostsScreen(
             viewModel = CreateArticleViewModel()
         )
     }
+    if (showSearchBar) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(300f)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { showSearchBar = false }
+                    )
+                }
+        ) {
+            val quickSearchViewModel: SearchViewModel = viewModel()
+            val searchBarAdapter = remember(quickSearchViewModel) {
+                SearchViewModel.SearchBarAdapter(quickSearchViewModel)
+            }
+            Box(
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = { }
+                            )
+                        }
+                ) {
+                    live.urfu.frontend.ui.search.SearchBar(
+                        onClose = { showSearchBar = false },
+                        onTagSelected = { selectedTag ->
+                            showSearchBar = false
+                            val safeTag = selectedTag.replace(" ", "_")
+                            navController.navigate("search?tag=${safeTag}")
+                        },
+                        screenInfo = screenInfo,
+                        adapter = searchBarAdapter
+                    )
+                }
+            }
+        }
+    }
+
 
     BackHandler(enabled = expandedPost != null) {
         expandedPost = null
@@ -90,10 +139,8 @@ fun SavedPostsScreen(
                 .fillMaxSize()
                 .background(Color(0xFF131313))
         ) {
-            SavedPostsTopBar(
-                screenInfo = screenInfo,
-                onSearchClick = onSearchClick
-            )
+            SavedPostsTopBar(screenInfo = screenInfo,
+                onSearchClick = { showSearchBar = true })
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
@@ -228,9 +275,8 @@ fun SavedPostCard(
                         modifier = Modifier
                             .size(authorAvatarSize(screenInfo))
                             .clip(CircleShape)
-                            .border(2.dp, Color.White, CircleShape).clickable {
-                                onAuthorClick(post.author.id)
-                            },
+                            .border(2.dp, Color.White, CircleShape)
+                            .clickable { onAuthorClick(post.author.id) },
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.ava),
                         error = painterResource(R.drawable.ava)
@@ -278,7 +324,7 @@ fun SavedPostCard(
             }
 
             IconButton(
-                onClick =  onRemoveFromSaved,
+                onClick = onRemoveFromSaved,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .size(SavedPostsAdaptiveSizes.bookmarkIconSize(screenInfo) + 8.dp)

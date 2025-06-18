@@ -53,7 +53,7 @@ fun ProfileScreen(
     navbarCallbacks: NavbarCallbacks? = null,
     onCloseOverlay: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
-    onSubscribeClick: () -> Unit = {},
+    onSubscriptionChanged: ((String, Boolean) -> Unit)? = null,
     onCommentsClick: (Long) -> Unit = {},
     sharedPostViewModel: PostViewModel,
     onAuthorClick: (String) -> Unit
@@ -107,6 +107,22 @@ fun ProfileScreen(
             viewModel = CreateArticleViewModel()
         )
     }
+
+    val handleSubscriptionClick = {
+        user?.let { currentUser ->
+            val targetUserId = currentUser.id.toLongOrNull()
+            val currentUserIdInt = viewModel.currentUserId
+
+            if (targetUserId != null && !isOwnProfile && currentUserIdInt != null) {
+                val wasSubscribed = currentUser.followers.contains(currentUserIdInt)
+
+                viewModel.toggleSubscription(targetUserId)
+
+                onSubscriptionChanged?.invoke(currentUser.id, !wasSubscribed)
+            }
+        }
+    }
+
 
     Scaffold(
         bottomBar = {
@@ -217,7 +233,7 @@ fun ProfileScreen(
                             )
 
                             Button(
-                                onClick = { if (isOwnProfile) onEditProfileClick() else onSubscribeClick() },
+                                onClick = { if (isOwnProfile) onEditProfileClick() else handleSubscriptionClick() },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (isOwnProfile) Color(0xFF191818) else Color(0xFF3D7BF4),
                                     contentColor = Color.White
@@ -419,7 +435,7 @@ fun ReportDialog(
                         Text(
                             text = "Причина жалобы",
                             color = Color.Gray,
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 14.sp,)
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 14.sp)
                         )
                     },
                     colors = OutlinedTextFieldDefaults.colors(

@@ -10,7 +10,7 @@ import live.urfu.frontend.data.model.Interest
 
 class InterestsViewModel : BaseViewModel() {
 
-    val allInterests: List<Interest> get() = InterestsRepository.ALL_INTERESTS
+    val allInterests: List<Interest> get() = InterestsConstants.ALL_INTERESTS
 
     private val _selectedInterests = MutableStateFlow(setOf<Interest>())
     val selectedInterests = _selectedInterests.asStateFlow()
@@ -19,6 +19,9 @@ class InterestsViewModel : BaseViewModel() {
     val isLoading = _isLoading.asStateFlow()
 
     private var isInitialized = false
+
+    private val interestsStateRepository = InterestsStateRepository.getInstance()
+    private val _isSaving = MutableStateFlow(false)
 
     init {
         loadSavedInterests()
@@ -37,7 +40,7 @@ class InterestsViewModel : BaseViewModel() {
                 runCatching { interestManager.getSelectedInterestsBlocking() }
             },
             onSuccess = { savedInterestNames ->
-                val savedInterests = InterestsRepository.fromNameEnSet(savedInterestNames)
+                val savedInterests = InterestsConstants.fromNameEnSet(savedInterestNames)
                 _selectedInterests.value = savedInterests
                 isInitialized = true
                 _isLoading.value = false
@@ -56,20 +59,24 @@ class InterestsViewModel : BaseViewModel() {
         _selectedInterests.value = newSelection
     }
 
-    fun saveInterests() {
-        launchApiCall(
-            tag = "InterestsViewModel",
-            action = {
-                runCatching {
-                    InterestManagerInstance.getInstance().saveSelectedInterests(_selectedInterests.value)
+    fun saveInterests(onSuccess: () -> Unit = {}, onError: (Exception) -> Unit = {}) {
+        _isSaving.value = true
+
+        viewModelScope.launch {
+            try {
+                val result = interestsStateRepository.saveInterests(_selectedInterests.value)
+
+                result.onSuccess {
+                    onSuccess()
+                }.onFailure { error ->
+                    onError(error as? Exception ?: Exception("Unknown error"))
                 }
-            },
-            onSuccess = {
-                // optionally handle success
-            },
-            onError = { e ->
-                println("❌ live.urfu.frontend.ui.interests.InterestsViewModel: Ошибка сохранения интересов: ${e.message}")
+            } catch (e: Exception) {
+                android.util.Log.e("InterestsViewModel", "Exception saving interests", e)
+                onError(e)
+            } finally {
+                _isSaving.value = false
             }
-        )
+        }
     }
 }
