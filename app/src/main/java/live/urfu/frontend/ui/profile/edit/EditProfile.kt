@@ -308,7 +308,6 @@ fun EditProfile(
             )
         }
 
-
         BottomNavBar(
             onProfileClick = onClose,
             onCreateArticleClick = { showCreateArticle = true },

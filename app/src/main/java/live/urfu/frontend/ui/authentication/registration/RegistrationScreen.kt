@@ -26,8 +26,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import live.urfu.frontend.R
 import live.urfu.frontend.data.DTOs.AuthResponse
+import live.urfu.frontend.ui.snackBar.SnackBarManager
+import live.urfu.frontend.ui.snackBar.SnackBarMessage
+import live.urfu.frontend.ui.snackBar.SnackBarType
+import live.urfu.frontend.ui.snackBar.TopSnackBarWithDismiss
+import java.time.LocalDate
 
-@SuppressLint("ConfigurationScreenWidthHeight")
+@SuppressLint("ConfigurationScreenWidthHeight", "NewApi")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RegistrationScreen(
@@ -50,6 +55,11 @@ fun RegistrationScreen(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val isSmallScreen = screenWidth < 400
+
+    val snackBarManager = remember { SnackBarManager() }
+    val currentSnackBar by snackBarManager.currentMessage.collectAsState()
+
+    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
 
     val registerCallback = remember {
         object : RegistrationViewModel.RegisterCallback {
@@ -124,23 +134,108 @@ fun RegistrationScreen(
 
         RegistrationButtons(
             onBackClick = if (currentStep > 1) { { currentStep -= 1 } } else null,
-            onNextClick = {
+            onNextClick@ {
                 when (currentStep) {
                     1 -> if (loginValue.isNotBlank()) {
-                        // todo Добавить уводмления: 1) Если ник должен быть от 3 до 20 символов 2) Ник должен быть уникальным
+                        if (loginValue.length < 3 || loginValue.length > 20) {
+                            snackBarManager.showMessage(
+                                SnackBarMessage(
+                                    "Длина имени пользователя должна быть от 3 до 20 символов",
+                                    SnackBarType.ERROR
+                                )
+                            )
+                            return@onNextClick
+                        }
+
                         viewModel.checkUsername(loginValue) { isAvailable ->
-                            currentStep = if (isAvailable) 2 else 1
+                            if (isAvailable) {
+                                currentStep = 2
+                            } else {
+                                snackBarManager.showMessage(
+                                    SnackBarMessage(
+                                        "Данное имя пользователя занято",
+                                        SnackBarType.ERROR
+                                    )
+                                )
+                            }
                         }
                     }
-                    2 -> if (nameValue.isNotBlank()) currentStep = 3
+                    2 -> if (nameValue.isNotBlank()) {
+                        currentStep = 3
+                    }
                     3 -> if (mailValue.isNotBlank()) {
-                        // todo Добавить уводмления: 1) Сначала добавить проверку (например регуляркой) почта ли это и если нет выслать уведомление 2) Почта должна быть уникальная
-                        viewModel.checkEmail(loginValue) { isAvailable ->
-                            currentStep = if (isAvailable) 4 else 3
+                        if (!emailRegex.matches(mailValue)) {
+                            snackBarManager.showMessage(
+                                SnackBarMessage(
+                                    "Почта не является валидной",
+                                    SnackBarType.ERROR
+                                )
+                            )
+                            return@onNextClick
+                        }
+
+                        viewModel.checkEmail(mailValue) { isAvailable ->
+                            if (isAvailable) {
+                                currentStep = 4
+                            } else {
+                                snackBarManager.showMessage(
+                                    SnackBarMessage(
+                                        "Данная почта занята",
+                                        SnackBarType.ERROR
+                                    )
+                                )
+                            }
                         }
                     }
-                    // todo Добавить проверку реальности даты!
-                    4 -> if (birthDateValue.isNotBlank()) currentStep = 5
+                    4 -> if (birthDateValue.isNotBlank()) {
+                        try {
+                            if (birthDateValue.length != 8) {
+                                snackBarManager.showMessage(
+                                    SnackBarMessage(
+                                        "Дата должна быть в формате ДДММГГГГ",
+                                        SnackBarType.ERROR
+                                    )
+                                )
+                                return@onNextClick
+                            }
+
+                            val day = birthDateValue.substring(0, 2).toInt()
+                            val month = birthDateValue.substring(2, 4).toInt()
+                            val year = birthDateValue.substring(4, 8).toInt()
+
+                            if (month !in 1..12 || day !in 1..31) {
+                                snackBarManager.showMessage(
+                                    SnackBarMessage(
+                                        "Некорректная дата",
+                                        SnackBarType.ERROR
+                                    )
+                                )
+                                return@onNextClick
+                            }
+
+                            val birthDate = LocalDate.of(year, month, day)
+
+                            if (year < 1900 || year > 2020) {
+                                snackBarManager.showMessage(
+                                    SnackBarMessage(
+                                        "Год рождения должен быть от 1900 до 2020",
+                                        SnackBarType.ERROR
+                                    )
+                                )
+                                return@onNextClick
+                            }
+
+                            currentStep = 5
+                        } catch (e: Exception) {
+                            snackBarManager.showMessage(
+                                SnackBarMessage(
+                                    "Некорректная дата",
+                                    SnackBarType.ERROR
+                                )
+                            )
+                            return@onNextClick
+                        }
+                    }
                     5 -> if (passwordValue.isNotBlank() && passwordValue == confirmPassword) {
                         viewModel.onRegisterClick(
                             loginValue,
@@ -167,6 +262,20 @@ fun RegistrationScreen(
                 .padding(bottom = 15.dp),
             isSmallScreen = isSmallScreen
         )
+
+        currentSnackBar?.let { snackBar ->
+            TopSnackBarWithDismiss(
+                message = snackBar.message,
+                visible = true,
+                onDismiss = { snackBarManager.dismissCurrent() },
+                backgroundColor = when (snackBar.type) {
+                    SnackBarType.SUCCESS -> Color(0xFF4CAF50)
+                    SnackBarType.ERROR -> Color(0xFFB00020)
+                    SnackBarType.INFO -> Color(0xFF2196F3)
+                },
+                autoHideDuration = snackBar.duration,
+            )
+        }
     }
 }
 

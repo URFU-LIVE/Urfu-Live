@@ -19,7 +19,7 @@ class CheckerApiService : BaseApiService() {
 
     suspend fun checkEmail(email: String): Result<CheckerResponse> {
         return authorizedRequest {
-            client.get("$baseUrl/check/username") {
+            client.get("$baseUrl/check/email") {
                 url {
                     parameters.append("email", email)
                 }
