@@ -142,9 +142,6 @@ fun AppNavHost() {
                     // Уже на экране сохраненных постов, ничего не делаем
                 },
                 onMessagesClick = { },
-                onSearchClick = {
-                    // TODO: Implement search functionality
-                },
                 onAuthorClick = { authorId ->
                     navController.navigate("author/$authorId")
                 },

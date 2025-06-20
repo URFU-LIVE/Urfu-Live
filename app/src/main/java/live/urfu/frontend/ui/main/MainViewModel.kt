@@ -335,10 +335,6 @@ class PostViewModel : BaseViewModel() {
         }
     }
 
-    fun savePost(post: Post) {
-        toggleBookmark(post)
-    }
-
     fun incrementCommentsCount(postId: Long) {
         viewModelScope.launch {
             postsUpdateMutex.withLock {

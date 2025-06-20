@@ -1,53 +1,65 @@
 package live.urfu.frontend.ui.savedPosts
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import live.urfu.frontend.data.api.PostApiService
-import live.urfu.frontend.data.manager.DtoManager
 import live.urfu.frontend.data.manager.PostManagerInstance
 import live.urfu.frontend.data.model.Post
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import live.urfu.frontend.data.api.BaseViewModel
+import live.urfu.frontend.ui.main.PostViewModel
 
-class SavedPostsViewModel : BaseViewModel() {
-
-    private val postApiService = PostApiService()
-    private val dtoManager = DtoManager()
-
+class SavedPostsViewModel(
+    private val sharedPostViewModel: PostViewModel
+) : BaseViewModel() {
     private var _savedPosts by mutableStateOf<List<Post>>(emptyList())
     val savedPosts: List<Post> get() = _savedPosts
 
     init {
         loadSavedPosts()
+        observePostsChanges()
+    }
+
+    private fun observePostsChanges() {
+        viewModelScope.launch {
+            sharedPostViewModel.posts.collect { allPosts ->
+                updateSavedPostsList(allPosts)
+            }
+        }
     }
 
     private fun loadSavedPosts() {
-        launchApiCall(
-            tag = "SavedPostsViewModel",
-            action = {
-                val postIds = PostManagerInstance.getInstance().getSavedPostBlocking()
+        viewModelScope.launch {
+            try {
+                val savedPostIds = PostManagerInstance.getInstance().getSavedPostBlocking()
 
-                val results = postIds.map { id ->
-                    viewModelScope.async {
-                        postApiService.get(id)
-                    }
-                }.awaitAll()
+                val allPosts = sharedPostViewModel.posts.value
 
-                val validPosts = results.mapNotNull { result ->
-                    result.getOrNull()
-                }
+                updateSavedPostsList(allPosts, savedPostIds)
 
-                Result.success(validPosts)
-            },
-            onSuccess = { postDtos ->
-                _savedPosts = postDtos.map { dtoManager.run { it.toPost() } }
-            },
-            onError = { it.printStackTrace() }
-        )
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error loading saved posts", e)
+            }
+        }
+    }
+
+
+    private fun updateSavedPostsList(
+        allPosts: List<Post>,
+        savedPostIds: Set<Long>? = null
+    ) {
+        viewModelScope.launch {
+            val idsToUse = savedPostIds ?: PostManagerInstance.getInstance().getSavedPostBlocking()
+
+            val savedPostsList = allPosts.filter { post ->
+                post.id in idsToUse
+            }
+
+            _savedPosts = savedPostsList
+        }
     }
 
     fun removeFromSaved(post: Post) {
@@ -61,7 +73,4 @@ class SavedPostsViewModel : BaseViewModel() {
         loadSavedPosts()
     }
 
-    fun isPostSaved(postId: Long): Boolean {
-        return _savedPosts.any { it.id == postId }
-    }
 }

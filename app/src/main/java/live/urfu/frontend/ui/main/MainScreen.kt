@@ -451,10 +451,9 @@ fun PostCard(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .clickable {
-                            viewModel.savePost(post)
+                            viewModel.toggleBookmark(post)
                         }
                         .size(iconSize)
-                        .scale(animatedLikeScale)
                 ) {
 
                 if (isBookmarked){
@@ -462,7 +461,7 @@ fun PostCard(
                         painter = painterResource(id = R.drawable.bookmarkfilling),
                         contentDescription = null,
                         colorFilter = ColorFilter.tint(pattern.reactionColorFilling),
-                        modifier = Modifier.size(28.dp) // TODO
+                        modifier = Modifier.size(28.dp)
                     )
                 }
                 Image(
@@ -470,7 +469,6 @@ fun PostCard(
                     contentDescription = "Bookmark",
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
                     modifier = Modifier
-                        .clickable { viewModel.toggleBookmark(post)}
                         .size(if (screenInfo.isCompact) 25.dp else 30.dp),
                 )
                 }
@@ -1319,6 +1317,8 @@ fun AdaptiveReactionPanel(
     )
 
     val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+    val bookmarkedPosts by viewModel.bookmarkedPosts.collectAsState()
+    val isBookmarked = bookmarkedPosts.contains(post.id)
 
     val iconSizes = when {
         screenInfo.isCompact -> Triple(28.dp, 30.dp, 25.dp)
@@ -1328,7 +1328,7 @@ fun AdaptiveReactionPanel(
 
     val flagSize = if (screenInfo.isCompact) 24.dp else 27.dp
     val likeFillingSize = if (screenInfo.isCompact) 24.dp else 28.dp
-
+    val iconSize = if (screenInfo.isCompact) 28.dp else 33.dp
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -1384,19 +1384,31 @@ fun AdaptiveReactionPanel(
                 color = Color.Black,
                 style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo),
             )
-            Image(
-                painter = painterResource(id = R.drawable.bookmarkbottom1),
-                contentDescription = "Bookmark",
-                colorFilter = ColorFilter.tint(pattern.reactionColor),
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .clickable { /* TODO */ }
-                    .size(iconSizes.third),
-            )
-            Text(
-                text = "0",
-                color = Color.Black,
-                style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo),
-            )
+                    .clickable {
+                        viewModel.toggleBookmark(post)
+                    }
+                    .size(iconSize)
+            ) {
+
+                if (isBookmarked){
+                    Image(
+                        painter = painterResource(id = R.drawable.bookmarkfilling),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(pattern.reactionColorFilling),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                Image(
+                    painter = painterResource(id = R.drawable.bookmarkbottom1),
+                    contentDescription = "Bookmark",
+                    colorFilter = ColorFilter.tint(pattern.reactionColor),
+                    modifier = Modifier
+                        .size(if (screenInfo.isCompact) 25.dp else 30.dp),
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -48,24 +49,23 @@ import rememberScreenSizeInfo
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun SavedPostsScreen(
-    viewModel: SavedPostsViewModel = viewModel(),
     onProfileClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onSavedClick: () -> Unit = {},
     onMessagesClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {},
     onAuthorClick: (String) -> Unit,
     onCommentsClick: (Long) -> Unit,
     currentScreen: String = "saved",
     sharedPostViewModel: PostViewModel,
     navController: NavController
 ) {
+    val viewModel: SavedPostsViewModel = viewModel(
+        factory = SavedPostsViewModelFactory(sharedPostViewModel)
+    )
     val screenInfo = rememberScreenSizeInfo()
     val savedPosts = viewModel.savedPosts
 
     var expandedPost by remember { mutableStateOf<Post?>(null) }
-
-    val bookmarkedPosts by sharedPostViewModel.bookmarkedPosts.collectAsState()
 
     var showSearchBar by remember { mutableStateOf(false) }
     var showCreateArticle by remember { mutableStateOf(false) }
@@ -160,7 +160,6 @@ fun SavedPostsScreen(
                     SavedPostCard(
                         post = post,
                         screenInfo = screenInfo,
-                        isBookmarked = bookmarkedPosts.contains(post.id),
                         onPostClick = {
                             expandedPost = post
                         },
@@ -235,7 +234,6 @@ fun SavedPostsTopBar(
 fun SavedPostCard(
     post: Post,
     screenInfo: ScreenSizeInfo,
-    isBookmarked: Boolean,
     onPostClick: () -> Unit,
     onAuthorClick: (String) -> Unit,
     onRemoveFromSaved: () -> Unit,
@@ -337,18 +335,31 @@ fun SavedPostCard(
                     .align(Alignment.BottomEnd)
                     .size(SavedPostsAdaptiveSizes.bookmarkIconSize(screenInfo) + 8.dp)
             ) {
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Image(
+                        painter = painterResource(id = R.drawable.bookmarkfilling),
+                        contentDescription = "Bookmark",
+                        colorFilter = ColorFilter.tint(colorPattern.reactionColorFilling),
+                        modifier = Modifier
+                            .size(28.dp),
+                    )
+                }
                 Image(
-                    painter = painterResource(id = R.drawable.bookmarkbottom1), // Заполненная закладка
+                    painter = painterResource(id = R.drawable.bookmarkbottom1),
                     contentDescription = "Remove from saved",
-                    modifier = Modifier.size(SavedPostsAdaptiveSizes.bookmarkIconSize(screenInfo)),
-                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
+                    modifier = Modifier.size(if (screenInfo.isCompact) 25.dp else 30.dp),
+                    colorFilter = ColorFilter.tint(
                         colorPattern.reactionColor
                     )
                 )
             }
+            }
         }
-    }
 }
+
 
 @Composable
 fun EmptyStateMessage(screenInfo: ScreenSizeInfo) {
@@ -365,7 +376,7 @@ fun EmptyStateMessage(screenInfo: ScreenSizeInfo) {
                 painter = painterResource(id = R.drawable.bookmarkbottom1),
                 contentDescription = "No saved posts",
                 modifier = Modifier.size(48.dp),
-                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Gray)
+                colorFilter = ColorFilter.tint(Color.Gray)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
