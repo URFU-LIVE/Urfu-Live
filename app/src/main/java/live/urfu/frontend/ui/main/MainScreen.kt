@@ -560,7 +560,8 @@ fun CarouselScreen(
     onAuthorClick: (String) -> Unit = {},
     showNavBar: Boolean = true,
     onCommentsClick: (Long) -> Unit,
-    onSavedPostsClick: () -> Unit = {}
+    onSavedPostsClick: () -> Unit = {},
+    onMessagesClick: () -> Unit = {}
 ) {
     val screenInfo = rememberScreenSizeInfo()
     val postsState by viewModel.posts.collectAsState()
@@ -864,7 +865,7 @@ fun CarouselScreen(
                     onCreateArticleClick = { showCreateArticle = true },
                     onHomeClick = { /* TODO */ },
                     onSavedClick = {  onSavedPostsClick()  },
-                    onMessagesClick = { /* TODO */ },
+                    onMessagesClick = { onMessagesClick() },
                     currentScreen = "home"
                 )
             }

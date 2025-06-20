@@ -27,6 +27,7 @@ import live.urfu.frontend.ui.settings.SettingsScreen
 import live.urfu.frontend.ui.settings.account.AccountSettings
 import live.urfu.frontend.ui.interests.EditInterestsScreen
 import live.urfu.frontend.ui.main.CarouselScreen
+import live.urfu.frontend.ui.messages.MessagesScreen
 import live.urfu.frontend.ui.settings.notification.NotificationsSettings
 import live.urfu.frontend.ui.settings.privacy.PrivacySettings
 import java.net.URLEncoder
@@ -142,7 +143,7 @@ fun AppNavHost() {
                 onSavedClick = {
                     // Уже на экране сохраненных постов, ничего не делаем
                 },
-                onMessagesClick = { },
+                onMessagesClick = { navController.navigate("messages") },
                 onAuthorClick = { authorId ->
                     navController.navigate("author/$authorId")
                 },
@@ -151,6 +152,21 @@ fun AppNavHost() {
                 },
                 currentScreen = "saved",
                 sharedPostViewModel = sharedPostViewModel,
+                navController = navController
+            )
+        }
+
+        composable("messages") {
+            MessagesScreen(
+                onProfileClick = { navController.navigate("profile") },
+                onHomeClick = {
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                },
+                onSavedClick = { navController.navigate("savedPosts") },
+                onMessagesClick = {},
+                currentScreen = "messages",
                 navController = navController
             )
         }
@@ -249,6 +265,7 @@ fun AppNavHost() {
                 onAuthorClick = { authorId ->
                     navController.navigate("author/$authorId")
                 },
+                onMessagesClick = { navController.navigate("messages") }
             )
         }
 
@@ -360,7 +377,7 @@ fun AppNavHost() {
                     }
                 },
                 onSavedClick = { },
-                onMessagesClick = { },
+                onMessagesClick = { navController.navigate("messages") },
                 onReportClick = {
                     // TODO: Реализовать жалобу на пользователя
                 },
@@ -406,7 +423,8 @@ fun MainScreenWithOverlays(
                 navController.navigate("comments/$postId")
             },
             onSavedPostsClick = { navController.navigate("savedPosts") },
-            viewModel = sharedPostViewModel
+            viewModel = sharedPostViewModel,
+            onMessagesClick = { navController.navigate("messages") }
         )
     }
 }
