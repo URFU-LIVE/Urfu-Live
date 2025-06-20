@@ -10,6 +10,7 @@ import live.urfu.frontend.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import live.urfu.frontend.data.DTOs.PostDto
 import live.urfu.frontend.data.api.BaseViewModel
 
 open class CreateArticleViewModel : BaseViewModel() {
@@ -49,7 +50,7 @@ open class CreateArticleViewModel : BaseViewModel() {
     }
 
     interface PostCallBack {
-        fun onSuccess(user: DefaultResponse)
+        fun onSuccess(user: PostDto)
         fun onError(error: Exception)
     }
 

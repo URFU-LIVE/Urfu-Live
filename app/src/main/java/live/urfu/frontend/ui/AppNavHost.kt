@@ -223,8 +223,8 @@ fun AppNavHost() {
                 onClose = { navController.popBackStack() },
                 onProfileClick = { authorId ->
                     navController.navigate("author/$authorId")
-                }
-
+                },
+                postViewModel = sharedPostViewModel
             )
         }
 
@@ -328,7 +328,8 @@ fun AppNavHost() {
                 },
                 onProfileClick = { authorId ->
                     navController.navigate("author/$authorId")
-                }
+                },
+                postViewModel = sharedPostViewModel
             )
         }
 

@@ -65,6 +65,8 @@ fun SavedPostsScreen(
 
     var expandedPost by remember { mutableStateOf<Post?>(null) }
 
+    val bookmarkedPosts by sharedPostViewModel.bookmarkedPosts.collectAsState()
+
     var showSearchBar by remember { mutableStateOf(false) }
     var showCreateArticle by remember { mutableStateOf(false) }
     if (showCreateArticle) {
@@ -117,6 +119,9 @@ fun SavedPostsScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshSavedPosts()
+    }
 
     BackHandler(enabled = expandedPost != null) {
         expandedPost = null
@@ -155,13 +160,15 @@ fun SavedPostsScreen(
                     SavedPostCard(
                         post = post,
                         screenInfo = screenInfo,
+                        isBookmarked = bookmarkedPosts.contains(post.id),
                         onPostClick = {
                             expandedPost = post
                         },
                         onAuthorClick = { authorId ->
                             onAuthorClick(authorId)
                         },
-                        onRemoveFromSaved = { viewModel.removeFromSaved(post) }
+                        onRemoveFromSaved = { viewModel.removeFromSaved(post)
+                            sharedPostViewModel.toggleBookmark(post) }
                     )
                 }
                 if (savedPosts.isEmpty()) {
@@ -228,6 +235,7 @@ fun SavedPostsTopBar(
 fun SavedPostCard(
     post: Post,
     screenInfo: ScreenSizeInfo,
+    isBookmarked: Boolean,
     onPostClick: () -> Unit,
     onAuthorClick: (String) -> Unit,
     onRemoveFromSaved: () -> Unit,

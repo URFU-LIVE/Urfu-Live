@@ -1,3 +1,6 @@
+package live.urfu.frontend.ui.authentication.registration
+
+import JwtParser
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.viewModelScope
@@ -36,6 +39,13 @@ class RegistrationViewModel : BaseViewModel() {
     private val _password = MutableStateFlow("")
     val password = _password.asStateFlow()
 
+    private val _privacyPolicyAccepted = MutableStateFlow(false)
+    val privacyPolicyAccepted = _privacyPolicyAccepted.asStateFlow()
+
+    fun onPrivacyPolicyAcceptedChange(accepted: Boolean) {
+        _privacyPolicyAccepted.value = accepted
+    }
+
     fun onLoginChange(newValue: String) {
         _login.value = newValue
     }
@@ -63,8 +73,14 @@ class RegistrationViewModel : BaseViewModel() {
         password: String,
         fio: String,
         birthDate: String,
+        privacyAccepted: Boolean,
         callback: RegisterCallback
     ) {
+        if (!privacyAccepted) {
+            callback.onError(IllegalArgumentException("Необходимо согласие на обработку персональных данных"))
+            return
+        }
+
         val fioSplit = fio.split(" ")
         val formattedBirthDate = formatBirthDateForApi(birthDate)
 
@@ -74,7 +90,7 @@ class RegistrationViewModel : BaseViewModel() {
         }
 
         launchApiCall(
-            tag = "RegistrationViewModel",
+            tag = "live.urfu.frontend.ui.authentication.registration.RegistrationViewModel",
             action = {
                 userApiService.register(
                     username,
@@ -119,7 +135,7 @@ class RegistrationViewModel : BaseViewModel() {
 
     fun checkUsername(username: String, callback: (Boolean) -> Unit) {
         launchApiCall(
-            tag = "RegistrationViewModel",
+            tag = "live.urfu.frontend.ui.authentication.registration.RegistrationViewModel",
             action = {
                 checkerApiService.checkUsername(username)
             },
@@ -130,7 +146,7 @@ class RegistrationViewModel : BaseViewModel() {
 
     fun checkEmail(email: String, callback: (Boolean) -> Unit) {
         launchApiCall(
-            tag = "RegistrationViewModel",
+            tag = "live.urfu.frontend.ui.authentication.registration.RegistrationViewModel",
             action = {
                 checkerApiService.checkEmail(email)
             },

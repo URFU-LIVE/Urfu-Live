@@ -14,7 +14,7 @@ import io.ktor.http.contentType
 
 class PostApiService : BaseApiService() {
 
-    suspend fun create(title: String, text: String, tags: List<String>): Result<DefaultResponse> {
+    suspend fun create(title: String, text: String, tags: List<String>): Result<PostDto> {
         val token = getToken()
         val requestBody = PostCreateRequest(title, text, tags)
         return authorizedRequest {

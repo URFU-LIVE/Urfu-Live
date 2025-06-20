@@ -45,7 +45,7 @@ class DtoManager {
             ),
             tags = this.tags.map { Tag(it.id, it.name) },
             time = formattedTime,
-            comments = this.comments.size,
+            comments = this.comments?.size ?: 0,
             likes = this.likedBy.size,
             likedBy = this.likedBy
         )

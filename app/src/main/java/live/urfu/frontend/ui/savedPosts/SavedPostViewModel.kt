@@ -56,4 +56,12 @@ class SavedPostsViewModel : BaseViewModel() {
             _savedPosts = _savedPosts.filter { it.id != post.id }
         }
     }
+
+    fun refreshSavedPosts() {
+        loadSavedPosts()
+    }
+
+    fun isPostSaved(postId: Long): Boolean {
+        return _savedPosts.any { it.id == postId }
+    }
 }

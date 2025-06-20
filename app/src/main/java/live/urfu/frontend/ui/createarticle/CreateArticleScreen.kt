@@ -35,6 +35,7 @@ import live.urfu.frontend.data.DTOs.DefaultResponse
 import live.urfu.frontend.data.model.UserRole
 import kotlinx.coroutines.launch
 import live.urfu.frontend.R
+import live.urfu.frontend.data.DTOs.PostDto
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +43,7 @@ import live.urfu.frontend.R
 fun CreateArticle(
     onClose: () -> Unit,
     viewModel: CreateArticleViewModel,
-    onPostSuccess: (DefaultResponse) -> Unit,
+    onPostSuccess: (PostDto) -> Unit,
     onPostError: (Exception) -> Unit,
     animationsEnabled: Boolean = true,
 ) {
@@ -209,12 +210,14 @@ fun CreateArticle(
     // todo Вынести в ViewModel
     val postCallBack = remember {
         object : CreateArticleViewModel.PostCallBack {
-            override fun onSuccess(user: DefaultResponse) {
+            override fun onSuccess(user: PostDto) {
                 onPostSuccess(user)
                 onClose()
             }
 
             override fun onError(error: Exception) {
+                println("Абеме")
+                println(error)
                 onPostError(error)
             }
         }
@@ -472,7 +475,7 @@ fun CreateArticle(
                                     Text(
                                         text = "Добавить новый тег",
                                         color = Color(0xFFA7A7A7),
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 23.4.sp)
+                                        style = typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 18.sp, lineHeight = 23.4.sp)
                                     )
                                 }
                             },

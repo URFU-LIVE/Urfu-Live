@@ -27,20 +27,31 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import live.urfu.frontend.data.model.Comment
 import kotlinx.coroutines.launch
 import live.urfu.frontend.R
+import live.urfu.frontend.ui.main.PostViewModel
 
 @Composable
 fun CommentsScreen(
     postId: Long,
     onClose: () -> Unit = {},
     onProfileClick: (String) -> Unit,
-    viewModel: CommentsViewModel = viewModel(factory = CommentsViewModelFactory(postId))
+    postViewModel: PostViewModel? = null,
+    viewModel: CommentsViewModel = viewModel(
+        factory = CommentsViewModelFactory(
+            postId = postId,
+            onCommentAdded = {
+                postViewModel?.incrementCommentsCount(postId)
+            }
+        )
+    )
 ) {
     val comments by viewModel.comments.collectAsState()
     val commentText = remember { mutableStateOf("") }
@@ -117,12 +128,11 @@ fun CommentsScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(start = 15.dp, end = 15.dp, bottom = 32.dp, top = 0.dp)
             )
         }
     }
 }
-
 
 
 @Composable
@@ -157,7 +167,7 @@ fun CommentsItem(
                         text = comment.author.username,
                         color = Color.White,
                         style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.clickable {onProfileClick(comment.author.id)}
+                        modifier = Modifier.clickable { onProfileClick(comment.author.id) }
                     )
                     Text(
                         text = comment.text,
@@ -287,13 +297,13 @@ fun CommentInputField(
         modifier = modifier
             .fillMaxWidth()
             .background(Color(0xFF292929), RoundedCornerShape(52.dp))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 21.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         androidx.compose.material3.TextField(
             value = text,
             onValueChange = onTextChange,
-            placeholder = { Text("Написать комментарий...", color = Color.Gray) },
+            placeholder = { Text("Оставить комментарий...", color = Color.Gray, style = MaterialTheme.typography.titleSmall.copy(fontSize = 14.sp, lineHeight = 14.sp, fontWeight = FontWeight.Medium)) },
             modifier = Modifier.weight(1f),
             colors = androidx.compose.material3.TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -302,23 +312,26 @@ fun CommentInputField(
                 unfocusedTextColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
-            )
+            ),
+            singleLine = true,
         )
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(Color(0xFF5B9DFC), CircleShape)
-                .clickable(enabled = text.isNotEmpty()) { onSend() },
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.arrow),
-                contentDescription = "Отправить",
-                colorFilter = ColorFilter.tint(Color.White),
+        if (text.isNotEmpty()) {
+            Box(
                 modifier = Modifier
-                    .size(20.dp)
-                    .graphicsLayer { rotationZ = 180f }
-            )
+                    .size(36.dp)
+                    .background(Color(0xFF5B9DFC), CircleShape)
+                    .clickable(enabled = text.isNotEmpty()) { onSend() },
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.arrow),
+                    contentDescription = "Отправить",
+                    colorFilter = ColorFilter.tint(Color.White),
+                    modifier = Modifier
+                        .size(20.dp)
+                        .graphicsLayer { rotationZ = 180f }
+                )
+            }
         }
     }
 }

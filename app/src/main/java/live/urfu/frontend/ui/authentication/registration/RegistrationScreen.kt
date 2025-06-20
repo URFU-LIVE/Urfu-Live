@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.authentication.registration
 
-import RegistrationViewModel
+import PrivacyPolicyOverlay
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -50,12 +50,14 @@ fun RegistrationScreen(
     var currentStep by remember { mutableIntStateOf(1) }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPassword by remember { mutableStateOf("") }
+    var showPrivacyPolicy by remember { mutableStateOf(false) }
 
     val loginValue by viewModel.login.collectAsState()
     val mailValue by viewModel.mail.collectAsState()
     val nameValue by viewModel.name.collectAsState()
     val birthDateValue by viewModel.birthDate.collectAsState()
     val passwordValue by viewModel.password.collectAsState()
+    val privacyAccepted by viewModel.privacyPolicyAccepted.collectAsState()
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -145,6 +147,9 @@ fun RegistrationScreen(
                     onConfirmValueChange = { confirmPassword = it },
                     passwordVisible = passwordVisible,
                     onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
+                    privacyAccepted = privacyAccepted,
+                    onPrivacyAcceptedChange = { viewModel.onPrivacyPolicyAcceptedChange(it) },
+                    onPrivacyPolicyClick = { showPrivacyPolicy = true },
                     isSmallScreen = isSmallScreen
                 )
             }
@@ -261,6 +266,7 @@ fun RegistrationScreen(
                             passwordValue,
                             nameValue,
                             birthDateValue,
+                            privacyAccepted,
                             registerCallback
                         )
                     }
@@ -271,7 +277,7 @@ fun RegistrationScreen(
                 2 -> nameValue.isNotBlank()
                 3 -> mailValue.isNotBlank()
                 4 -> birthDateValue.length >= 8
-                5 -> passwordValue.isNotBlank() && confirmPassword.isNotBlank() && passwordValue == confirmPassword
+                5 -> passwordValue.isNotBlank() && confirmPassword.isNotBlank() && passwordValue == confirmPassword && privacyAccepted
                 else -> false
             },
             buttonText = if (currentStep == 5) "Зарегистрироваться" else "Далее",
@@ -279,6 +285,11 @@ fun RegistrationScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 15.dp),
             isSmallScreen = isSmallScreen
+        )
+
+        PrivacyPolicyOverlay(
+            isVisible = showPrivacyPolicy,
+            onDismiss = { showPrivacyPolicy = false }
         )
     }
     currentSnackBar?.let { snackBar ->
@@ -466,6 +477,9 @@ private fun PasswordStep(
     onConfirmValueChange: (String) -> Unit,
     passwordVisible: Boolean,
     onPasswordVisibilityToggle: () -> Unit,
+    privacyAccepted: Boolean,
+    onPrivacyAcceptedChange: (Boolean) -> Unit,
+    onPrivacyPolicyClick: () -> Unit,
     isSmallScreen: Boolean
 ) {
     RegistrationStepTemplate(
@@ -542,6 +556,13 @@ private fun PasswordStep(
                         .padding(start = 11.5.dp)
                 )
             }
+            Spacer(modifier = Modifier.height(20.dp))
+
+            PrivacyConsentCheckbox(
+                isChecked = privacyAccepted,
+                onCheckedChange = onPrivacyAcceptedChange,
+                onPrivacyPolicyClick = onPrivacyPolicyClick,
+            )
         },
         isSmallScreen = isSmallScreen
     )

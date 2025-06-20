@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import live.urfu.frontend.data.api.BaseViewModel
 
-class CommentsViewModel(private val postId: Long) : BaseViewModel() {
+class CommentsViewModel(private val postId: Long,  private val onCommentAdded: (() -> Unit)? = null) : BaseViewModel() {
 
     private val commentApiService = CommentApiService()
     private val dtoManager = DtoManager()
@@ -43,6 +43,7 @@ class CommentsViewModel(private val postId: Long) : BaseViewModel() {
             tag = "CommentsViewModel",
             action = { commentApiService.create(postId, text) },
             onSuccess = {
+                onCommentAdded?.invoke()
                 loadComments()
             },
             onError = { error ->
@@ -52,11 +53,14 @@ class CommentsViewModel(private val postId: Long) : BaseViewModel() {
     }
 }
 
-class CommentsViewModelFactory(private val postId: Long) : ViewModelProvider.Factory {
+class CommentsViewModelFactory(
+    private val postId: Long,
+    private val onCommentAdded: (() -> Unit)? = null
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CommentsViewModel::class.java)) {
-            return CommentsViewModel(postId) as T
+            return CommentsViewModel(postId, onCommentAdded) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -11,5 +11,5 @@ data class PostDto(
     val createdAt: List<Int>,
     val tags: List<TagDto>,
     val likedBy: List<Int>,
-    val comments: List<CommentDto>
+    val comments: List<CommentDto>? = null
 )

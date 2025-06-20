@@ -209,6 +209,8 @@ fun PostCard(
     val rememberedPost = remember(post) { post }
 
     val isLiked = viewModel.isPostLikedByCurrentUser(post.id)
+    val bookmarkedPosts by viewModel.bookmarkedPosts.collectAsState()
+    val isBookmarked = bookmarkedPosts.contains(post.id)
 
     val likeScale by remember { mutableStateOf(1f) }
     val animatedLikeScale by animateFloatAsState(
@@ -445,14 +447,33 @@ fun PostCard(
                     style = adaptiveTextStyle(MaterialTheme.typography.displayLarge, screenInfo),
                 )
 
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .clickable {
+                            viewModel.savePost(post)
+                        }
+                        .size(iconSize)
+                        .scale(animatedLikeScale)
+                ) {
+
+                if (isBookmarked){
+                    Image(
+                        painter = painterResource(id = R.drawable.bookmarkfilling),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(pattern.reactionColorFilling),
+                        modifier = Modifier.size(28.dp) // TODO
+                    )
+                }
                 Image(
                     painter = painterResource(id = R.drawable.bookmarkbottom1),
                     contentDescription = "Bookmark",
                     colorFilter = ColorFilter.tint(pattern.reactionColor),
                     modifier = Modifier
-                        .clickable { viewModel.savePost(post)}
+                        .clickable { viewModel.toggleBookmark(post)}
                         .size(if (screenInfo.isCompact) 25.dp else 30.dp),
                 )
+                }
             }
         }
     }

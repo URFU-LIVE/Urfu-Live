@@ -41,6 +41,9 @@ class PostViewModel : BaseViewModel() {
 
     private val interestsStateRepository = InterestsStateRepository.getInstance()
 
+    private val _bookmarkedPosts = MutableStateFlow<Set<Long>>(emptySet())
+    val bookmarkedPosts: StateFlow<Set<Long>> = _bookmarkedPosts
+
     init {
         viewModelScope.launch {
             TokenManagerInstance.getInstance().userId.collect { userId ->
@@ -55,6 +58,7 @@ class PostViewModel : BaseViewModel() {
         }
 
         observeInterestsChanges()
+        loadBookmarkedPostsState()
     }
 
     private fun fetchPosts() {
@@ -332,10 +336,76 @@ class PostViewModel : BaseViewModel() {
     }
 
     fun savePost(post: Post) {
+        toggleBookmark(post)
+    }
+
+    fun incrementCommentsCount(postId: Long) {
         viewModelScope.launch {
-            PostManagerInstance.getInstance().savePost(post)
+            postsUpdateMutex.withLock {
+                val currentPosts = _posts.value.toMutableList()
+                val index = currentPosts.indexOfFirst { it.id == postId }
+
+                if (index != -1) {
+                    val currentPost = currentPosts[index]
+                    val updatedPost = currentPost.copy(comments = currentPost.comments + 1)
+                    currentPosts[index] = updatedPost
+                    _posts.value = currentPosts
+
+                    connectedSearchViewModels.forEach { searchViewModel ->
+                        searchViewModel.updatePostInSearchResults(updatedPost)
+                    }
+                }
+            }
         }
     }
+//    Будущий функционал
+//    fun decrementCommentsCount(postId: Long) {
+//        viewModelScope.launch {
+//            postsUpdateMutex.withLock {
+//                val currentPosts = _posts.value.toMutableList()
+//                val index = currentPosts.indexOfFirst { it.id == postId }
+//
+//                if (index != -1) {
+//                    val currentPost = currentPosts[index]
+//                    val updatedPost = currentPost.copy(
+//                        comments = maxOf(0, currentPost.comments - 1)
+//                    )
+//                    currentPosts[index] = updatedPost
+//                    _posts.value = currentPosts
+//
+//                    connectedSearchViewModels.forEach { searchViewModel ->
+//                        searchViewModel.updatePostInSearchResults(updatedPost)
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+    private fun loadBookmarkedPostsState() {
+        viewModelScope.launch {
+            val savedPostIds = PostManagerInstance.getInstance().getSavedPostBlocking()
+            _bookmarkedPosts.value = savedPostIds
+        }
+    }
+
+    private fun isPostBookmarked(postId: Long): Boolean {
+        return _bookmarkedPosts.value.contains(postId)
+    }
+
+    fun toggleBookmark(post: Post) {
+        viewModelScope.launch {
+            val isCurrentlyBookmarked = isPostBookmarked(post.id)
+
+            if (isCurrentlyBookmarked) {
+                PostManagerInstance.getInstance().removePost(post)
+                _bookmarkedPosts.value -= post.id
+            } else {
+                PostManagerInstance.getInstance().savePost(post)
+                _bookmarkedPosts.value += post.id
+            }
+        }
+    }
+
 }
 
 data class PostUiState(
