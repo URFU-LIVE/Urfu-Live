@@ -356,8 +356,8 @@ fun SavedPostCard(
                     )
                 )
             }
-            }
         }
+    }
 }
 
 
