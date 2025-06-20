@@ -228,7 +228,7 @@ fun PostCard(
     val avatarSize = AdaptiveSizes.authorAvatarSize(screenInfo)
     val buttonPadding = AdaptiveSizes.buttonPadding(screenInfo)
 
-    val userId = viewModel.currentUserId;
+    val userId = viewModel.currentUserId
 
     Box(
         modifier = Modifier

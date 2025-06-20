@@ -4,10 +4,8 @@ import NavbarCallbacks
 import live.urfu.frontend.ui.snackBar.TopSnackBarWithDismiss
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,7 +37,6 @@ import live.urfu.frontend.ui.snackBar.SnackBarManager
 import live.urfu.frontend.ui.snackBar.SnackBarMessage
 import live.urfu.frontend.ui.snackBar.SnackBarType
 
-@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun EditProfile(

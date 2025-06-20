@@ -10,6 +10,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import live.urfu.frontend.data.api.UserApiService
+import live.urfu.frontend.ui.authentication.registration.RegistrationScreen
 import live.urfu.frontend.ui.comments.CommentsScreen
 import live.urfu.frontend.ui.main.PostViewModel
 import live.urfu.frontend.ui.profile.edit.EditProfile

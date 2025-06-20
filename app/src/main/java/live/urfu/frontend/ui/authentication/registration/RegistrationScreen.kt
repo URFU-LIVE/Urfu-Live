@@ -1,3 +1,6 @@
+package live.urfu.frontend.ui.authentication.registration
+
+import RegistrationViewModel
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.activity.compose.BackHandler
