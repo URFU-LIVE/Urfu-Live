@@ -26,7 +26,9 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 import live.urfu.frontend.R
 import live.urfu.frontend.data.DTOs.AuthResponse
 import live.urfu.frontend.ui.snackBar.SnackBarManager
@@ -63,6 +65,19 @@ fun RegistrationScreen(
     val currentSnackBar by snackBarManager.currentMessage.collectAsState()
 
     val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
+
+    var isSnackBarVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(currentSnackBar) {
+        isSnackBarVisible = currentSnackBar != null
+    }
+
+    LaunchedEffect(isSnackBarVisible) {
+        if (!isSnackBarVisible && currentSnackBar != null) {
+            delay(300)
+            snackBarManager.dismissCurrent()
+        }
+    }
+
 
     val registerCallback = remember {
         object : RegistrationViewModel.RegisterCallback {
@@ -265,12 +280,19 @@ fun RegistrationScreen(
                 .padding(bottom = 15.dp),
             isSmallScreen = isSmallScreen
         )
-
-        currentSnackBar?.let { snackBar ->
+    }
+    currentSnackBar?.let { snackBar ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(Float.MAX_VALUE)
+        ) {
             TopSnackBarWithDismiss(
                 message = snackBar.message,
-                visible = true,
-                onDismiss = { snackBarManager.dismissCurrent() },
+                visible = isSnackBarVisible,
+                onDismiss = {
+                    isSnackBarVisible = false
+                },
                 backgroundColor = when (snackBar.type) {
                     SnackBarType.SUCCESS -> Color(0xFF4CAF50)
                     SnackBarType.ERROR -> Color(0xFFB00020)

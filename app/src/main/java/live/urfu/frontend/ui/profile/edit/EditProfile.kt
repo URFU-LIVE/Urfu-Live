@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import kotlinx.coroutines.delay
 import live.urfu.frontend.R
 import live.urfu.frontend.ui.footer.BottomNavBar
 import live.urfu.frontend.ui.createarticle.CreateArticle
@@ -62,6 +63,7 @@ fun EditProfile(
 
     val snackBarManager = remember { SnackBarManager() }
     val currentSnackBar by snackBarManager.currentMessage.collectAsState()
+    var isSnackBarVisible by remember { mutableStateOf(false) }
 
     val avatarGalleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -73,6 +75,17 @@ fun EditProfile(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { viewModel.onBackgroundImageSelected(context, it) }
+    }
+
+    LaunchedEffect(currentSnackBar) {
+        isSnackBarVisible = currentSnackBar != null
+    }
+
+    LaunchedEffect(isSnackBarVisible) {
+        if (!isSnackBarVisible && currentSnackBar != null) {
+            delay(300)
+            snackBarManager.dismissCurrent()
+        }
     }
 
     LaunchedEffect(showBackgroundSuccess) {
@@ -291,20 +304,6 @@ fun EditProfile(
             }
         }
 
-        currentSnackBar?.let { snackBar ->
-            TopSnackBarWithDismiss(
-                message = snackBar.message,
-                visible = true,
-                onDismiss = { snackBarManager.dismissCurrent() },
-                backgroundColor = when (snackBar.type) {
-                    SnackBarType.SUCCESS -> Color(0xFF4CAF50)
-                    SnackBarType.ERROR -> Color(0xFFB00020)
-                    SnackBarType.INFO -> Color(0xFF2196F3)
-                },
-                autoHideDuration = snackBar.duration,
-            )
-        }
-
         BottomNavBar(
             onProfileClick = onClose,
             onCreateArticleClick = { showCreateArticle = true },
@@ -314,6 +313,27 @@ fun EditProfile(
             currentScreen = currentScreen,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+    }
+    currentSnackBar?.let { snackBar ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(Float.MAX_VALUE)
+        ) {
+            TopSnackBarWithDismiss(
+                message = snackBar.message,
+                visible = isSnackBarVisible,
+                onDismiss = {
+                    isSnackBarVisible = false
+                },
+                backgroundColor = when (snackBar.type) {
+                    SnackBarType.SUCCESS -> Color(0xFF4CAF50)
+                    SnackBarType.ERROR -> Color(0xFFB00020)
+                    SnackBarType.INFO -> Color(0xFF2196F3)
+                },
+                autoHideDuration = snackBar.duration,
+            )
+        }
     }
 }
 
