@@ -385,7 +385,7 @@ fun PostCard(
                     text = rememberedPost.text,
                     style = adaptiveTextStyle(MaterialTheme.typography.displayMedium, screenInfo),
                     color = pattern.textColor,
-                    maxLines = if (screenInfo.isCompact) 2 else 9,
+                    maxLines = if (screenInfo.isCompact) 2 else 8,
                     overflow = TextOverflow.Ellipsis
                 )
             }
