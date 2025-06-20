@@ -1,6 +1,6 @@
 package live.urfu.frontend
 
-import AppNavHost
+import live.urfu.frontend.ui.AppNavHost
 import live.urfu.frontend.data.manager.TokenManager
 import android.os.Build
 import android.os.Bundle

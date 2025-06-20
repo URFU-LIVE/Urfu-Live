@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.settings.privacy
 
-import NavbarCallbacks
+import live.urfu.frontend.ui.NavbarCallbacks
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

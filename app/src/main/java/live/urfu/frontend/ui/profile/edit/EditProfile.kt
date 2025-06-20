@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.profile.edit
 
-import NavbarCallbacks
+import live.urfu.frontend.ui.NavbarCallbacks
 import live.urfu.frontend.ui.snackBar.TopSnackBarWithDismiss
 import android.annotation.SuppressLint
 import android.net.Uri

@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.settings
 
-import NavbarCallbacks
+import live.urfu.frontend.ui.NavbarCallbacks
 import ScreenSizeInfo
 import SettingsAdaptiveSizes.settingsItemIconSize
 import live.urfu.frontend.data.manager.TokenManagerInstance
@@ -14,8 +14,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -59,6 +61,7 @@ fun SettingsScreen(
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val animatedAlpha = remember { Animatable(if (enableAnimation) 0f else 1f) }
     val animatedOffset = remember { Animatable(if (enableAnimation) screenHeight.value else 0f) }
+    val scrollState = rememberScrollState()
 
     val userState by viewModel.user.collectAsState()
     val scope = rememberCoroutineScope()
@@ -147,10 +150,10 @@ fun SettingsScreen(
             }
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth() .weight(1f)
+                    .verticalScroll(rememberScrollState()).padding(bottom = 110.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Адаптивный блок пользователя
                 if (userState != null) {
                     AsyncImage(
                         model = userState!!.avatarUrl,

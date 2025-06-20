@@ -1,3 +1,7 @@
+package live.urfu.frontend.ui
+
+import InterestsScreen
+import LoginScreen
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
@@ -28,9 +32,9 @@ import live.urfu.frontend.ui.settings.privacy.PrivacySettings
 import java.net.URLEncoder
 
 sealed class AuthState {
-    object Loading : AuthState()
-    object Authenticated : AuthState()
-    object Unauthenticated : AuthState()
+    data object Loading : AuthState()
+    data object Authenticated : AuthState()
+    data object Unauthenticated : AuthState()
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -41,7 +45,6 @@ fun AppNavHost() {
     val userApiService = UserApiService()
 
     val sharedPostViewModel: PostViewModel = viewModel()
-    val sharedSearchViewModel: SearchViewModel = viewModel()
 
     val authState = remember { mutableStateOf<AuthState>(AuthState.Loading) }
 
@@ -61,7 +64,6 @@ fun AppNavHost() {
         is AuthState.Loading -> "loading"
         is AuthState.Authenticated -> "main"
         is AuthState.Unauthenticated -> "login"
-        else -> "loading"
     }
 
 
@@ -83,7 +85,7 @@ fun AppNavHost() {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                onRestorePasswordClick = {  },
+                onRestorePasswordClick = { },
                 onLoginSuccess = {
                     navController.navigate("main") {
                         popUpTo("login") { inclusive = true }
@@ -125,7 +127,6 @@ fun AppNavHost() {
         composable("main") {
             MainScreenWithOverlays(
                 navController = navController,
-                profileViewModel = profileViewModel,
                 sharedPostViewModel = sharedPostViewModel
             )
         }
@@ -266,7 +267,6 @@ fun AppNavHost() {
             SearchScreen(
                 initialTag = selectedTag,
                 onClose = {
-                    println("🗺️ AppNavHost: SearchScreen onClose called")
                     navController.popBackStack()
                 },
                 onAuthorClick = { authorId ->
@@ -307,16 +307,14 @@ fun AppNavHost() {
                 postId = postId,
                 onClose = {
                     if (searchTag.isNotEmpty()) {
-                        // Декодируем наш тег
                         val decodedTag = java.net.URLDecoder.decode(
                             searchTag,
                             "UTF-8"
-                        )                // Просто "прыгаем" обратно к тому entry "search?tag=…", если он есть
+                        )
                         val targetRoute = "search?tag=$decodedTag"
                         if (navController.popBackStack(targetRoute, /* inclusive = */ false)) {
                             // успешно вернулись
                         } else {
-                            // такого entry нет — просто назад
                             navController.popBackStack()
                         }
                     } else {
@@ -336,7 +334,6 @@ fun AppNavHost() {
         ) { backStackEntry ->
             val authorId = backStackEntry.arguments?.getString("authorId") ?: ""
 
-            // Создаем отдельную ViewModel для профиля автора
             val authorProfileViewModel: ProfileViewModel = viewModel()
 
             LaunchedEffect(authorId) {
@@ -397,7 +394,6 @@ fun AppNavHost() {
 @Composable
 fun MainScreenWithOverlays(
     navController: NavHostController,
-    profileViewModel: ProfileViewModel, // todo
     sharedPostViewModel: PostViewModel,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -423,7 +419,7 @@ fun commonNavbarCallbacks(navController: NavHostController) = NavbarCallbacks(
     },
     onSavedClick = { navController.navigate("savedPosts") },
     onCreateArticleClick = {
-        // Implement article creation
+
     },
     onMessagesClick = { navController.navigate("messages") },
     onProfileClick = { navController.navigate("profile") }

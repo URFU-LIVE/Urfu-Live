@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.settings.account
 
-import NavbarCallbacks
+import live.urfu.frontend.ui.NavbarCallbacks
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

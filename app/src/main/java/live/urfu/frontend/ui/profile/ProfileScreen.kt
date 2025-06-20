@@ -1,6 +1,6 @@
 package live.urfu.frontend.ui.profile
 
-import NavbarCallbacks
+import live.urfu.frontend.ui.NavbarCallbacks
 import live.urfu.frontend.ui.main.TagChip
 import live.urfu.frontend.ui.main.TagSizes
 import android.annotation.SuppressLint

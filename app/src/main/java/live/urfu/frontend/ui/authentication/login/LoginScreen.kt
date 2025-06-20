@@ -65,6 +65,10 @@ fun LoginScreen(
         isSmallScreen -> 1.dp
         else -> 30.dp
     }
+    val topPadding = when {
+        isSmallScreen -> 30.dp
+        else -> 55.dp
+    }
 
     Column(
         modifier = Modifier
@@ -73,7 +77,7 @@ fun LoginScreen(
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(30.dp)) //todo Тут надо поменять - задачка для Артема
+        Spacer(modifier = Modifier.height(topPadding))
 
         Image(
             painter = painterResource(id = R.drawable.loginlogo),
